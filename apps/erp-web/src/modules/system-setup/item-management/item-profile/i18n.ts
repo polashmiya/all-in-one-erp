@@ -30,7 +30,6 @@ export const itemProfileResources: AppResources = {
 
     'item.form.newTitle': 'New item',
     'item.form.editTitle': 'Edit item',
-    'item.form.subtitle': 'Business unit: {{unit}}',
     'item.form.save': 'Save item',
     'item.form.saveNew': 'Save & new',
     'item.form.saved': 'Item {{code}} saved',
@@ -153,7 +152,6 @@ export const itemProfileResources: AppResources = {
 
     'item.form.newTitle': 'নতুন আইটেম',
     'item.form.editTitle': 'আইটেম সম্পাদনা',
-    'item.form.subtitle': 'বিজনেস ইউনিট: {{unit}}',
     'item.form.save': 'আইটেম সংরক্ষণ',
     'item.form.saveNew': 'সংরক্ষণ করে নতুন',
     'item.form.saved': 'আইটেম {{code}} সংরক্ষিত হয়েছে',

@@ -12,7 +12,6 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
-import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
 import { useRefreshItemManagement, useUnitKey } from '../../common/master-data';
 import { GeneralSection } from '../components/GeneralSection';
@@ -59,7 +58,6 @@ function ItemForm({ item, copyFrom }: { item?: ItemDetail; copyFrom?: ItemDetail
   const { t } = useTranslation();
   const { message } = App.useApp();
   const navigate = useNavigate();
-  const unit = useAuthStore(selectCurrentUnit);
   const [form] = Form.useForm<ItemFormValues>();
   const lookups = useItemLookups();
   const create = useCreateItem();
@@ -109,7 +107,6 @@ function ItemForm({ item, copyFrom }: { item?: ItemDetail; copyFrom?: ItemDetail
             : { tone: 'neutral', label: t('master.inactive') }
           : undefined
       }
-      subTitle={t('item.form.subtitle', { unit: unit?.name ?? '' })}
       backTo={item ? itemPaths.view(item.id) : itemPaths.list}
       crumbs={[item ? item.code : t('item.form.newTitle')]}
       cancelTo={item ? itemPaths.view(item.id) : itemPaths.list}
