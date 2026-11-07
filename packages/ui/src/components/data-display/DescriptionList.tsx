@@ -6,24 +6,31 @@ export interface DescriptionItem {
   value: ReactNode;
   labelExtra?: ReactNode;
   code?: boolean;
+  wide?: boolean;
 }
 
 export function DescriptionList({
   items,
   minColumnWidth = 200,
+  columns,
 }: {
   items: DescriptionItem[];
   minColumnWidth?: number;
+  columns?: 2 | 3 | 4;
 }) {
   return (
     <dl
-      className="erp-dl"
-      style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))` }}
+      className={columns ? `erp-dl erp-dl--grid erp-field-grid--${columns}` : 'erp-dl'}
+      style={
+        columns
+          ? undefined
+          : { gridTemplateColumns: `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))` }
+      }
     >
       {items.map((item) => {
         const empty = item.value === null || item.value === undefined || item.value === '';
         return (
-          <div key={item.key} className="erp-dl__item">
+          <div key={item.key} className={item.wide ? 'erp-dl__item is-wide' : 'erp-dl__item'}>
             <dt>
               {item.label}
               {item.labelExtra}

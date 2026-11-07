@@ -3,11 +3,11 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  EyeOutlined,
   PlusOutlined,
   StopOutlined,
 } from '@ant-design/icons';
 import {
-  ActionGroup,
   downloadCsv,
   ForbiddenResult,
   formatDateTime,
@@ -18,6 +18,7 @@ import {
   type ListFilters,
   type ListFilterDef,
   type ListState,
+  type RowAction,
   useUndoMessage,
 } from '@erp/ui';
 import { App, type TableColumnsType } from 'antd';
@@ -47,6 +48,7 @@ export interface MasterListPageProps<T extends MasterRow, F extends ListFilters>
   empty: { title: string; description: string };
   onCreate: () => void;
   onEdit: (row: T) => void;
+  onView?: (row: T) => void;
   onSetStatus: (ids: number[], isActive: boolean) => Promise<unknown>;
   onDelete: (ids: number[]) => Promise<unknown>;
   children?: ReactNode;
@@ -70,6 +72,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
   empty,
   onCreate,
   onEdit,
+  onView,
   onSetStatus,
   onDelete,
   children,
@@ -153,35 +156,27 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
     }
   };
 
-  const rowActions = (row: T): ActionItem[] => [
+  const rowActions = (row: T): RowAction[] => [
+    {
+      key: 'view',
+      label: t('master.view'),
+      icon: <EyeOutlined />,
+      hidden: !onView,
+      onClick: () => onView?.(row),
+    },
     {
       key: 'edit',
       label: t('master.edit'),
       icon: <EditOutlined />,
-      variant: 'text',
-      iconOnly: true,
       hidden: !access.edit,
       onClick: () => onEdit(row),
     },
     {
-      key: 'toggle',
+      key: 'status',
       label: row.isActive ? t('master.deactivate') : t('master.activate'),
+      checked: row.isActive,
       hidden: !access.edit,
       onClick: () => changeStatus([row.id], !row.isActive),
-    },
-    { key: 'divider', label: '', divider: true, hidden: !access.edit || !access.delete },
-    {
-      key: 'delete',
-      label: t('master.delete'),
-      danger: true,
-      hidden: !access.delete,
-      confirm: {
-        title: t('master.deleteOne', { name: row.name }),
-        description: t('master.deleteHint'),
-        okText: t('master.delete'),
-        danger: true,
-      },
-      onClick: () => remove([row.id]),
     },
   ];
 
@@ -203,15 +198,6 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
       render: (_, row) => formatDateTime(row.modifiedAt ?? row.createdAt),
     },
   ];
-
-  if (access.edit || access.delete) {
-    allColumns.push({
-      key: 'actions',
-      title: t('master.colActions'),
-      fixed: 'right',
-      render: (_, row) => <ActionGroup actions={rowActions(row)} size="small" overflowAfter={1} />,
-    });
-  }
 
   const newAction: ActionItem = {
     key: 'new',
@@ -246,6 +232,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
           { key: 'inactive', label: t('master.viewInactive'), count: data?.counts.inactive },
         ]}
         columns={allColumns}
+        rowActions={onView || access.edit ? rowActions : undefined}
         rows={rows}
         rowKey={(row) => row.id}
         total={data?.total}

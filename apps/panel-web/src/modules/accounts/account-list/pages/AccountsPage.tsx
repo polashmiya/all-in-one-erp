@@ -9,7 +9,6 @@ import {
 } from '@ant-design/icons';
 import { useListAccounts, type AccountListItem } from '@erp/api-client';
 import {
-  ActionGroup,
   DotValue,
   formatDate,
   formatNumber,
@@ -123,26 +122,6 @@ export function AccountsPage() {
       sorter: true,
       render: (_, account) => formatDate(account.createdAt),
     },
-    {
-      key: 'actions',
-      title: t('accounts.col.actions'),
-      fixed: 'right',
-      render: (_, account) => (
-        <ActionGroup
-          size="small"
-          actions={[
-            {
-              key: 'view',
-              label: t('accounts.view'),
-              icon: <EyeOutlined />,
-              variant: 'text',
-              iconOnly: true,
-              onClick: () => setSelectedId(account.id),
-            },
-          ]}
-        />
-      ),
-    },
   ];
 
   return (
@@ -201,6 +180,14 @@ export function AccountsPage() {
           label: t(`accounts.tab.${key}`),
         }))}
         columns={columns}
+        rowActions={(account) => [
+          {
+            key: 'view',
+            label: t('accounts.view'),
+            icon: <EyeOutlined />,
+            onClick: () => setSelectedId(account.id),
+          },
+        ]}
         rows={result?.items}
         rowKey="id"
         total={result?.total}

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { StatusTone } from '../data-display/StatusTag';
 
 export type ActionVariant = 'primary' | 'default' | 'dashed' | 'text' | 'link' | 'soft' | 'danger';
 
@@ -23,6 +24,7 @@ export interface ActionItem {
   tooltip?: ReactNode;
   iconOnly?: boolean;
   danger?: boolean;
+  tone?: StatusTone;
   confirm?: ActionConfirm;
   menu?: ActionItem[];
   htmlType?: 'button' | 'submit';

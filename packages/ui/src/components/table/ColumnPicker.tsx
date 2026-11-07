@@ -82,7 +82,6 @@ export function ColumnPicker({
         <Button
           type="text"
           size="small"
-          className="erp-colpicker__btn"
           icon={<Icon component={ColumnsSvg} />}
           aria-label={t('table.columns')}
         />

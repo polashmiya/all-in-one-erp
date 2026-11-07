@@ -97,29 +97,6 @@ export function DataTable<T extends object>({
     [columns, hidden, sort, screens.md],
   );
 
-  const picker = hideable.length > 0 && (
-    <ColumnPicker
-      columns={hideable}
-      hidden={hidden}
-      onChange={(next) => updateSettings({ hidden: next })}
-    />
-  );
-  const lastColumn = visibleColumns.at(-1);
-  const tableColumns: ColumnType<T>[] = !picker
-    ? visibleColumns
-    : lastColumn?.key === 'actions'
-      ? [...visibleColumns.slice(0, -1), { ...lastColumn, title: picker }]
-      : [
-          ...visibleColumns,
-          {
-            key: '__columns',
-            title: picker,
-            width: 48,
-            fixed: screens.md === false ? undefined : 'right',
-            render: () => null,
-          },
-        ];
-
   const onChange: TableProps<T>['onChange'] = (pag, filters, sorter, extra) => {
     if (extra.action === 'sort' && onSortChange) {
       const s = Array.isArray(sorter) ? sorter[0] : sorter;
@@ -140,6 +117,13 @@ export function DataTable<T extends object>({
 
   const tools = (
     <>
+      {hideable.length > 0 && (
+        <ColumnPicker
+          columns={hideable}
+          hidden={hidden}
+          onChange={(next) => updateSettings({ hidden: next })}
+        />
+      )}
       <Tooltip title={t('table.density')}>
         <Button
           type="text"
@@ -211,7 +195,7 @@ export function DataTable<T extends object>({
       <div ref={scrollRef} className="erp-table__scroll erp-scroll">
         <Table<T>
           size={density}
-          columns={tableColumns}
+          columns={visibleColumns}
           pagination={false}
           sticky={fill ? { getContainer: () => scrollRef.current ?? window } : true}
           scroll={{ x: 'max-content' }}

@@ -8,6 +8,7 @@ import { useHotkey } from '../../hooks/useHotkey';
 import { FilterSelect, type FilterOption } from '../../components/dropdown/FilterSelect';
 import { FilterBar, QuickViews, SearchInput } from '../../components/filters/filters';
 import { DataTable, type DataTableEmpty } from '../../components/table/DataTable';
+import { RowActions, type RowAction } from '../../components/table/RowActions';
 import type { ListFilters, ListSort, ListState } from '../../hooks/useListState';
 import { PageContainer } from '../page/PageContainer';
 
@@ -38,6 +39,7 @@ export interface ListPageLayoutProps<
   filters?: ListFilterDef<F>[];
   views?: ListViewDef<V>[];
   columns: TableColumnsType<T>;
+  rowActions?: (row: T) => RowAction[];
   rows?: T[];
   rowKey: Extract<keyof T, string> | ((row: T) => Key);
   total?: number;
@@ -82,6 +84,7 @@ export function ListPageLayout<
   filters = [],
   views,
   columns,
+  rowActions,
   rows,
   rowKey,
   total = 0,
@@ -108,11 +111,23 @@ export function ListPageLayout<
   const serialColumn: TableColumnsType<T>[number] = {
     key: 'sl',
     title: t('table.sl'),
-    width: 56,
+    width: 44,
     align: 'center',
     fixed: 'left',
     render: (_value, _row, index) => (state.page - 1) * state.pageSize + index + 1,
   };
+  const actionColumns: TableColumnsType<T> = rowActions
+    ? [
+        {
+          key: 'actions',
+          title: t('table.actions'),
+          width: 72,
+          align: 'center',
+          fixed: 'left',
+          render: (_value, row) => <RowActions actions={rowActions(row)} />,
+        },
+      ]
+    : [];
   const filteredEmpty: DataTableEmpty = {
     title: t('common.noMatchTitle'),
     description: t('common.noMatchText'),
@@ -167,7 +182,7 @@ export function ListPageLayout<
         toolsContainer={hasFilterBar ? toolsEl : undefined}
         settingsKey={pathname}
         rowKey={rowKey}
-        columns={[serialColumn, ...columns]}
+        columns={[serialColumn, ...actionColumns, ...columns]}
         dataSource={rows}
         loading={loading}
         sort={state.sort}

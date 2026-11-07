@@ -22,7 +22,6 @@ import {
   formatMoney,
   formatNumber,
   formatPercent,
-  SectionCard,
   StatusTag,
 } from '@erp/ui';
 import { App } from 'antd';
@@ -31,7 +30,6 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import { problemMessage } from '@/common/utils/api-errors';
-import '../../common/master-data.css';
 import { useRefreshItemManagement, useUnitKey } from '../../common/master-data';
 import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 
@@ -68,7 +66,12 @@ function ItemView({ item }: { item: ItemDetail }) {
   const setStatus = useSetItemsStatus();
   const remove = useDeleteItem();
   const refresh = useRefreshItemManagement();
-  const yesNo = (on: boolean) => (on ? t('common.yes') : t('common.no'));
+  const flag = (on: boolean) => (
+    <StatusTag tone={on ? 'success' : 'neutral'} dot>
+      {on ? t('common.yes') : t('common.no')}
+    </StatusTag>
+  );
+  const percent = (value?: number | null) => (value == null ? null : formatPercent(value));
 
   const failed = (error: unknown) => void message.error(problemMessage(error, t('master.failed')));
 
@@ -95,12 +98,175 @@ function ItemView({ item }: { item: ItemDetail }) {
     }
   };
 
+  const general = (
+    <>
+      <DetailSection title={t('item.sec.basic')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'name', label: t('item.f.name'), value: item.name },
+            { key: 'type', label: t('item.f.itemType'), value: item.itemTypeName },
+            { key: 'hs', label: t('item.f.hsCode'), value: item.hsCode, code: true },
+            { key: 'code', label: t('item.f.code'), value: item.code, code: true },
+            {
+              key: 'description',
+              label: t('item.f.description'),
+              value: item.description,
+              wide: true,
+            },
+          ]}
+        />
+      </DetailSection>
+      <DetailSection title={t('item.sec.classification')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'department', label: t('item.f.department'), value: item.departmentName },
+            { key: 'category', label: t('item.f.category'), value: item.categoryName },
+            { key: 'sub', label: t('item.f.subCategory'), value: item.subCategoryName },
+            { key: 'minor', label: t('item.f.minorCategory'), value: item.minorCategoryName },
+          ]}
+        />
+      </DetailSection>
+      <DetailSection title={t('item.sec.barcode')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'auto', label: t('item.f.autoBarcode'), value: flag(item.isAutoBarcode) },
+            { key: 'barcode', label: t('item.f.barcode'), value: item.barCode, code: true },
+            { key: 'child', label: t('item.f.childBarcode'), value: flag(item.isChildBarcode) },
+            {
+              key: 'master',
+              label: t('item.f.masterItem'),
+              value: item.masterItemId ? (
+                <Link to={itemPaths.view(item.masterItemId)}>
+                  {item.masterItemName} ({item.masterItemCode})
+                </Link>
+              ) : null,
+            },
+          ]}
+        />
+      </DetailSection>
+    </>
+  );
+
+  const pricing = (
+    <>
+      <DetailSection title={t('item.sec.units')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'uom', label: t('item.f.uom'), value: item.uomName },
+            { key: 'decimal', label: t('item.f.noDecimal'), value: flag(item.isNoDecimalQty) },
+            { key: 'alt', label: t('item.f.altUom'), value: item.altUomName },
+            {
+              key: 'conversion',
+              label: t('item.f.conversion'),
+              value: item.altUomName
+                ? t('item.v.conversion', {
+                    alt: item.altUomName,
+                    qty: formatNumber(item.altUomConversionQty, 2),
+                    uom: item.uomName,
+                  })
+                : null,
+            },
+          ]}
+        />
+      </DetailSection>
+      <DetailSection title={t('item.sec.prices')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'last', label: t('item.f.lastCost'), value: formatMoney(item.lastCostPrice) },
+            {
+              key: 'average',
+              label: t('item.f.averageCost'),
+              value: formatMoney(item.averageCostPrice),
+            },
+            { key: 'sales', label: t('item.f.salesPrice'), value: formatMoney(item.salesPrice) },
+            { key: 'supplier', label: t('item.f.supplier'), value: item.supplierName },
+          ]}
+        />
+      </DetailSection>
+    </>
+  );
+
+  const tax = (
+    <DetailSection title={t('item.tab.tax')}>
+      <DescriptionList
+        columns={4}
+        items={[
+          {
+            key: 'pType',
+            label: t('item.v.purchaseSupplyType'),
+            value: item.purchaseSupplyTypeName,
+          },
+          {
+            key: 'pVat',
+            label: t('item.v.purchaseVat'),
+            value: percent(item.purchaseVatPercentage),
+          },
+          { key: 'sType', label: t('item.v.salesSupplyType'), value: item.salesSupplyTypeName },
+          { key: 'sVat', label: t('item.v.salesVat'), value: percent(item.salesVatPercentage) },
+          { key: 'sd', label: t('item.f.sd'), value: percent(item.sdPercentage) },
+          { key: 'inclusive', label: t('item.f.vatInclusive'), value: flag(item.isVatInclusive) },
+          { key: 'rebate', label: t('item.f.vatRebatable'), value: flag(item.isVatRebatable) },
+        ]}
+      />
+    </DetailSection>
+  );
+
+  const status = (
+    <>
+      <DetailSection title={t('item.side.usage')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'active', label: t('item.f.active'), value: flag(item.isActive) },
+            { key: 'saleable', label: t('item.f.saleable'), value: flag(item.isSaleable) },
+            { key: 'purchase', label: t('item.f.purchasable'), value: flag(item.isPurchase) },
+            {
+              key: 'negative',
+              label: t('item.f.negativeSales'),
+              value: flag(item.isNegativeSales),
+            },
+            {
+              key: 'multiple',
+              label: t('item.f.multiplePrices'),
+              value: flag(item.isMultipleSalesPrice),
+            },
+          ]}
+        />
+      </DetailSection>
+      <DetailSection title={t('item.side.recordInfo')}>
+        <DescriptionList
+          columns={4}
+          items={[
+            { key: 'unit', label: t('item.side.businessUnit'), value: unit?.name },
+            { key: 'createdBy', label: t('item.side.createdBy'), value: item.createdByName },
+            {
+              key: 'created',
+              label: t('item.side.created'),
+              value: formatDateTime(item.createdAt),
+            },
+            { key: 'modifiedBy', label: t('item.side.modifiedBy'), value: item.modifiedByName },
+            {
+              key: 'updated',
+              label: t('item.side.updated'),
+              value: item.modifiedAt ? formatDateTime(item.modifiedAt) : null,
+            },
+          ]}
+        />
+      </DetailSection>
+    </>
+  );
+
   return (
     <DetailsPageLayout
       crumbs={[item.code]}
       header={{
         backTo: itemPaths.list,
-        icon: <AppstoreOutlined />,
+        icon: item.imageSource ? <img src={item.imageSource} alt="" /> : <AppstoreOutlined />,
         title: item.name,
         tags: (
           <>
@@ -173,163 +339,12 @@ function ItemView({ item }: { item: ItemDetail }) {
           },
         ],
       }}
-      stats={[
-        { key: 'sales', label: t('item.f.salesPrice'), value: formatMoney(item.salesPrice) },
-        { key: 'last', label: t('item.f.lastCost'), value: formatMoney(item.lastCostPrice) },
-        {
-          key: 'average',
-          label: t('item.f.averageCost'),
-          value: formatMoney(item.averageCostPrice),
-        },
-        {
-          key: 'vat',
-          label: t('item.v.salesVat'),
-          value: formatPercent(item.salesVatPercentage),
-          caption: item.salesSupplyTypeName,
-        },
+      tabs={[
+        { key: 'general', label: t('item.tab.general'), content: general },
+        { key: 'pricing', label: t('item.tab.pricing'), content: pricing },
+        { key: 'tax', label: t('item.tab.tax'), content: tax },
+        { key: 'status', label: t('item.tab.status'), content: status },
       ]}
-      aside={
-        <>
-          {item.imageSource && (
-            <SectionCard title={t('item.side.image')}>
-              <img
-                src={item.imageSource}
-                alt={item.name}
-                className="erp-record-avatar erp-w-full"
-              />
-            </SectionCard>
-          )}
-          <SectionCard title={t('item.side.usage')}>
-            <dl className="erp-dl-inline">
-              <dt>{t('item.f.saleable')}</dt>
-              <dd>{yesNo(item.isSaleable)}</dd>
-              <dt>{t('item.f.purchasable')}</dt>
-              <dd>{yesNo(item.isPurchase)}</dd>
-              <dt>{t('item.f.negativeSales')}</dt>
-              <dd>{yesNo(item.isNegativeSales)}</dd>
-              <dt>{t('item.f.multiplePrices')}</dt>
-              <dd>{yesNo(item.isMultipleSalesPrice)}</dd>
-            </dl>
-          </SectionCard>
-          <SectionCard title={t('item.side.recordInfo')}>
-            <dl className="erp-dl-inline">
-              <dt>{t('item.side.businessUnit')}</dt>
-              <dd>{unit?.name ?? '—'}</dd>
-              <dt>{t('item.side.createdBy')}</dt>
-              <dd>{item.createdByName ?? '—'}</dd>
-              <dt>{t('item.side.created')}</dt>
-              <dd>{formatDateTime(item.createdAt)}</dd>
-              {item.modifiedAt && (
-                <>
-                  <dt>{t('item.side.modifiedBy')}</dt>
-                  <dd>{item.modifiedByName ?? '—'}</dd>
-                  <dt>{t('item.side.updated')}</dt>
-                  <dd>{formatDateTime(item.modifiedAt)}</dd>
-                </>
-              )}
-            </dl>
-          </SectionCard>
-        </>
-      }
-    >
-      <DetailSection title={t('item.sec.basic')}>
-        <DescriptionList
-          items={[
-            { key: 'code', label: t('item.f.code'), value: item.code, code: true },
-            { key: 'name', label: t('item.f.name'), value: item.name },
-            { key: 'type', label: t('item.f.itemType'), value: item.itemTypeName },
-            { key: 'hs', label: t('item.f.hsCode'), value: item.hsCode, code: true },
-            {
-              key: 'barcode',
-              label: t('item.f.barcode'),
-              labelExtra: item.isAutoBarcode && <StatusTag>{t('item.v.generated')}</StatusTag>,
-              value: item.barCode,
-              code: true,
-            },
-            {
-              key: 'master',
-              label: t('item.f.masterItem'),
-              value: item.masterItemId ? (
-                <Link to={itemPaths.view(item.masterItemId)}>
-                  {item.masterItemName} ({item.masterItemCode})
-                </Link>
-              ) : null,
-            },
-            { key: 'supplier', label: t('item.f.supplier'), value: item.supplierName },
-          ]}
-        />
-      </DetailSection>
-      {item.description && (
-        <DetailSection title={t('item.f.description')}>
-          <p className="erp-prose">{item.description}</p>
-        </DetailSection>
-      )}
-      <DetailSection title={t('item.sec.classification')}>
-        <DescriptionList
-          items={[
-            { key: 'department', label: t('item.f.department'), value: item.departmentName },
-            { key: 'category', label: t('item.f.category'), value: item.categoryName },
-            { key: 'sub', label: t('item.f.subCategory'), value: item.subCategoryName },
-            { key: 'minor', label: t('item.f.minorCategory'), value: item.minorCategoryName },
-          ]}
-        />
-      </DetailSection>
-      <DetailSection title={t('item.sec.units')}>
-        <DescriptionList
-          items={[
-            { key: 'uom', label: t('item.f.uom'), value: item.uomName },
-            {
-              key: 'alt',
-              label: t('item.f.altUom'),
-              value: item.altUomName
-                ? t('item.v.conversion', {
-                    alt: item.altUomName,
-                    qty: formatNumber(item.altUomConversionQty, 2),
-                    uom: item.uomName,
-                  })
-                : null,
-            },
-            { key: 'decimal', label: t('item.f.noDecimal'), value: yesNo(item.isNoDecimalQty) },
-          ]}
-        />
-      </DetailSection>
-      <DetailSection title={t('item.tab.tax')}>
-        <DescriptionList
-          items={[
-            {
-              key: 'pType',
-              label: t('item.v.purchaseSupplyType'),
-              value: item.purchaseSupplyTypeName,
-            },
-            {
-              key: 'pVat',
-              label: t('item.v.purchaseVat'),
-              value:
-                item.purchaseVatPercentage == null
-                  ? null
-                  : formatPercent(item.purchaseVatPercentage),
-            },
-            { key: 'sType', label: t('item.v.salesSupplyType'), value: item.salesSupplyTypeName },
-            {
-              key: 'sVat',
-              label: t('item.v.salesVat'),
-              value:
-                item.salesVatPercentage == null ? null : formatPercent(item.salesVatPercentage),
-            },
-            {
-              key: 'sd',
-              label: t('item.f.sd'),
-              value: item.sdPercentage == null ? null : formatPercent(item.sdPercentage),
-            },
-            {
-              key: 'inclusive',
-              label: t('item.f.vatInclusive'),
-              value: yesNo(item.isVatInclusive),
-            },
-            { key: 'rebate', label: t('item.f.vatRebatable'), value: yesNo(item.isVatRebatable) },
-          ]}
-        />
-      </DetailSection>
-    </DetailsPageLayout>
+    />
   );
 }

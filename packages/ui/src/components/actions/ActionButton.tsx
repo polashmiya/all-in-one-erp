@@ -24,6 +24,7 @@ export function ActionButton({ action, size }: { action: ActionItem; size?: Acti
     <Button
       {...BUTTON_STYLE[action.variant ?? 'default']}
       danger={action.danger || action.variant === 'danger'}
+      className={action.tone && `erp-tone-btn erp-tag--${action.tone}`}
       size={size}
       icon={action.icon}
       loading={action.loading}

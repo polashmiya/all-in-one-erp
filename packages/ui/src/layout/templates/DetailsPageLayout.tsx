@@ -1,4 +1,3 @@
-import { Tabs } from 'antd';
 import type { ReactNode } from 'react';
 import type { ActionItem } from '../../components/actions/types';
 import { RecordHeader, type RecordHeaderProps } from '../../components/data-display/RecordHeader';
@@ -6,12 +5,9 @@ import { MiniStatGrid, type MiniStatItem } from '../../components/data-display/S
 import { PageState } from '../../components/feedback/PageState';
 import { PageContainer } from '../page/PageContainer';
 import { SplitLayout } from '../page/CardGrid';
+import { SectionTabs, type SectionTab } from './SectionTabs';
 
-export interface DetailsTab {
-  key: string;
-  label: ReactNode;
-  content: ReactNode;
-}
+export type DetailsTab = SectionTab;
 
 export interface DetailsPageLayoutProps {
   loading?: boolean;
@@ -22,7 +18,6 @@ export interface DetailsPageLayoutProps {
   header?: RecordHeaderProps;
   stats?: MiniStatItem[];
   tabs?: DetailsTab[];
-  tabsLabel?: string;
   children?: ReactNode;
   aside?: ReactNode;
 }
@@ -36,7 +31,6 @@ export function DetailsPageLayout({
   header,
   stats,
   tabs,
-  tabsLabel,
   children,
   aside,
 }: DetailsPageLayoutProps) {
@@ -53,16 +47,8 @@ export function DetailsPageLayout({
         <SplitLayout
           aside={aside}
           main={
-            <section className="erp-card">
-              {tabs ? (
-                <Tabs
-                  className="erp-card-tabs"
-                  aria-label={tabsLabel}
-                  items={tabs.map((tb) => ({ key: tb.key, label: tb.label, children: tb.content }))}
-                />
-              ) : (
-                children
-              )}
+            <section className={tabs ? 'erp-card erp-form-card' : 'erp-card'}>
+              {tabs ? <SectionTabs tabs={tabs} /> : children}
             </section>
           }
         />

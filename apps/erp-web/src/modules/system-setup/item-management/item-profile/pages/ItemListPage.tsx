@@ -169,6 +169,7 @@ export function ItemListPage() {
       empty={{ title: t('item.emptyTitle'), description: t('item.emptyText') }}
       onCreate={() => navigate(itemPaths.create)}
       onEdit={(row) => navigate(itemPaths.edit(row.id))}
+      onView={(row) => navigate(itemPaths.view(row.id))}
       onSetStatus={(ids, isActive) =>
         setStatus.mutateAsync({ data: { ids, isActive } }).then(refresh)
       }
