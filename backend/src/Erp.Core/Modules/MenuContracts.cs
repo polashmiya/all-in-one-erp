@@ -4,6 +4,8 @@ namespace Erp.Core.Modules;
 
 public sealed record MenuText(string En, string Bn);
 
+public sealed record LocalizedLabel(string En, string? Bn);
+
 /// <summary>A screen of the ERP. Its code is <c>{module}.{feature}</c>; permissions are <c>{code}.{action}</c>.</summary>
 public sealed record MenuFeature(string Key, MenuText Name, int Order, IReadOnlyList<string>? Actions = null);
 

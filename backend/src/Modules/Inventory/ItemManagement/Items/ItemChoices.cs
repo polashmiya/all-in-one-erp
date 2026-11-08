@@ -24,7 +24,7 @@ internal static class ItemChoices
         Choice(6, "MRP Based"),
     ];
 
-    public static string? NameOf(IReadOnlyList<ItemLookup> choices, int id) =>
+    public static string? NameOf(IReadOnlyList<ItemLookup> choices, int? id) =>
         choices.FirstOrDefault(c => c.Id == id)?.Name;
 
     private static ItemLookup Choice(int id, string name) => new(id, null, name, true, null);

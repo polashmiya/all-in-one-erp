@@ -10,9 +10,4 @@
     <ProjectReference Include="..\..\Erp.Infrastructure\Erp.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Feature manifests are copied next to the binaries so the metadata loader can find them at runtime. -->
-    <None Include="Features\**\*.manifest.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
 </Project>

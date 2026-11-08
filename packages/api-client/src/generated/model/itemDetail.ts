@@ -12,8 +12,10 @@ export interface ItemDetail {
   name: string;
   /** @nullable */
   description: string | null;
-  itemTypeId: number;
-  itemTypeName: string;
+  /** @nullable */
+  itemTypeId: number | null;
+  /** @nullable */
+  itemTypeName: string | null;
   hsCode: string;
   departmentId: number;
   departmentName: string;
@@ -49,12 +51,16 @@ export interface ItemDetail {
   lastCostPrice: number | null;
   /** @nullable */
   salesPrice: number | null;
-  purchaseSupplyTypeId: number;
-  purchaseSupplyTypeName: string;
+  /** @nullable */
+  purchaseSupplyTypeId: number | null;
+  /** @nullable */
+  purchaseSupplyTypeName: string | null;
   /** @nullable */
   purchaseVatPercentage: number | null;
-  salesSupplyTypeId: number;
-  salesSupplyTypeName: string;
+  /** @nullable */
+  salesSupplyTypeId: number | null;
+  /** @nullable */
+  salesSupplyTypeName: string | null;
   /** @nullable */
   salesVatPercentage: number | null;
   /** @nullable */

@@ -2,6 +2,7 @@ using Erp.Core.Authorization;
 using Erp.Core.Tenancy;
 using Erp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace Erp.Api.Navigation;
 
@@ -48,6 +49,11 @@ public static class ErpNavigationEndpoints
             include = code => granted.Has($"{code}.view");
         }
 
-        return TypedResults.Ok(await ErpMenuTree.BuildAsync(db, include, cancellationToken));
+        var versions = await db.AccountFeatures.AcrossTenants()
+            .Where(af => af.AccountId == accountId)
+            .Select(af => new { af.Feature!.Code, af.ConfigVersion })
+            .ToDictionaryAsync(af => af.Code, af => af.ConfigVersion, cancellationToken);
+
+        return TypedResults.Ok(await ErpMenuTree.BuildAsync(db, include, cancellationToken, versions));
     }
 }

@@ -2,9 +2,11 @@ using Erp.Core.Authorization;
 using Erp.Core.Modules;
 using Erp.Core.Security;
 using Erp.Infrastructure.Authorization;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using Erp.Infrastructure.Persistence.Seeding;
 using Erp.Infrastructure.Security;
+using Erp.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +41,9 @@ public static class DependencyInjection
             .AddInterceptors(provider.GetRequiredService<AuditingInterceptor>()));
 
         services.AddSingleton<ErpMenuCatalog>();
+        services.AddSingleton<FeatureManifestCatalog>();
+        services.AddMemoryCache();
+        services.AddScoped<FeatureConfigService>();
         services.AddSingleton<IPermissionProvider, MenuPermissionProvider>();
         services.AddSingleton<PermissionCatalog>();
         services.AddScoped<IPermissionService, PermissionService>();

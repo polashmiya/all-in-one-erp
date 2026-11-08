@@ -1,5 +1,6 @@
 export * from './erp-auth/erp-auth.ts';
 export * from './erp-navigation/erp-navigation.ts';
+export * from './feature-config/feature-config.ts';
 export * from './item-categories/item-categories.ts';
 export * from './item-departments/item-departments.ts';
 export * from './item-minor-categories/item-minor-categories.ts';

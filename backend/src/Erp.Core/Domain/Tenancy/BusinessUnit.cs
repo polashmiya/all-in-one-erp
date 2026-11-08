@@ -1,6 +1,6 @@
 namespace Erp.Core.Domain.Tenancy;
 
-/// <summary>A division of an account (e.g. a depot or company unit). Screen configuration is applied per business unit.</summary>
+/// <summary>A division of an account (e.g. a depot or company unit).</summary>
 public class BusinessUnit : BaseEntity, IAccountOwned
 {
     public Guid AccountId { get; set; }

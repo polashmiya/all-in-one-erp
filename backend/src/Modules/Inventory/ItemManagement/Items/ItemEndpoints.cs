@@ -2,6 +2,7 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -205,11 +206,14 @@ internal static class ItemEndpoints
             : TypedResults.NotFound();
 
     private static async Task<Results<Created<ItemDetail>, ValidationProblem, ProblemHttpResult>> Create(
-        SaveItemRequest request, ErpDbContext db, ICurrentContext current, CancellationToken ct)
+        SaveItemRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
         var (accountId, businessUnitId) = current.Scope();
+        var (configured, errors) = await configs.ApplyRulesAsync(accountId, Feature, request, null, ct);
+        if (MasterData.Invalid(errors) is { } rejected) return rejected;
+
         var item = new Item { AccountId = accountId, BusinessUnitId = businessUnitId };
-        if (await ApplyAsync(db, item, request, ct) is { } invalid) return invalid;
+        if (await ApplyAsync(db, item, configured, ct) is { } invalid) return invalid;
 
         db.Items.Add(item);
         if (await SaveAsync(db, ct) is { } problem) return problem;
@@ -218,11 +222,15 @@ internal static class ItemEndpoints
     }
 
     private static async Task<Results<Ok<ItemDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Update(
-        int id, SaveItemRequest request, ErpDbContext db, CancellationToken ct)
+        int id, SaveItemRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
+        var existing = await Details(db, id).SingleOrDefaultAsync(ct);
         var item = await db.Items.SingleOrDefaultAsync(i => i.Id == id, ct);
-        if (item is null) return TypedResults.NotFound();
-        if (await ApplyAsync(db, item, request, ct) is { } invalid) return invalid;
+        if (existing is null || item is null) return TypedResults.NotFound();
+
+        var (configured, errors) = await configs.ApplyRulesAsync(current.Scope().AccountId, Feature, request, existing, ct);
+        if (MasterData.Invalid(errors) is { } rejected) return rejected;
+        if (await ApplyAsync(db, item, configured, ct) is { } invalid) return invalid;
         if (await SaveAsync(db, ct) is { } problem) return problem;
 
         return TypedResults.Ok(await Details(db, id).SingleAsync(ct));
@@ -290,8 +298,8 @@ internal static class ItemEndpoints
         item.Name = request.Name.Trim();
         item.Description = Trimmed(request.Description);
         item.ItemTypeId = request.ItemTypeId;
-        item.ItemTypeName = ItemChoices.NameOf(ItemChoices.ItemTypes, request.ItemTypeId)!;
-        item.HsCode = request.HsCode.Trim();
+        item.ItemTypeName = ItemChoices.NameOf(ItemChoices.ItemTypes, request.ItemTypeId);
+        item.HsCode = request.HsCode?.Trim() ?? "";
         item.DepartmentId = minor!.DepartmentId;
         item.CategoryId = minor.CategoryId;
         item.SubCategoryId = minor.SubCategoryId;
@@ -307,10 +315,10 @@ internal static class ItemEndpoints
         item.LastCostPrice = request.LastCostPrice;
         item.SalesPrice = request.SalesPrice;
         item.PurchaseSupplyTypeId = request.PurchaseSupplyTypeId;
-        item.PurchaseSupplyTypeName = ItemChoices.NameOf(ItemChoices.SupplyTypes, request.PurchaseSupplyTypeId)!;
+        item.PurchaseSupplyTypeName = ItemChoices.NameOf(ItemChoices.SupplyTypes, request.PurchaseSupplyTypeId);
         item.PurchaseVatPercentage = request.PurchaseVatPercentage;
         item.SalesSupplyTypeId = request.SalesSupplyTypeId;
-        item.SalesSupplyTypeName = ItemChoices.NameOf(ItemChoices.SupplyTypes, request.SalesSupplyTypeId)!;
+        item.SalesSupplyTypeName = ItemChoices.NameOf(ItemChoices.SupplyTypes, request.SalesSupplyTypeId);
         item.SalesVatPercentage = request.SalesVatPercentage;
         item.SdPercentage = request.SdPercentage;
         item.IsVatInclusive = request.IsVatInclusive;

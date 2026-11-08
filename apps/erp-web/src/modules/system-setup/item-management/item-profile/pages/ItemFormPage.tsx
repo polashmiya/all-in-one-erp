@@ -4,22 +4,24 @@ import {
   useCreateItem,
   useGetItem,
   useUpdateItem,
+  type FeatureConfig,
   type ItemDetail,
 } from '@erp/api-client';
+import { defaultValues, useFormTabs, useText } from '@erp/metadata-engine';
 import { ForbiddenResult, FormPageLayout, PageState, useGoBack } from '@erp/ui';
 import { App, Form } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
+import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
 import { useRefreshItemManagement, useUnitKey } from '../../common/master-data';
-import { GeneralSection } from '../components/GeneralSection';
-import { PricingSection } from '../components/PricingSection';
-import { StatusSection } from '../components/StatusSection';
-import { TaxSection } from '../components/TaxSection';
+import { ConversionInput } from '../components/ConversionInput';
+import { ImageAttach } from '../components/ImageAttach';
+import { MasterItemSelect } from '../components/MasterItemSelect';
 import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
-import { copyOf, ITEM_TAB_FIELDS, NEW_ITEM, toRequest, type ItemFormValues } from '../item-form';
+import { copyOf, itemBehaviors, toRequest, type ItemFormValues } from '../item-form';
 import { useItemLookups } from '../item-lookups';
 
 export function ItemFormPage() {
@@ -30,32 +32,45 @@ export function ItemFormPage() {
   const sourceId = Number(id ?? copyId ?? 0);
   const access = useFeatureAccess(ITEM_PROFILE_FEATURE);
   const allowed = id ? access.edit : access.create;
+  const config = useFeatureConfig(ITEM_PROFILE_FEATURE, allowed);
   const source = useGetItem(sourceId, {
     query: { queryKey: useUnitKey(getGetItemQueryKey(sourceId)), enabled: allowed && sourceId > 0 },
   });
 
   if (!allowed) return <ForbiddenResult />;
 
-  const loading = sourceId > 0 && source.isPending;
+  const loading = (sourceId > 0 && source.isPending) || config.isPending;
 
   return (
     <PageState
       loading={loading}
-      missing={sourceId > 0 && !loading && !source.data}
+      missing={!loading && ((sourceId > 0 && !source.data) || !config.data)}
       missingTitle={t('item.notFound')}
       missingActions={[{ key: 'back', label: t('item.backToList'), to: itemPaths.list }]}
     >
-      <ItemForm
-        key={id ?? copyId ?? 'new'}
-        item={id ? source.data : undefined}
-        copyFrom={copyId ? source.data : undefined}
-      />
+      {config.data && (
+        <ItemForm
+          key={id ?? copyId ?? 'new'}
+          config={config.data}
+          item={id ? source.data : undefined}
+          copyFrom={copyId ? source.data : undefined}
+        />
+      )}
     </PageState>
   );
 }
 
-function ItemForm({ item, copyFrom }: { item?: ItemDetail; copyFrom?: ItemDetail }) {
+function ItemForm({
+  config,
+  item,
+  copyFrom,
+}: {
+  config: FeatureConfig;
+  item?: ItemDetail;
+  copyFrom?: ItemDetail;
+}) {
   const { t } = useTranslation();
+  const text = useText();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const [form] = Form.useForm<ItemFormValues>();
@@ -68,9 +83,28 @@ function ItemForm({ item, copyFrom }: { item?: ItemDetail; copyFrom?: ItemDetail
 
   const initialValues = useMemo(
     () =>
-      item ?? (copyFrom ? copyOf(copyFrom, t('item.copyName', { name: copyFrom.name })) : NEW_ITEM),
-    [item, copyFrom, t],
+      item ??
+      (copyFrom
+        ? copyOf(copyFrom, t('item.copyName', { name: copyFrom.name }))
+        : (defaultValues(config) as Partial<ItemFormValues>)),
+    [item, copyFrom, config, t],
   );
+
+  const tabs = useFormTabs(config, {
+    lookups,
+    behaviors: itemBehaviors(t),
+    widgets: {
+      imageSource: () => <ImageAttach />,
+      masterItemId: (field) => (
+        <MasterItemSelect
+          source={source}
+          excludeId={item?.id}
+          placeholder={text(field.placeholder)}
+        />
+      ),
+      altUomConversionQty: () => <ConversionInput uoms={lookups.uom} />,
+    },
+  });
 
   const submit = async (values: ItemFormValues, action: string) => {
     try {
@@ -116,32 +150,7 @@ function ItemForm({ item, copyFrom }: { item?: ItemDetail; copyFrom?: ItemDetail
         { key: 'new', label: t('item.form.saveNew'), placement: ['footer'] },
         { key: 'save', label: t('item.form.save'), icon: <CheckOutlined />, variant: 'primary' },
       ]}
-      tabs={[
-        {
-          key: 'general',
-          label: t('item.tab.general'),
-          fields: ITEM_TAB_FIELDS.general,
-          content: <GeneralSection source={source} itemId={item?.id} lookups={lookups} />,
-        },
-        {
-          key: 'pricing',
-          label: t('item.tab.pricing'),
-          fields: ITEM_TAB_FIELDS.pricing,
-          content: <PricingSection source={source} lookups={lookups} />,
-        },
-        {
-          key: 'tax',
-          label: t('item.tab.tax'),
-          fields: ITEM_TAB_FIELDS.tax,
-          content: <TaxSection lookups={lookups} />,
-        },
-        {
-          key: 'status',
-          label: t('item.tab.status'),
-          fields: ITEM_TAB_FIELDS.status,
-          content: <StatusSection />,
-        },
-      ]}
+      tabs={tabs}
     />
   );
 }

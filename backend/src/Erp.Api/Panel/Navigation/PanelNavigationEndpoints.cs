@@ -1,4 +1,4 @@
-using Erp.Api.Navigation;
+using Erp.Core.Modules;
 using Erp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

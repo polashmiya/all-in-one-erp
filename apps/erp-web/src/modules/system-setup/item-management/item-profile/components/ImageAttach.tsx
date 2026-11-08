@@ -3,6 +3,7 @@ import { App, Button, Upload } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toImageSource } from '../../common/image';
+import '../item-form.css';
 
 const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif';
 

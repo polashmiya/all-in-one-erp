@@ -14,9 +14,9 @@ public class Item : MasterRecord, IBusinessUnitOwned
 
     public string? Description { get; set; }
 
-    public int ItemTypeId { get; set; }
+    public int? ItemTypeId { get; set; }
 
-    public string ItemTypeName { get; set; } = "";
+    public string? ItemTypeName { get; set; }
 
     public int DepartmentId { get; set; }
 
@@ -60,17 +60,17 @@ public class Item : MasterRecord, IBusinessUnitOwned
 
     public decimal? SalesPrice { get; set; }
 
-    public int PurchaseSupplyTypeId { get; set; }
+    public int? PurchaseSupplyTypeId { get; set; }
 
-    public string PurchaseSupplyTypeName { get; set; } = "";
+    public string? PurchaseSupplyTypeName { get; set; }
 
     public int? PurchaseVatId { get; set; }
 
     public decimal? PurchaseVatPercentage { get; set; }
 
-    public int SalesSupplyTypeId { get; set; }
+    public int? SalesSupplyTypeId { get; set; }
 
-    public string SalesSupplyTypeName { get; set; } = "";
+    public string? SalesSupplyTypeName { get; set; }
 
     public int? SalesVatId { get; set; }
 

@@ -1,4 +1,5 @@
 import type { ItemDetail, SaveItemRequest } from '@erp/api-client';
+import type { FieldBehavior } from '@erp/metadata-engine';
 import { trimmed } from '../common/master-data';
 
 export type ItemFormValues = SaveItemRequest & {
@@ -7,75 +8,28 @@ export type ItemFormValues = SaveItemRequest & {
   subCategoryId?: number | null;
 };
 
-export type ItemFormTab = 'general' | 'pricing' | 'tax' | 'status';
-
-export const ITEM_TAB_FIELDS: Record<ItemFormTab, string[]> = {
-  general: [
-    'code',
-    'name',
-    'itemTypeId',
-    'hsCode',
-    'description',
-    'imageSource',
-    'departmentId',
-    'categoryId',
-    'subCategoryId',
-    'minorCategoryId',
-    'isAutoBarcode',
-    'barCode',
-    'isChildBarcode',
-    'masterItemId',
-  ],
-  pricing: [
-    'uomId',
-    'altUomId',
-    'altUomConversionQty',
-    'isNoDecimalQty',
-    'lastCostPrice',
-    'averageCostPrice',
-    'salesPrice',
-    'supplierName',
-  ],
-  tax: [
-    'purchaseSupplyTypeId',
-    'purchaseVatPercentage',
-    'salesSupplyTypeId',
-    'salesVatPercentage',
-    'sdPercentage',
-    'isVatInclusive',
-    'isVatRebatable',
-  ],
-  status: ['isActive', 'isSaleable', 'isPurchase', 'isNegativeSales', 'isMultipleSalesPrice'],
-};
-
-export const ITEM_LIMITS = {
-  code: 50,
-  name: 200,
-  hsCode: 50,
-  barCode: 50,
-  supplier: 100,
-  description: 2000,
-} as const;
-
-const STANDARD_SUPPLY_TYPE = 1;
-const STANDARD_VAT = 15;
-
-export const NEW_ITEM: Partial<ItemFormValues> = {
-  isAutoBarcode: true,
-  isChildBarcode: false,
-  isNoDecimalQty: false,
-  purchaseSupplyTypeId: STANDARD_SUPPLY_TYPE,
-  purchaseVatPercentage: STANDARD_VAT,
-  salesSupplyTypeId: STANDARD_SUPPLY_TYPE,
-  salesVatPercentage: STANDARD_VAT,
-  isVatInclusive: false,
-  isVatRebatable: true,
-  isSaleable: true,
-  isPurchase: true,
-  isNegativeSales: false,
-  isMultipleSalesPrice: false,
-  isActive: true,
-};
+export const itemBehaviors = (t: (key: string) => string): Record<string, FieldBehavior> => ({
+  barCode: {
+    watch: ['isAutoBarcode'],
+    state: (v) => ({
+      disabled: !!v.isAutoBarcode,
+      required: !v.isAutoBarcode,
+      placeholder: v.isAutoBarcode ? t('item.f.barcodeAuto') : undefined,
+    }),
+  },
+  masterItemId: {
+    watch: ['isChildBarcode'],
+    state: (v) => ({ hidden: !v.isChildBarcode, required: true }),
+  },
+  altUomId: {
+    watch: ['uomId'],
+    state: (v) => ({ filter: (unit) => unit.id !== v.uomId }),
+  },
+  altUomConversionQty: {
+    watch: ['altUomId'],
+    state: (v) => ({ hidden: v.altUomId == null, required: true }),
+  },
+});
 
 export const copyOf = (item: ItemDetail, name: string): Partial<ItemFormValues> => ({
   ...item,
@@ -91,8 +45,8 @@ export function toRequest(values: ItemFormValues): SaveItemRequest {
     code: trimmed(values.code),
     name: values.name.trim(),
     description: trimmed(values.description),
-    itemTypeId: values.itemTypeId,
-    hsCode: values.hsCode.trim(),
+    itemTypeId: values.itemTypeId ?? null,
+    hsCode: trimmed(values.hsCode),
     minorCategoryId: values.minorCategoryId,
     isAutoBarcode: !!values.isAutoBarcode,
     barCode: values.isAutoBarcode ? null : trimmed(values.barCode),
@@ -106,9 +60,9 @@ export function toRequest(values: ItemFormValues): SaveItemRequest {
     averageCostPrice: values.averageCostPrice ?? null,
     lastCostPrice: values.lastCostPrice ?? null,
     salesPrice: values.salesPrice ?? null,
-    purchaseSupplyTypeId: values.purchaseSupplyTypeId,
+    purchaseSupplyTypeId: values.purchaseSupplyTypeId ?? null,
     purchaseVatPercentage: values.purchaseVatPercentage ?? null,
-    salesSupplyTypeId: values.salesSupplyTypeId,
+    salesSupplyTypeId: values.salesSupplyTypeId ?? null,
     salesVatPercentage: values.salesVatPercentage ?? null,
     sdPercentage: values.sdPercentage ?? null,
     isVatInclusive: !!values.isVatInclusive,

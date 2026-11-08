@@ -1,6 +1,6 @@
 # myErp — Configurable ERP
 
-One ERP codebase whose screens and data shape are driven by configuration, per **Account › Business Unit**.
+One ERP codebase whose screens and data shape are driven by configuration, per **Account**.
 
 | App                             | Who uses it                                                                         | Dev URL                               |
 | ------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------- |
@@ -83,6 +83,25 @@ dotnet ef database update      --project backend/src/Erp.Infrastructure --startu
 - Item types and VAT supply types are fixed lists in `ItemChoices.cs` until they get their own tables. `SupplierID`,
   `PurchaseVatID` and `SalesVatID` stay empty until supplier and VAT setup exist; the supplier is free text for now.
 
+### Feature configuration (per account)
+
+Every field of a feature can be shown or hidden, made required or optional, relabelled (EN/বাংলা), moved and reordered
+per **account**. Business logic stays in typed tables and endpoints; configuration only shapes the screens.
+
+- **Definitions come from code.** A module declares a feature's tabs, sections and fields in an `IFeatureManifestProvider`
+  (e.g. `ItemProfileManifest.cs`): key (camelCase, same as the API property), type, default label, help, placeholder,
+  section, order, width, limits, lookup source, list column, filter, and whether the field is **locked** (always shown
+  and required). Startup syncs these into `FeatureSections` and `FeatureFields`. The code owns these rows, so changes
+  in a manifest overwrite them, and anything a manifest drops is deactivated.
+- **Accounts override only what they change.** `AccountSectionSettings` and `AccountFieldSettings` hold one row per
+  changed section or field. A null column keeps the default. Deleting the row resets it. Account settings can only
+  narrow limits (max length, min, max). Locked fields stay visible and required.
+- **Versioned.** `AccountFeatures.ConfigVersion` goes up whenever an account's configuration or a manifest changes.
+  `GET /api/erp/navigation` returns each feature's `configVersion`, and the resolved configuration is cached per
+  account, feature and version.
+- **ERP API:** `GET /api/erp/features/{code}/config` (needs `{code}.view`) returns the resolved tabs → sections →
+  fields, list columns and filters. Hidden fields are left out. A feature without a manifest returns 404.
+
 ### Authentication model
 
 - **Two surfaces, two audiences.** Panel tokens (`aud=panel`) only work on `/api/panel/*`, and ERP tokens
@@ -124,9 +143,9 @@ backend/
   Erp.sln, Directory.Build.props, Directory.Packages.props   (central package versions)
   src/Erp.Api               Minimal API host: Serilog, ProblemDetails, CORS, OpenAPI + Scalar, /health
   src/Erp.Core              Domain primitives, tenancy and permission abstractions
-  src/Erp.Metadata          Manifests, field definitions, screen resolver, dynamic entity service
+  src/Erp.Metadata          Feature manifests, manifest catalog, configuration builder (defaults + account settings)
   src/Erp.Infrastructure    EF Core (ErpDbContext), migrations, persistence
-  src/Modules/Inventory     Inventory module; features live in Features/<Feature>/ with a *.manifest.json
+  src/Modules/Inventory     Inventory module; each feature's endpoints, contracts and manifest live together
   tests/Erp.Tests           xUnit + WebApplicationFactory against LocalDB
 apps/
   panel-web                 Panel (Vite + React 19 + AntD 5)
@@ -225,10 +244,11 @@ Both apps share one theme engine in `packages/ui/src/theme`:
 | ----- | -------------------------------------------------------------------------------------------- | ------- |
 | 0     | Repo skeleton, API host, LocalDB health, shared UI shell (3-level menu, dark mode, EN/বাংলা) | ✅ Done |
 | 1     | Core domain, migrations, JWT auth (panel/erp audiences), tenant context, login + BU picker   | ✅ Done |
-| 2     | Metadata schema, manifests, screen resolver, bootstrap endpoint                              | ⏳      |
-| 3     | Dynamic data API (JSON attributes, query builder, CRUD, import/export)                       | ⏳      |
-| 4     | Frontend metadata-engine (DynamicPage/Table/Filter/Form/View, rules)                         | ⏳      |
-| 5     | ERP wiring: Item Profile end-to-end from configuration                                       | ⏳      |
-| 6     | Panel: accounts, business units, entitlements, field manager                                 | ⏳      |
-| 7     | Panel: visual layout builder + live preview, draft/publish                                   | ⏳      |
-| 8     | Hardening: E2E, caching, audit log, docs                                                     | ⏳      |
+| 2     | Feature manifests, field/section tables, account settings, resolved config API, versioning   | ✅ Done |
+| 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement  | ⏳      |
+| 4     | Panel: field manager per account (show/hide, required, label, order, list, filters, reset)  | ⏳      |
+| 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ⏳      |
+| 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export             | ⏳      |
+| 7     | Panel: layout builder (tabs, sections, drag and drop) with live preview                      | ⏳      |
+| 8     | Item master data screens (department → UOM) on the engine                                    | ⏳      |
+| 9     | Hardening: E2E, audit log, docs                                                              | ⏳      |

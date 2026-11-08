@@ -14,7 +14,6 @@
     "@ant-design/icons": "^5.6.1",
     "@erp/api-client": "workspace:*",
     "@erp/metadata-engine": "workspace:*",
-    "@erp/metadata-schema": "workspace:*",
     "@erp/ui": "workspace:*",
     "@tanstack/react-query": "^5.105.0",
     "antd": "^5.29.3",

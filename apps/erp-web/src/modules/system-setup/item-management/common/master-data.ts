@@ -1,4 +1,5 @@
 import type { ItemLookup, StatusCounts } from '@erp/api-client';
+import { lookupLabel } from '@erp/metadata-engine';
 import type { ListSort } from '@erp/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
@@ -88,39 +89,7 @@ export function useRefreshItemManagement() {
   );
 }
 
-export const lookupLabel = (item: ItemLookup) =>
-  item.code ? `${item.name} (${item.code})` : item.name;
-
-export function selectOptions(items: ItemLookup[] | undefined, current?: number | null) {
-  return (items ?? [])
-    .filter((item) => item.isActive || item.id === current)
-    .map((item) => ({ value: item.id, label: lookupLabel(item) }));
-}
-
-export function childSelectOptions(
-  items: ItemLookup[] | undefined,
-  parents: ItemLookup[] | undefined,
-  parentId: number | null | undefined,
-  current?: number | null,
-) {
-  const visible = (items ?? []).filter(
-    (item) =>
-      (item.isActive || item.id === current) && (parentId == null || item.parentId === parentId),
-  );
-  const toOption = (item: ItemLookup) => ({ value: item.id, label: lookupLabel(item) });
-  if (parentId != null) return visible.map(toOption);
-
-  return (parents ?? [])
-    .map((parent) => ({
-      label: parent.name,
-      title: parent.name,
-      options: visible.filter((item) => item.parentId === parent.id).map(toOption),
-    }))
-    .filter((group) => group.options.length > 0);
-}
-
-export const parentOf = (items: ItemLookup[] | undefined, id: number | null | undefined) =>
-  id == null ? undefined : (items?.find((item) => item.id === id)?.parentId ?? undefined);
+export { childSelectOptions, lookupLabel, parentOf, selectOptions } from '@erp/metadata-engine';
 
 export function filterOptions(
   items: ItemLookup[] | undefined,

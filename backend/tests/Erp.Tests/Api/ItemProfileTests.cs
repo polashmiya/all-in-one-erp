@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Erp.Modules.Inventory;
 using Erp.Modules.Inventory.ItemManagement;
 using Erp.Modules.Inventory.ItemManagement.Categories;
 using Erp.Modules.Inventory.ItemManagement.Departments;
@@ -158,8 +159,56 @@ public sealed class ItemProfileTests(ApiFactory factory)
         });
 
         Assert.Equal(
-            ["altUomConversionQty", "altUomId", "barCode", "hsCode", "itemTypeId", "masterItemId", "name", "salesVatPercentage"],
+            ["altUomConversionQty", "altUomId", "barCode", "itemTypeId", "masterItemId", "name", "salesVatPercentage"],
             (await ErrorsAsync(response)).Order());
+    }
+
+    [Fact]
+    public async Task Required_fields_come_from_the_feature_configuration()
+    {
+        var client = await AdminAsync();
+        var setup = await CreateSetupAsync(client);
+
+        var response = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with
+        {
+            HsCode = " ",
+            ItemTypeId = null,
+            PurchaseSupplyTypeId = null,
+        });
+
+        Assert.Equal(["hsCode", "itemTypeId", "purchaseSupplyTypeId"], (await ErrorsAsync(response)).Order());
+    }
+
+    [Fact]
+    public async Task Account_settings_hide_fields_and_change_what_is_required()
+    {
+        var client = await AdminAsync();
+        var setup = await CreateSetupAsync(client);
+        var existing = await CreateAsync<ItemDetail>(client, "items", NewItem(setup));
+
+        await using var settings = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile,
+            ("hsCode", s => s.IsVisible = false),
+            ("itemTypeId", s => s.IsRequired = false),
+            ("isSaleable", s => s.IsVisible = false),
+            ("supplierName", s => (s.IsRequired, s.MaxLength) = (true, 5)));
+
+        var missing = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { SupplierName = null });
+        var tooLong = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { SupplierName = "Acme Ltd" });
+        Assert.Equal(["supplierName"], await ErrorsAsync(missing));
+        Assert.Equal(["supplierName"], await ErrorsAsync(tooLong));
+
+        var created = await CreateAsync<ItemDetail>(client, "items",
+            NewItem(setup) with { HsCode = "IGNORED", ItemTypeId = null, IsSaleable = false, SupplierName = "Acme" });
+        Assert.Equal(("", null, null, true), (created.HsCode, created.ItemTypeId, created.ItemTypeName, created.IsSaleable));
+
+        var updated = await ReadAsync<ItemDetail>(await client.PutAsJsonAsync($"{Base}/items/{existing.Id}", NewItem(setup) with
+        {
+            Name = existing.Name,
+            HsCode = "CHANGED",
+            IsSaleable = false,
+            SupplierName = "Acme",
+        }));
+        Assert.Equal((existing.HsCode, true, "Acme"), (updated.HsCode, updated.IsSaleable, updated.SupplierName));
     }
 
     [Fact]

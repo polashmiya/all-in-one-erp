@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Erp.Core.Domain;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Inventory;
+using Erp.Core.Domain.Metadata;
 using Erp.Core.Domain.Navigation;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Tenancy;
@@ -60,6 +61,14 @@ public class ErpDbContext : DbContext
     public DbSet<ErpFeature> ErpFeatures => Set<ErpFeature>();
 
     public DbSet<AccountFeature> AccountFeatures => Set<AccountFeature>();
+
+    public DbSet<FeatureSection> FeatureSections => Set<FeatureSection>();
+
+    public DbSet<FeatureField> FeatureFields => Set<FeatureField>();
+
+    public DbSet<AccountSectionSetting> AccountSectionSettings => Set<AccountSectionSetting>();
+
+    public DbSet<AccountFieldSetting> AccountFieldSettings => Set<AccountFieldSetting>();
 
     public DbSet<ItemDepartment> ItemDepartments => Set<ItemDepartment>();
 

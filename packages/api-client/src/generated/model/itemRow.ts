@@ -11,7 +11,8 @@ export interface ItemRow {
   code: string;
   name: string;
   barCode: string;
-  itemTypeName: string;
+  /** @nullable */
+  itemTypeName: string | null;
   departmentName: string;
   categoryName: string;
   subCategoryName: string;

@@ -10,4 +10,6 @@ public class AccountFeature : BaseEntity, IAccountOwned
     public Guid FeatureId { get; set; }
 
     public ErpFeature? Feature { get; set; }
+
+    public int ConfigVersion { get; set; }
 }

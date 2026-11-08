@@ -1,6 +1,7 @@
 using Erp.Api.Auth;
 using Erp.Api.Endpoints;
 using Erp.Api.Hosting;
+using Erp.Api.Metadata;
 using Erp.Api.Navigation;
 using Erp.Api.Panel.Accounts;
 using Erp.Api.Panel.Navigation;
@@ -63,6 +64,7 @@ foreach (var endpoints in app.Services.GetServices<IPanelEndpoints>()) endpoints
 var erp = app.MapErpApi();
 erp.MapErpAuthEndpoints();
 erp.MapErpNavigationEndpoints();
+erp.MapFeatureConfigEndpoints();
 foreach (var endpoints in app.Services.GetServices<IErpEndpoints>()) endpoints.Map(erp);
 
 app.Run();

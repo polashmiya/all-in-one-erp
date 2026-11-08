@@ -12,8 +12,10 @@ export interface SaveItemRequest {
   name: string;
   /** @nullable */
   description: string | null;
-  itemTypeId: number;
-  hsCode: string;
+  /** @nullable */
+  itemTypeId: number | null;
+  /** @nullable */
+  hsCode: string | null;
   minorCategoryId: number;
   isAutoBarcode: boolean;
   /** @nullable */
@@ -35,10 +37,12 @@ export interface SaveItemRequest {
   lastCostPrice: number | null;
   /** @nullable */
   salesPrice: number | null;
-  purchaseSupplyTypeId: number;
+  /** @nullable */
+  purchaseSupplyTypeId: number | null;
   /** @nullable */
   purchaseVatPercentage: number | null;
-  salesSupplyTypeId: number;
+  /** @nullable */
+  salesSupplyTypeId: number | null;
   /** @nullable */
   salesVatPercentage: number | null;
   /** @nullable */

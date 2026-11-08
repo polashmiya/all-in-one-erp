@@ -7,7 +7,7 @@ public sealed record ItemRow(
     string Code,
     string Name,
     string BarCode,
-    string ItemTypeName,
+    string? ItemTypeName,
     string DepartmentName,
     string CategoryName,
     string SubCategoryName,
@@ -29,8 +29,8 @@ public sealed record ItemDetail
     public required string Code { get; init; }
     public required string Name { get; init; }
     public required string? Description { get; init; }
-    public required int ItemTypeId { get; init; }
-    public required string ItemTypeName { get; init; }
+    public required int? ItemTypeId { get; init; }
+    public required string? ItemTypeName { get; init; }
     public required string HsCode { get; init; }
     public required int DepartmentId { get; init; }
     public required string DepartmentName { get; init; }
@@ -56,11 +56,11 @@ public sealed record ItemDetail
     public required decimal? AverageCostPrice { get; init; }
     public required decimal? LastCostPrice { get; init; }
     public required decimal? SalesPrice { get; init; }
-    public required int PurchaseSupplyTypeId { get; init; }
-    public required string PurchaseSupplyTypeName { get; init; }
+    public required int? PurchaseSupplyTypeId { get; init; }
+    public required string? PurchaseSupplyTypeName { get; init; }
     public required decimal? PurchaseVatPercentage { get; init; }
-    public required int SalesSupplyTypeId { get; init; }
-    public required string SalesSupplyTypeName { get; init; }
+    public required int? SalesSupplyTypeId { get; init; }
+    public required string? SalesSupplyTypeName { get; init; }
     public required decimal? SalesVatPercentage { get; init; }
     public required decimal? SdPercentage { get; init; }
     public required bool IsVatInclusive { get; init; }
@@ -82,8 +82,8 @@ public sealed record SaveItemRequest
     public required string? Code { get; init; }
     public required string Name { get; init; }
     public required string? Description { get; init; }
-    public required int ItemTypeId { get; init; }
-    public required string HsCode { get; init; }
+    public required int? ItemTypeId { get; init; }
+    public required string? HsCode { get; init; }
     public required int MinorCategoryId { get; init; }
     public required bool IsAutoBarcode { get; init; }
     public required string? BarCode { get; init; }
@@ -97,9 +97,9 @@ public sealed record SaveItemRequest
     public required decimal? AverageCostPrice { get; init; }
     public required decimal? LastCostPrice { get; init; }
     public required decimal? SalesPrice { get; init; }
-    public required int PurchaseSupplyTypeId { get; init; }
+    public required int? PurchaseSupplyTypeId { get; init; }
     public required decimal? PurchaseVatPercentage { get; init; }
-    public required int SalesSupplyTypeId { get; init; }
+    public required int? SalesSupplyTypeId { get; init; }
     public required decimal? SalesVatPercentage { get; init; }
     public required decimal? SdPercentage { get; init; }
     public required bool IsVatInclusive { get; init; }
@@ -120,8 +120,8 @@ internal sealed class SaveItemRequestValidator : AbstractValidator<SaveItemReque
         RuleFor(x => x.Name).RecordName(200);
         RuleFor(x => x.Description).MaximumLength(2000);
         RuleFor(x => x.ItemTypeId).Must(id => ItemChoices.NameOf(ItemChoices.ItemTypes, id) is not null)
-            .WithMessage("Choose an item type.");
-        RuleFor(x => x.HsCode).NotEmpty().WithMessage("Enter the HS code.").MaximumLength(50);
+            .WithMessage("Choose an item type.").When(x => x.ItemTypeId is not null);
+        RuleFor(x => x.HsCode).MaximumLength(50);
         RuleFor(x => x.MinorCategoryId).GreaterThan(0).WithMessage("Choose a minor category.");
         RuleFor(x => x.BarCode).NotEmpty().WithMessage("Enter a barcode or turn on auto barcode.").MaximumLength(50)
             .When(x => !x.IsAutoBarcode);
@@ -137,13 +137,15 @@ internal sealed class SaveItemRequestValidator : AbstractValidator<SaveItemReque
         RuleFor(x => x.AverageCostPrice).GreaterThanOrEqualTo(0m).WithMessage("Use zero or more.");
         RuleFor(x => x.LastCostPrice).GreaterThanOrEqualTo(0m).WithMessage("Use zero or more.");
         RuleFor(x => x.SalesPrice).GreaterThanOrEqualTo(0m).WithMessage("Use zero or more.");
-        RuleFor(x => x.PurchaseSupplyTypeId).Must(BeSupplyType).WithMessage("Choose a supply type.");
-        RuleFor(x => x.SalesSupplyTypeId).Must(BeSupplyType).WithMessage("Choose a supply type.");
+        RuleFor(x => x.PurchaseSupplyTypeId).Must(BeSupplyType).WithMessage("Choose a supply type.")
+            .When(x => x.PurchaseSupplyTypeId is not null);
+        RuleFor(x => x.SalesSupplyTypeId).Must(BeSupplyType).WithMessage("Choose a supply type.")
+            .When(x => x.SalesSupplyTypeId is not null);
         RuleFor(x => x.PurchaseVatPercentage).InclusiveBetween(0m, 100m).WithMessage("Use 0 to 100.");
         RuleFor(x => x.SalesVatPercentage).InclusiveBetween(0m, 100m).WithMessage("Use 0 to 100.");
         RuleFor(x => x.SdPercentage).InclusiveBetween(0m, 100m).WithMessage("Use 0 to 100.");
         RuleFor(x => x.ImageSource).ImageSource();
     }
 
-    private static bool BeSupplyType(int id) => ItemChoices.NameOf(ItemChoices.SupplyTypes, id) is not null;
+    private static bool BeSupplyType(int? id) => ItemChoices.NameOf(ItemChoices.SupplyTypes, id) is not null;
 }

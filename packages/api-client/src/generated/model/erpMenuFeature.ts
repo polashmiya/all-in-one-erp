@@ -12,4 +12,5 @@ export interface ErpMenuFeature {
   key: string;
   label: LocalizedLabel;
   path: string;
+  configVersion: number;
 }

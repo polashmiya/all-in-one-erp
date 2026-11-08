@@ -12,6 +12,7 @@ import {
   useGetItemSubCategoryOptions,
   useGetUomOptions,
 } from '@erp/api-client';
+import type { LookupSources } from '@erp/metadata-engine';
 import { useUnitKey } from '../common/master-data';
 
 export function useItemLookups(enabled = true) {
@@ -35,14 +36,14 @@ export function useItemLookups(enabled = true) {
   });
 
   return {
-    departments: departments.data,
-    categories: categories.data,
-    subCategories: subCategories.data,
-    minorCategories: minorCategories.data,
-    uoms: uoms.data,
-    itemTypes: choices.data?.itemTypes,
-    supplyTypes: choices.data?.supplyTypes,
-  };
+    'item-department': departments.data,
+    'item-category': categories.data,
+    'item-sub-category': subCategories.data,
+    'item-minor-category': minorCategories.data,
+    uom: uoms.data,
+    'item-type': choices.data?.itemTypes,
+    'vat-supply-type': choices.data?.supplyTypes,
+  } satisfies LookupSources;
 }
 
 export type ItemLookups = ReturnType<typeof useItemLookups>;

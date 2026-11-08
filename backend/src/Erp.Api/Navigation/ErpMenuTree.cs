@@ -1,13 +1,12 @@
+using Erp.Core.Modules;
 using Erp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Erp.Api.Navigation;
 
-public sealed record LocalizedLabel(string En, string? Bn);
-
 /// <param name="Code">Feature code, <c>{module}.{feature}</c>; also the key used for account grants and permissions.</param>
 /// <param name="Path">ERP route, <c>/app/{module}/{feature}</c>.</param>
-public sealed record ErpMenuFeature(string Code, string Key, LocalizedLabel Label, string Path);
+public sealed record ErpMenuFeature(string Code, string Key, LocalizedLabel Label, string Path, int ConfigVersion);
 
 public sealed record ErpMenuSubModule(string Key, LocalizedLabel Label, string? Icon, IReadOnlyList<ErpMenuFeature> Features);
 
@@ -19,7 +18,10 @@ public static class ErpMenuTree
     public static string PathOf(string featureCode) => $"/app/{featureCode.Replace('.', '/')}";
 
     public static async Task<IReadOnlyList<ErpMenuModule>> BuildAsync(
-        ErpDbContext db, Func<string, bool> includeFeature, CancellationToken cancellationToken)
+        ErpDbContext db,
+        Func<string, bool> includeFeature,
+        CancellationToken cancellationToken,
+        IReadOnlyDictionary<string, int>? configVersions = null)
     {
         var rows = await db.ErpFeatures.AsNoTracking()
             .Where(f => f.IsActive && f.SubModule!.IsActive && f.SubModule.Module!.IsActive)
@@ -59,7 +61,12 @@ public static class ErpMenuTree
                         new LocalizedLabel(s.Key.SubNameEn, s.Key.SubNameBn),
                         s.Key.SubIcon,
                         s.OrderBy(f => f.SortOrder).ThenBy(f => f.NameEn)
-                            .Select(f => new ErpMenuFeature(f.Code, f.Key, new LocalizedLabel(f.NameEn, f.NameBn), PathOf(f.Code)))
+                            .Select(f => new ErpMenuFeature(
+                                f.Code,
+                                f.Key,
+                                new LocalizedLabel(f.NameEn, f.NameBn),
+                                PathOf(f.Code),
+                                configVersions?.GetValueOrDefault(f.Code) ?? 0))
                             .ToList()))
                     .ToList()))
             .ToList();
