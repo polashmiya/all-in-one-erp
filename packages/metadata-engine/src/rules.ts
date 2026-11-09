@@ -8,12 +8,9 @@ export function useFieldRules() {
 
   return (field: ConfigField, label: string | undefined, required: boolean): FormRule[] => {
     const rules: FormRule[] = [];
-    if (required && field.type !== 'boolean')
-      rules.push({
-        required: true,
-        whitespace: isText(field),
-        message: t('field.required', { label }),
-      });
+    const message = t('field.required', { label });
+    if (required && isText(field)) rules.push({ required: true, whitespace: true, message });
+    else if (required && field.type !== 'boolean') rules.push({ required: true, message });
     if (field.maxLength != null && isText(field))
       rules.push({
         max: field.maxLength,

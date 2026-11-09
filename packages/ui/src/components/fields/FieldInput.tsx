@@ -65,8 +65,7 @@ export function FieldInput({
           value={v}
           onChange={(e) => onChange?.(e.target.value)}
           maxLength={maxLength}
-          showCount={!!maxLength}
-          autoSize={{ minRows: 3, maxRows: 8 }}
+          autoSize={{ minRows: 1, maxRows: 4 }}
         />
       );
     case 'number':

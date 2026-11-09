@@ -97,8 +97,8 @@ public static class FeatureConfigBuilder
             .ToList();
 
         var columns = shown
-            .Where(x => x.Setting?.InList ?? x.Field.ListOrder is not null)
-            .OrderBy(x => x.Setting?.ListOrder ?? x.Field.ListOrder ?? int.MaxValue)
+            .Where(x => x.Field.ListOrder is not null && x.Setting?.InList != false)
+            .OrderBy(x => x.Setting?.ListOrder ?? x.Field.ListOrder)
             .Select(x => new ConfigColumn(x.Field.Key, x.Field.CanSort))
             .ToList();
 

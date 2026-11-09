@@ -116,8 +116,20 @@ public sealed class FeatureConfigTests
         Assert.Equal((true, "code", "কোড", 50), (code.Required, code.Label.En, code.Label.Bn, code.MaxLength));
         var remark = basic.Fields[2];
         Assert.Equal((true, 0m), (remark.ReadOnly, remark.Min));
-        Assert.Equal(["remark", "name"], config.Columns.Select(c => c.Key));
+        Assert.Equal(["name"], config.Columns.Select(c => c.Key));
         Assert.Empty(config.Filters);
+    }
+
+    [Fact]
+    public void List_columns_come_only_from_the_manifest_and_can_be_reordered()
+    {
+        var config = Build(
+        [
+            new() { FieldId = Code.Id, ListOrder = 0 },
+            new() { FieldId = Remark.Id, InList = true, ListOrder = 1 },
+        ]);
+
+        Assert.Equal(["code", "name"], config.Columns.Select(c => c.Key));
     }
 
     [Fact]

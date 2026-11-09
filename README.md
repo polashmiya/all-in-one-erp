@@ -82,6 +82,8 @@ dotnet ef database update      --project backend/src/Erp.Infrastructure --startu
   has child items.
 - Item types and VAT supply types are fixed lists in `ItemChoices.cs` until they get their own tables. `SupplierID`,
   `PurchaseVatID` and `SalesVatID` stay empty until supplier and VAT setup exist; the supplier is free text for now.
+- The form, view and list come from the feature configuration (see below). Item type, HS code and the supply types are
+  required by default but can be made optional per account, so their columns are nullable.
 
 ### Feature configuration (per account)
 
@@ -95,12 +97,28 @@ per **account**. Business logic stays in typed tables and endpoints; configurati
   in a manifest overwrite them, and anything a manifest drops is deactivated.
 - **Accounts override only what they change.** `AccountSectionSettings` and `AccountFieldSettings` hold one row per
   changed section or field. A null column keeps the default. Deleting the row resets it. Account settings can only
-  narrow limits (max length, min, max). Locked fields stay visible and required.
+  narrow limits (max length, min, max). Locked fields stay visible and required. List columns are fixed to the ones
+  the manifest declares (`ListOrder`); an account can hide or reorder them but never add another.
 - **Versioned.** `AccountFeatures.ConfigVersion` goes up whenever an account's configuration or a manifest changes.
   `GET /api/erp/navigation` returns each feature's `configVersion`, and the resolved configuration is cached per
   account, feature and version.
 - **ERP API:** `GET /api/erp/features/{code}/config` (needs `{code}.view`) returns the resolved tabs → sections →
   fields, list columns and filters. Hidden fields are left out. A feature without a manifest returns 404.
+- **The server enforces it.** Save endpoints call `FeatureConfigService.ApplyRulesAsync` before their own logic: hidden
+  and read-only fields get the default on create and keep the saved value on update, whatever the client sends; visible
+  fields are checked for required, max length, min and max. Errors come back keyed by field. FluentValidation keeps only
+  rules that never change (types, database limits, locked fields, business rules such as "barcode or auto barcode").
+- **The ERP renders it.** `@erp/metadata-engine` turns the configuration into screens:
+  - `useFormTabs(config, { lookups, widgets, behaviors })` gives `FormPageLayout` its tabs. Each section is a
+    `FieldSection` grid and each field uses `FieldInput`, or a lookup select whose options come from `lookups[field.lookup]`.
+    Lookups with a `parentField` cascade: choosing a child fills its parents, and changing a parent clears its children.
+  - `widgets` replace the input of a field (e.g. the image attach button), and `behaviors` change a field at runtime from
+    other values (`watch` + `state`: hidden, disabled, required, placeholder, option filter). Configuration decides
+    whether a field exists for the account; behaviors can only narrow that.
+  - `useViewTabs(config, record, renderers)` builds the view page with the same sections, and
+    `useConfigColumns(config, renderers)` the list columns and CSV export. A lookup field shows the record's
+    `…Name` property (`itemTypeId` → `itemTypeName`).
+  - `useFeatureConfig(code)` in the ERP app loads the configuration, keyed by the `configVersion` from navigation.
 
 ### Authentication model
 
@@ -153,8 +171,7 @@ apps/
 packages/
   ui                        Common library: components, layout (AppShell), theme, i18n (EN/বাংলা), hooks, utils
   api-client                orval-generated TanStack Query hooks + fetch client (token, X-Business-Unit)
-  metadata-schema           zod schemas/types for manifests and layouts (Phase 2)
-  metadata-engine           Generic recursive screen renderer (Phase 4)
+  metadata-engine           Form, view and list built from a feature configuration (generic, no feature code)
 ```
 
 Project references: `Api → all`, `Modules → Core, Metadata`, `Infrastructure → Core, Metadata`, `Metadata → Core`.
@@ -195,6 +212,8 @@ How to build a feature:
   Error counts per tab (including server field errors, which are scrolled into view), dirty state and the leave-page
   guard are built in. Multi-step creation uses `WizardLayout`.
 - **View / details** — `DetailsPageLayout` (record header, stats, tabs, aside, loading and not-found states).
+- **Configurable feature** — add a manifest on the backend, then build the tabs, view and columns with
+  `@erp/metadata-engine` instead of hand-written sections (example: Item Profile).
 - **Buttons** — pass `ActionItem` objects (`label`, `icon`, `variant`, `to`, `onClick`, `confirm`, `menu`) instead of hand-made buttons.
 - **Modals** — `AppModal` / `FormModal` with `useDisclosure()`; confirmations with `useConfirm()`.
 
@@ -245,7 +264,7 @@ Both apps share one theme engine in `packages/ui/src/theme`:
 | 0     | Repo skeleton, API host, LocalDB health, shared UI shell (3-level menu, dark mode, EN/বাংলা) | ✅ Done |
 | 1     | Core domain, migrations, JWT auth (panel/erp audiences), tenant context, login + BU picker   | ✅ Done |
 | 2     | Feature manifests, field/section tables, account settings, resolved config API, versioning   | ✅ Done |
-| 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement  | ⏳      |
+| 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement  | ✅ Done |
 | 4     | Panel: field manager per account (show/hide, required, label, order, list, filters, reset)  | ⏳      |
 | 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ⏳      |
 | 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export             | ⏳      |
