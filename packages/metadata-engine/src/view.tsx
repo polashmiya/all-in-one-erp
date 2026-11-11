@@ -1,5 +1,5 @@
 import type { FeatureConfig } from '@erp/api-client';
-import { DescriptionList, DetailSection, type CsvColumn, type DetailsSection } from '@erp/ui';
+import { DescriptionList, DetailSection, type CsvColumn, type DetailsTab } from '@erp/ui';
 import type { TableColumnsType } from 'antd';
 import type { ReactNode } from 'react';
 import { columnsOf, fieldMap, isNumeric, useText } from './config';
@@ -7,37 +7,42 @@ import { useFieldValue } from './values';
 
 const VIEW_COLUMNS = 3;
 
-export function useViewSections<T extends object>(
+export function useViewTabs<T extends object>(
   config: FeatureConfig,
   record: T,
   renderers: Record<string, (record: T) => ReactNode> = {},
-): DetailsSection[] {
+): DetailsTab[] {
   const text = useText();
   const value = useFieldValue();
 
   return config.tabs
-    .flatMap((tab) => tab.sections)
-    .map((section) => ({
-      section,
-      fields: section.fields.filter((field) => field.type !== 'image'),
+    .map((tab) => ({
+      key: tab.key,
+      label: text(tab.label),
+      sections: tab.sections
+        .map((section) => ({
+          section,
+          fields: section.fields.filter((field) => field.type !== 'image'),
+        }))
+        .filter(({ fields }) => fields.length > 0)
+        .map(({ section, fields }) => ({
+          key: section.key,
+          content: (
+            <DetailSection title={text(section.label)}>
+              <DescriptionList
+                columns={Math.max(2, Math.min(columnsOf(section.columns), VIEW_COLUMNS)) as 2 | 3}
+                items={fields.map((field) => ({
+                  key: field.key,
+                  label: text(field.label),
+                  value: renderers[field.key]?.(record) ?? value.display(field, record),
+                  wide: field.type === 'textarea',
+                }))}
+              />
+            </DetailSection>
+          ),
+        })),
     }))
-    .filter(({ fields }) => fields.length > 0)
-    .map(({ section, fields }) => ({
-      key: section.key,
-      content: (
-        <DetailSection title={text(section.label)}>
-          <DescriptionList
-            columns={Math.max(2, Math.min(columnsOf(section.columns), VIEW_COLUMNS)) as 2 | 3}
-            items={fields.map((field) => ({
-              key: field.key,
-              label: text(field.label),
-              value: renderers[field.key]?.(record) ?? value.display(field, record),
-              wide: field.type === 'textarea',
-            }))}
-          />
-        </DetailSection>
-      ),
-    }));
+    .filter((tab) => tab.sections.length > 0);
 }
 
 export interface ColumnRenderer<T> {

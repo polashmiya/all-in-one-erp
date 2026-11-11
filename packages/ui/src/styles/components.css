@@ -801,11 +801,57 @@ html[data-content-width='boxed'] .erp-page {
   grid-column: 1 / -1;
 }
 
-.erp-form-stack {
+.erp-form-stack,
+.erp-details__main {
   display: flex;
   flex-direction: column;
   gap: var(--erp-space-lg);
   min-width: 0;
+}
+
+.erp-section-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--erp-space-xs);
+  margin-top: calc(-1 * var(--erp-space-sm));
+  padding-block: var(--erp-space-sm);
+  background: var(--erp-panel);
+}
+
+.erp-section-tabs__item {
+  display: inline-flex;
+  align-items: center;
+  height: var(--erp-control-md);
+  padding: 0 var(--erp-space-lg);
+  border: 0;
+  border-radius: var(--erp-radius-md);
+  background: transparent;
+  color: var(--erp-text-2);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.erp-section-tabs__item:hover {
+  background: var(--erp-row-hover);
+  color: var(--erp-text-strong);
+}
+
+.erp-section-tabs__item.is-active {
+  background: var(--erp-primary);
+  color: var(--erp-primary-ink);
+}
+
+.erp-section-tabs__item:focus-visible {
+  outline: 2px solid var(--erp-primary);
+  outline-offset: 2px;
+}
+
+.erp-section-tabs__panel {
+  scroll-margin-top: 56px;
 }
 
 .erp-form-block > .erp-detail-section {
@@ -1480,6 +1526,42 @@ html[data-content-width='boxed'] .erp-page {
 
 .erp-search .anticon-search {
   color: var(--erp-text-muted);
+}
+
+.erp-table__head {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--erp-divider);
+}
+
+.erp-table__head > .erp-filterbar {
+  padding: var(--erp-space-md) var(--erp-space-lg);
+}
+
+.erp-table__filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--erp-space-md);
+  padding: var(--erp-space-lg) var(--erp-space-lg) var(--erp-space-md);
+  border-bottom: 1px solid var(--erp-divider);
+}
+
+.erp-table__filters-title {
+  font-size: var(--erp-font-md);
+  font-weight: 600;
+  color: var(--erp-text-strong);
+}
+
+.erp-table__filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--erp-space-lg);
+}
+
+.erp-table__filters .erp-filter {
+  width: 100%;
+  max-width: none;
 }
 
 .erp-filter {

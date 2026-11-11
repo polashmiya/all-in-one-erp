@@ -26,9 +26,9 @@ const useTableSettingsStore = create<TableSettingsState>()(
   ),
 );
 
-export function useTableSettings(key: string) {
+export function useTableSettings(key: string, defaultHidden: string[] = defaults.hidden) {
   const saved = useTableSettingsStore((s) => s.tables[key]);
   const update = useTableSettingsStore((s) => s.update);
-  const settings = { ...defaults, ...saved };
+  const settings = { ...defaults, hidden: defaultHidden, ...saved };
   return [settings, (patch: Partial<TableSettings>) => update(key, patch)] as const;
 }

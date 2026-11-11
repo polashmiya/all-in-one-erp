@@ -1,5 +1,6 @@
 import {
   CheckCircleOutlined,
+  CopyOutlined,
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
@@ -50,6 +51,7 @@ export interface MasterListPageProps<T extends MasterRow, F extends ListFilters>
   onCreate: () => void;
   onEdit: (row: T) => void;
   onView?: (row: T) => void;
+  onDuplicate?: (row: T) => void;
   onSetStatus: (ids: number[], isActive: boolean) => Promise<unknown>;
   onDelete: (ids: number[]) => Promise<unknown>;
   children?: ReactNode;
@@ -74,6 +76,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
   onCreate,
   onEdit,
   onView,
+  onDuplicate,
   onSetStatus,
   onDelete,
   children,
@@ -171,6 +174,14 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
       icon: <EditOutlined />,
       hidden: !access.edit,
       onClick: () => onEdit(row),
+    },
+    {
+      key: 'duplicate',
+      label: t('master.duplicate'),
+      icon: <CopyOutlined />,
+      inMenu: true,
+      hidden: !onDuplicate || !access.create,
+      onClick: () => onDuplicate?.(row),
     },
     {
       key: 'status',

@@ -116,7 +116,7 @@ per **account**. Business logic stays in typed tables and endpoints; configurati
   - `widgets` replace the input of a field (e.g. the image attach button), and `behaviors` change a field at runtime from
     other values (`watch` + `state`: hidden, disabled, required, placeholder, option filter). Configuration decides
     whether a field exists for the account; behaviors can only narrow that.
-  - `useViewSections(config, record, renderers)` builds the view page with the same sections as read-only cards, and
+  - `useViewTabs(config, record, renderers)` builds the view page: one pill tab per manifest tab, sections as read-only cards, and
     `useConfigColumns(config, renderers)` the list columns and CSV export. A lookup field shows the record's
     `…Name` property (`itemTypeId` → `itemTypeName`).
   - `useFeatureConfig(code)` in the ERP app loads the configuration, keyed by the `configVersion` from navigation.

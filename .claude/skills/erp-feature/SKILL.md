@@ -43,7 +43,7 @@ Decide which existing feature the request looks like, then open that feature's f
 
 - Load the configuration with `useFeatureConfig(FEATURE_KEY)`.
 - Form: `useFormSections(config, { lookups, widgets, behaviors, aside })` returns `{ sections, aside }` for `FormPageLayout`. Every manifest section becomes one card. `aside` lists the section keys that go to the right column (status, classification, image, organize), kept as a constant in the feature's `constants.ts` (e.g. `ITEM_ASIDE_SECTIONS`).
-- View: `useViewSections(config, record, renderers)` gives `DetailsPageLayout` the same sections as read-only cards. Extra cards (record info) are appended as `{ key, content }`.
+- View: `useViewTabs(config, record, renderers)` gives `DetailsPageLayout` one tab per manifest tab, each with its sections as read-only cards. Add extra cards (record info) to a tab's `sections` as `{ key, content }`.
 - List: `useConfigColumns(config, renderers)` gives the table columns and the CSV export columns.
 - Do not add fields, labels or list columns in the React code. Those come from the backend manifest. `widgets` replace a field's input; `behaviors` (`watch` + `state`) can only narrow a field: hide, disable, require, filter options.
 - Lookups are a hook returning `{ [lookupKey]: options }` (see `item-lookups.ts`). Request mapping and behaviors live in a plain `*-form.ts` file next to the pages.
@@ -96,7 +96,7 @@ Every screen in both apps looks and works the same way. The shared templates alr
 | List of records                | `ListPageLayout`; for code/name/active records always `MasterListPage`              |
 | Create / edit, many fields     | `FormPageLayout` (config-driven: `useFormSections`)                                 |
 | Create / edit, up to ~6 fields | `MasterFormModal` (ERP) or `FormModal`                                              |
-| Record details                 | `DetailsPageLayout` (config-driven: `useViewSections`)                              |
+| Record details                 | `DetailsPageLayout` (config-driven: `useViewTabs`)                                  |
 | Quick look from a list         | `AppDrawer`                                                                         |
 | Multi-step setup               | `WizardLayout`                                                                      |
 | Summary numbers                | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals |
@@ -106,10 +106,10 @@ Every screen in both apps looks and works the same way. The shared templates alr
 **Lists**
 
 - Column order: checkbox, then the identity column (`RecordNameCell` or `TitleCell`: avatar or image, name, one sub-line such as code or barcode), then data, then status (`StatusTag` with `dot`). The template adds the actions column last and pins it to the right.
-- No row-number column. Money and numbers are right-aligned (`formatMoney`, `formatNumber`).
+- The row-number column (SL) is hidden by default and can be turned on from the column picker; do not add your own. Money and numbers are right-aligned (`formatMoney`, `formatNumber`).
 - Row actions: `view` and `edit` stay as inline icons. Everything else uses `inMenu: true` (activate or deactivate, duplicate, delete with `confirm`). Never put a switch in a row.
 - Clicking a row opens the record (`onRowClick`; `MasterListPage` does this).
-- The status filter is `views` (All / Active / Inactive with counts). Other filters are `filters`. Search has the `/` shortcut and New has `n`.
+- The status filter is `views` (All / Active / Inactive with counts). Other filters are `filters`; the template shows them in a "Filters" row at the top of the table card, with search and views below. Search has the `/` shortcut and New has `n`.
 
 **Forms**
 
@@ -119,7 +119,7 @@ Every screen in both apps looks and works the same way. The shared templates alr
 - Help text goes under the field (`extra`), not in a tooltip. On/off fields are switches.
 - A modal for new records offers "Create & add another" (`addAnotherText`).
 
-**View pages.** `DetailsPageLayout` puts a profile card on the left: image or icon, title, `StatusTag` tags, a meta list, and the actions Edit (primary), Duplicate, More. Read-only section cards go on the right.
+**View pages.** `DetailsPageLayout` puts a profile card on the left: image or icon, title, `StatusTag` tags, a meta list, and the actions Edit (primary), Duplicate, More. Read-only section cards go on the right, under sticky pill tabs (one per manifest tab) that jump to and follow each group. Pass `onDuplicate` to `MasterListPage` when a record can be copied; it adds Duplicate to the row menu.
 
 **UX rules**
 

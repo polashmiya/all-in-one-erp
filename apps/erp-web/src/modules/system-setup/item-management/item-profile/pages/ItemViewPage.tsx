@@ -14,7 +14,7 @@ import {
   type FeatureConfig,
   type ItemDetail,
 } from '@erp/api-client';
-import { useViewSections } from '@erp/metadata-engine';
+import { useViewTabs } from '@erp/metadata-engine';
 import {
   DescriptionList,
   DetailSection,
@@ -70,7 +70,7 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
   const setStatus = useSetItemsStatus();
   const remove = useDeleteItem();
   const refresh = useRefreshItemManagement();
-  const sections = useViewSections(config, item, {
+  const tabs = useViewTabs(config, item, {
     masterItemId: (r) =>
       r.masterItemId ? (
         <Link to={itemPaths.view(r.masterItemId)}>
@@ -213,7 +213,11 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
           },
         ],
       }}
-      sections={[...sections, { key: 'record', content: recordInfo }]}
+      tabs={tabs.map((tab, index) =>
+        index === tabs.length - 1
+          ? { ...tab, sections: [...tab.sections, { key: 'record', content: recordInfo }] }
+          : tab,
+      )}
     />
   );
 }

@@ -8,4 +8,4 @@ export {
   selectOptions,
   type LookupSources,
 } from './lookups';
-export { useConfigColumns, useViewSections, type ColumnRenderer } from './view';
+export { useConfigColumns, useViewTabs, type ColumnRenderer } from './view';

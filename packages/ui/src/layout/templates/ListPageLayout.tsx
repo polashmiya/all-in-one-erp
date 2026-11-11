@@ -10,6 +10,7 @@ import { FilterBar, QuickViews, SearchInput } from '../../components/filters/fil
 import { DataTable, type DataTableEmpty } from '../../components/table/DataTable';
 import { RowActions } from '../../components/table/RowActions';
 import { rowActionsWidth, type RowAction } from '../../components/table/row-actions';
+import { SERIAL_COLUMN_KEY, SERIAL_COLUMN_WIDTH } from '../../components/table/constants';
 import type { ListFilters, ListSort, ListState } from '../../hooks/useListState';
 import { PageContainer } from '../page/PageContainer';
 
@@ -108,7 +109,14 @@ export function ListPageLayout<
   useHotkey('/', () => searchRef.current?.focus(), { enabled: !!search });
   useHotkey('n', () => newAction && void runAction(newAction), { enabled: !!newAction });
 
-  const hasFilterBar = !!search || filters.length > 0 || !!views;
+  const hasFilterBar = !!search || !!views;
+  const serialColumn: TableColumnsType<T>[number] = {
+    key: SERIAL_COLUMN_KEY,
+    title: t('table.sl'),
+    width: SERIAL_COLUMN_WIDTH,
+    align: 'center',
+    render: (_value, _row, index) => (state.page - 1) * state.pageSize + index + 1,
+  };
   const actionColumns: TableColumnsType<T> = rowActions
     ? [
         {
@@ -127,55 +135,73 @@ export function ListPageLayout<
     actions: [{ key: 'reset', label: t('common.reset'), onClick: state.reset }],
   };
 
+  const filterRow = filters.length > 0 && (
+    <div className="erp-table__filters">
+      <span className="erp-table__filters-title">{t('common.filters')}</span>
+      <div className="erp-table__filters-grid">
+        {filters.map((filter) => (
+          <FilterSelect
+            key={filter.key}
+            label={filter.label}
+            options={filter.options}
+            value={(state.filters[filter.key] as string | null | undefined) ?? null}
+            onChange={(value) => state.setFilter(filter.key, value as F[typeof filter.key])}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  const filterBar = hasFilterBar && (
+    <FilterBar
+      toolsRef={setToolsEl}
+      extra={
+        views &&
+        state.view !== undefined && (
+          <QuickViews<V>
+            label={t('common.quickViews')}
+            value={state.view}
+            onChange={state.setView}
+            views={views}
+          />
+        )
+      }
+    >
+      {search && (
+        <SearchInput
+          ref={searchRef}
+          label={search.label}
+          placeholder={search.placeholder}
+          value={state.search}
+          onChange={state.setSearch}
+        />
+      )}
+      {state.hasActiveFilters && (
+        <button type="button" className="erp-linkbtn" onClick={state.reset}>
+          {t('common.reset')}
+        </button>
+      )}
+    </FilterBar>
+  );
+
   return (
     <PageContainer fill title={title} subTitle={subtitle} actions={actions}>
       {summary}
-      {hasFilterBar && (
-        <FilterBar
-          toolsRef={setToolsEl}
-          extra={
-            views &&
-            state.view !== undefined && (
-              <QuickViews<V>
-                label={t('common.quickViews')}
-                value={state.view}
-                onChange={state.setView}
-                views={views}
-              />
-            )
-          }
-        >
-          {search && (
-            <SearchInput
-              ref={searchRef}
-              label={search.label}
-              placeholder={search.placeholder}
-              value={state.search}
-              onChange={state.setSearch}
-            />
-          )}
-          {filters.map((filter) => (
-            <FilterSelect
-              key={filter.key}
-              label={filter.label}
-              options={filter.options}
-              value={(state.filters[filter.key] as string | null | undefined) ?? null}
-              onChange={(value) => state.setFilter(filter.key, value as F[typeof filter.key])}
-            />
-          ))}
-          {state.hasActiveFilters && (
-            <button type="button" className="erp-linkbtn" onClick={state.reset}>
-              {t('common.reset')}
-            </button>
-          )}
-        </FilterBar>
-      )}
       <DataTable<T>
         fill
+        header={
+          filterRow || filterBar ? (
+            <>
+              {filterRow}
+              {filterBar}
+            </>
+          ) : undefined
+        }
         toolsContainer={hasFilterBar ? toolsEl : undefined}
         settingsKey={pathname}
+        defaultHidden={[SERIAL_COLUMN_KEY]}
         rowKey={rowKey}
-        columns={[...columns, ...actionColumns]}
+        columns={[serialColumn, ...columns, ...actionColumns]}
         dataSource={rows}
         loading={loading}
         sort={state.sort}

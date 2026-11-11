@@ -31,6 +31,7 @@ export interface DataTableProps<T> extends Omit<
   TableProps<T>,
   'pagination' | 'title' | 'footer' | 'rowSelection' | 'size' | 'loading'
 > {
+  header?: ReactNode;
   toolbar?: ReactNode;
   loading?: boolean;
   selection?: { selectedKeys: Key[]; onChange: (keys: Key[]) => void };
@@ -43,12 +44,14 @@ export interface DataTableProps<T> extends Omit<
   fill?: boolean;
   toolsContainer?: HTMLElement | null;
   settingsKey?: string;
+  defaultHidden?: string[];
 }
 
 const columnKey = <T,>(column: ColumnType<T>, index: number) =>
   String(column.key ?? column.dataIndex ?? index);
 
 export function DataTable<T extends object>({
+  header,
   toolbar,
   selection,
   bulkActions,
@@ -61,6 +64,7 @@ export function DataTable<T extends object>({
   toolsContainer,
   loading = false,
   settingsKey = '',
+  defaultHidden,
   columns = [],
   locale,
   ...tableProps
@@ -68,7 +72,7 @@ export function DataTable<T extends object>({
   const { t } = useTranslation();
   const screens = Grid.useBreakpoint();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [{ density, hidden }, updateSettings] = useTableSettings(settingsKey);
+  const [{ density, hidden }, updateSettings] = useTableSettings(settingsKey, defaultHidden);
   const selected = selection?.selectedKeys ?? [];
 
   const hideable = (columns as ColumnType<T>[])
@@ -158,6 +162,7 @@ export function DataTable<T extends object>({
       aria-busy={loading}
     >
       {refreshing && <div className="erp-progress" />}
+      {header && <div className="erp-table__head">{header}</div>}
       {external &&
         toolsContainer &&
         createPortal(

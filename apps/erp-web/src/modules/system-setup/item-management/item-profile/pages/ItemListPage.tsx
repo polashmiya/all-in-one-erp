@@ -140,6 +140,7 @@ export function ItemListPage() {
         setStatus.mutateAsync({ data: { ids, isActive } }).then(refresh)
       }
       onDelete={(ids) => remove.mutateAsync({ data: { ids } }).then(refresh)}
+      onDuplicate={(row) => navigate(itemPaths.duplicate(row.id))}
     />
   );
 }
