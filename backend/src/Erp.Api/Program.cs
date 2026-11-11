@@ -4,6 +4,7 @@ using Erp.Api.Hosting;
 using Erp.Api.Metadata;
 using Erp.Api.Navigation;
 using Erp.Api.Panel.Accounts;
+using Erp.Api.Panel.Configuration;
 using Erp.Api.Panel.Navigation;
 using Erp.Core.Modules;
 using Erp.Core.Tenancy;
@@ -33,6 +34,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddInventoryModule();
 builder.Services.AddScoped<AccountSetupService>();
 builder.Services.AddScoped<AccountFeatureService>();
+builder.Services.AddScoped<FeatureConfigurationService>();
 
 var app = builder.Build();
 
@@ -59,6 +61,7 @@ panel.MapPanelAuthEndpoints();
 panel.MapPanelNavigationEndpoints();
 panel.MapAccountEndpoints();
 panel.MapPanelErpMenuEndpoints();
+panel.MapFeatureConfigurationEndpoints();
 foreach (var endpoints in app.Services.GetServices<IPanelEndpoints>()) endpoints.Map(panel);
 
 var erp = app.MapErpApi();

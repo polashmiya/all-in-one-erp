@@ -209,7 +209,7 @@ internal static class ItemEndpoints
         SaveItemRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
         var (accountId, businessUnitId) = current.Scope();
-        var (configured, errors) = await configs.ApplyRulesAsync(accountId, Feature, request, null, ct);
+        var (configured, errors) = await configs.ApplyRulesAsync(accountId, businessUnitId, Feature, request, null, ct);
         if (MasterData.Invalid(errors) is { } rejected) return rejected;
 
         var item = new Item { AccountId = accountId, BusinessUnitId = businessUnitId };
@@ -228,7 +228,8 @@ internal static class ItemEndpoints
         var item = await db.Items.SingleOrDefaultAsync(i => i.Id == id, ct);
         if (existing is null || item is null) return TypedResults.NotFound();
 
-        var (configured, errors) = await configs.ApplyRulesAsync(current.Scope().AccountId, Feature, request, existing, ct);
+        var (accountId, businessUnitId) = current.Scope();
+        var (configured, errors) = await configs.ApplyRulesAsync(accountId, businessUnitId, Feature, request, existing, ct);
         if (MasterData.Invalid(errors) is { } rejected) return rejected;
         if (await ApplyAsync(db, item, configured, ct) is { } invalid) return invalid;
         if (await SaveAsync(db, ct) is { } problem) return problem;

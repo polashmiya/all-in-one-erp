@@ -9,6 +9,7 @@ export * from './items/items.ts';
 export * from './panel-accounts/panel-accounts.ts';
 export * from './panel-auth/panel-auth.ts';
 export * from './panel-erp-menu/panel-erp-menu.ts';
+export * from './panel-feature-configuration/panel-feature-configuration.ts';
 export * from './panel-navigation/panel-navigation.ts';
 export * from './system/system.ts';
 export * from './units-of-measure/units-of-measure.ts';

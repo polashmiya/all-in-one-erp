@@ -4,6 +4,7 @@ import {
   EyeOutlined,
   InboxOutlined,
   PlusOutlined,
+  SettingOutlined,
   ShopOutlined,
 } from '@ant-design/icons';
 import { useListAccounts, type AccountListItem } from '@erp/api-client';
@@ -22,6 +23,7 @@ import { keepPreviousData } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
 import { ACCOUNT_PATHS } from '../../constants';
 import { countryName } from '../../utils/format';
@@ -32,6 +34,7 @@ type SortField = 'name' | 'createdAt';
 
 export function AccountsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const language = useLanguageStore((s) => s.language);
   const [selectedId, setSelectedId] = useState<string>();
   const list = useListState<Record<string, never>, View, SortField>({
@@ -176,6 +179,13 @@ export function AccountsPage() {
             label: t('accounts.view'),
             icon: <EyeOutlined />,
             onClick: () => setSelectedId(account.id),
+          },
+          {
+            key: 'configure',
+            label: t('config.action'),
+            icon: <SettingOutlined />,
+            inMenu: true,
+            onClick: () => navigate(ACCOUNT_PATHS.configuration(account.id)),
           },
         ]}
         rows={result?.items}

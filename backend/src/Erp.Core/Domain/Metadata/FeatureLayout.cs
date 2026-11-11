@@ -86,6 +86,8 @@ public class AccountSectionSetting : BaseEntity, IAccountOwned
 {
     public Guid AccountId { get; set; }
 
+    public Guid? BusinessUnitId { get; set; }
+
     public Guid SectionId { get; set; }
 
     public FeatureSection? Section { get; set; }
@@ -106,6 +108,8 @@ public class AccountSectionSetting : BaseEntity, IAccountOwned
 public class AccountFieldSetting : BaseEntity, IAccountOwned
 {
     public Guid AccountId { get; set; }
+
+    public Guid? BusinessUnitId { get; set; }
 
     public Guid FieldId { get; set; }
 

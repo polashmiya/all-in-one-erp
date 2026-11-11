@@ -85,10 +85,11 @@ dotnet ef database update      --project backend/src/Erp.Infrastructure --startu
 - The form, view and list come from the feature configuration (see below). Item type, HS code and the supply types are
   required by default but can be made optional per account, so their columns are nullable.
 
-### Feature configuration (per account)
+### Feature configuration (per account and business unit)
 
 Every field of a feature can be shown or hidden, made required or optional, relabelled (EN/বাংলা), moved and reordered
-per **account**. Business logic stays in typed tables and endpoints; configuration only shapes the screens.
+per **account**, and again per **business unit** (branch). Business logic stays in typed tables and endpoints;
+configuration only shapes the screens.
 
 - **Definitions come from code.** A module declares a feature's tabs, sections and fields in an `IFeatureManifestProvider`
   (e.g. `ItemProfileManifest.cs`): key (camelCase, same as the API property), type, default label, help, placeholder,
@@ -99,9 +100,18 @@ per **account**. Business logic stays in typed tables and endpoints; configurati
   changed section or field. A null column keeps the default. Deleting the row resets it. Account settings can only
   narrow limits (max length, min, max). Locked fields stay visible and required. List columns are fixed to the ones
   the manifest declares (`ListOrder`); an account can hide or reorder them but never add another.
+- **Business units override the account.** A settings row with `BusinessUnitId` applies to that unit only. Values are
+  resolved column by column: manifest default → account row → business unit row (`FeatureSettings.ForUnit`).
 - **Versioned.** `AccountFeatures.ConfigVersion` goes up whenever an account's configuration or a manifest changes.
   `GET /api/erp/navigation` returns each feature's `configVersion`, and the resolved configuration is cached per
-  account, feature and version.
+  account, business unit, feature and version.
+- **Panel: Screen settings** (Accounts → row menu → Screen settings, `/accounts/{id}/configuration`). Pick a screen
+  and, optionally, a business unit (empty = the whole account); the table shows each field's section, type, shown,
+  required, list and filter values and whether it is changed. Edit opens every setting of the field; Reset removes the
+  change for that scope. API: `GET /api/panel/accounts/{id}/configuration/{code}?businessUnitId=`, and
+  `PUT` / `DELETE …/fields/{key}?businessUnitId=`. The server rejects hiding or loosening a locked field, hiding a
+  required field that has no default, limits beyond the manifest, list or filter on fields that have none, and unknown
+  sections.
 - **ERP API:** `GET /api/erp/features/{code}/config` (needs `{code}.view`) returns the resolved tabs → sections →
   fields, list columns and filters. Hidden fields are left out. A feature without a manifest returns 404.
 - **The server enforces it.** Save endpoints call `FeatureConfigService.ApplyRulesAsync` before their own logic: hidden
@@ -272,7 +282,7 @@ Both apps share one theme engine in `packages/ui/src/theme`:
 | 1     | Core domain, migrations, JWT auth (panel/erp audiences), tenant context, login + BU picker   | ✅ Done |
 | 2     | Feature manifests, field/section tables, account settings, resolved config API, versioning   | ✅ Done |
 | 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement   | ✅ Done |
-| 4     | Panel: field manager per account (show/hide, required, label, order, list, filters, reset)   | ⏳      |
+| 4     | Panel: field manager per account and business unit (show/hide, required, labels, order, list, filters, reset) | ✅ Done |
 | 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ⏳      |
 | 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export              | ⏳      |
 | 7     | Panel: layout builder (tabs, sections, drag and drop) with live preview                      | ⏳      |

@@ -17,6 +17,13 @@ export const accountsRoutes: RouteObject[] = [
           Component: (await import('./account-setup/pages/AccountSetupPage')).AccountSetupPage,
         }),
       },
+      {
+        path: ':id/configuration',
+        lazy: async () => ({
+          Component: (await import('./account-configuration/pages/AccountConfigurationPage'))
+            .AccountConfigurationPage,
+        }),
+      },
     ],
   },
 ];

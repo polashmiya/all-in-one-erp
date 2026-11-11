@@ -38,7 +38,7 @@ public static class FeatureConfigEndpoints
                 statusCode: StatusCodes.Status403Forbidden);
         }
 
-        return await configs.GetAsync(accountId, code, cancellationToken) is { } feature
+        return await configs.GetAsync(accountId, current.BusinessUnitId, code, cancellationToken) is { } feature
             ? TypedResults.Ok(feature.Config)
             : TypedResults.NotFound();
     }

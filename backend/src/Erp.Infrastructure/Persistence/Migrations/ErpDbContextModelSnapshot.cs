@@ -1005,6 +1005,9 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int?>("ColSpan")
                         .HasColumnType("int");
 
@@ -1094,11 +1097,13 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BusinessUnitId");
+
                     b.HasIndex("FieldId");
 
                     b.HasIndex("SectionId");
 
-                    b.HasIndex("AccountId", "FieldId")
+                    b.HasIndex("AccountId", "BusinessUnitId", "FieldId")
                         .IsUnique();
 
                     b.ToTable("AccountFieldSettings", (string)null);
@@ -1111,6 +1116,9 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BusinessUnitId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Columns")
@@ -1156,11 +1164,13 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BusinessUnitId");
+
                     b.HasIndex("ParentId");
 
                     b.HasIndex("SectionId");
 
-                    b.HasIndex("AccountId", "SectionId")
+                    b.HasIndex("AccountId", "BusinessUnitId", "SectionId")
                         .IsUnique();
 
                     b.ToTable("AccountSectionSettings", (string)null);
@@ -2174,6 +2184,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Erp.Core.Domain.Metadata.FeatureField", "Field")
                         .WithMany()
                         .HasForeignKey("FieldId")
@@ -2195,6 +2210,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Erp.Core.Domain.Metadata.FeatureSection", null)
                         .WithMany()

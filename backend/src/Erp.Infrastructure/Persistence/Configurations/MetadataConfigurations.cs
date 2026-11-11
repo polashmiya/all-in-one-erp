@@ -52,9 +52,10 @@ internal sealed class AccountSectionSettingConfiguration : IEntityTypeConfigurat
         builder.ToTable("AccountSectionSettings");
         builder.Property(s => s.LabelEn).HasMaxLength(100);
         builder.Property(s => s.LabelBn).HasMaxLength(100);
-        builder.HasIndex(s => new { s.AccountId, s.SectionId }).IsUnique();
+        builder.HasIndex(s => new { s.AccountId, s.BusinessUnitId, s.SectionId }).IsUnique().HasFilter(null);
 
         builder.HasOne<Account>().WithMany().HasForeignKey(s => s.AccountId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(s => s.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(s => s.Section).WithMany().HasForeignKey(s => s.SectionId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<FeatureSection>().WithMany().HasForeignKey(s => s.ParentId).OnDelete(DeleteBehavior.Restrict);
     }
@@ -74,9 +75,10 @@ internal sealed class AccountFieldSettingConfiguration : IEntityTypeConfiguratio
         builder.Property(s => s.DefaultValue).HasMaxLength(200);
         builder.Property(s => s.MinValue).HasPrecision(18, 4);
         builder.Property(s => s.MaxValue).HasPrecision(18, 4);
-        builder.HasIndex(s => new { s.AccountId, s.FieldId }).IsUnique();
+        builder.HasIndex(s => new { s.AccountId, s.BusinessUnitId, s.FieldId }).IsUnique().HasFilter(null);
 
         builder.HasOne<Account>().WithMany().HasForeignKey(s => s.AccountId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(s => s.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(s => s.Field).WithMany().HasForeignKey(s => s.FieldId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<FeatureSection>().WithMany().HasForeignKey(s => s.SectionId).OnDelete(DeleteBehavior.Restrict);
     }
