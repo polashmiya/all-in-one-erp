@@ -287,15 +287,4 @@ Both apps share one theme engine in `packages/ui/src/theme`:
 
 ## Roadmap
 
-| Phase | Scope                                                                                        | Status  |
-| ----- | -------------------------------------------------------------------------------------------- | ------- |
-| 0     | Repo skeleton, API host, LocalDB health, shared UI shell (3-level menu, dark mode, EN/বাংলা) | ✅ Done |
-| 1     | Core domain, migrations, JWT auth (panel/erp audiences), tenant context, login + BU picker   | ✅ Done |
-| 2     | Feature manifests, field/section tables, account settings, resolved config API, versioning   | ✅ Done |
-| 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement   | ✅ Done |
-| 4     | Panel: field manager per account and business unit (show/hide, required, labels, order, list, filters, reset) | ✅ Done |
-| 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ✅ Done |
-| 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export              | ⏳      |
-| 7     | Panel: layout builder (tabs, sections, drag and drop) with live preview                      | ⏳      |
-| 8     | Item master data screens (department → UOM) on the engine                                    | ⏳      |
-| 9     | Hardening: E2E, audit log, docs                                                              | ⏳      |
+Phase status, the decisions behind them and the plan for the next phase are in [docs/roadmap.md](docs/roadmap.md).

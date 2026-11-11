@@ -22,6 +22,10 @@
 - A change that should apply to every screen goes into the shared template, not into one feature.
 - Follow the "UI and UX standard" in `.claude/skills/erp-feature/SKILL.md` for layout, row actions, form spacing and UX rules.
 
+## Roadmap
+
+- Phase status, decisions and the next phase plan are in `docs/roadmap.md`. Read it before starting or continuing a phase, and update it when a phase is done.
+
 ## Comments
 
 - Do not add comments to code.
