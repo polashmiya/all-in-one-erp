@@ -4,10 +4,9 @@ import {
   useDeleteItems,
   useListItems,
   useSetItemsStatus,
-  type ItemLookup,
   type ItemRow,
 } from '@erp/api-client';
-import { fieldMap, useConfigColumns, useText } from '@erp/metadata-engine';
+import { fieldMap, useConfigColumns, useText, type LookupItem } from '@erp/metadata-engine';
 import { formatMoney, TitleCell, useListState } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -29,7 +28,7 @@ import {
   type StatusView,
 } from '@/common/master-data';
 import { useRefreshItemManagement } from '../../item-management';
-import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
+import { ITEM_LOOKUPS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 import { useItemLookups } from '../item-lookups';
 
 type Filters = {
@@ -64,7 +63,7 @@ export function ItemListPage() {
   });
   const config = useFeatureConfig(ITEM_PROFILE_FEATURE, access.view);
   const lookups = useItemLookups(access.view);
-  const categories = lookups['item-category'];
+  const categories = lookups[ITEM_LOOKUPS.category];
   const setStatus = useSetItemsStatus();
   const remove = useDeleteItems();
   const { setFilter } = list;
@@ -76,10 +75,10 @@ export function ItemListPage() {
 
   const inactive = (name: string) => t('master.inactiveOption', { name });
   const fields = config.data ? fieldMap(config.data) : undefined;
-  const filterSources: Record<keyof Filters, ItemLookup[] | undefined> = {
-    departmentId: lookups['item-department'],
+  const filterSources: Record<keyof Filters, LookupItem[] | undefined> = {
+    departmentId: lookups[ITEM_LOOKUPS.department],
     categoryId: categories?.filter((c) => departmentId == null || c.parentId === departmentId),
-    itemTypeId: lookups['item-type'],
+    itemTypeId: lookups[ITEM_LOOKUPS.itemType],
   };
   const filters = (config.data?.filters ?? [])
     .filter((key): key is keyof Filters => key in filterSources)

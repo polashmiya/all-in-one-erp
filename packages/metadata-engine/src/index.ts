@@ -6,6 +6,7 @@ export {
   lookupLabel,
   parentOf,
   selectOptions,
+  type LookupItem,
   type LookupSources,
 } from './lookups';
 export { useConfigColumns, useViewTabs, type ColumnRenderer } from './view';

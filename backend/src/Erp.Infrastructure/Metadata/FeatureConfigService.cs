@@ -1,3 +1,4 @@
+using System.Globalization;
 using Erp.Infrastructure.Persistence;
 using Erp.Metadata;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,16 @@ public sealed class FeatureConfigService(ErpDbContext db, IMemoryCache cache)
             sections,
             fields,
             FeatureSettings.ForUnit(sectionSettings, businessUnitId),
-            FeatureSettings.ForUnit(fieldSettings, businessUnitId));
+            FeatureSettings.ForUnit(fieldSettings, businessUnitId),
+            await LookupDefaultsAsync(db, accountId, cancellationToken));
+    }
+
+    public static async Task<Dictionary<string, string>> LookupDefaultsAsync(ErpDbContext db, Guid accountId, CancellationToken ct)
+    {
+        var defaults = await db.LookupValues.AcrossTenants().AsNoTracking()
+            .Where(v => v.AccountId == accountId && v.IsDefault && v.IsActive)
+            .Select(v => new { v.LookupType!.Key, v.Id })
+            .ToListAsync(ct);
+        return defaults.ToDictionary(v => v.Key, v => v.Id.ToString(CultureInfo.InvariantCulture));
     }
 }

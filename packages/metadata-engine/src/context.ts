@@ -1,14 +1,14 @@
-import type { ConfigField, ItemLookup } from '@erp/api-client';
+import type { ConfigField } from '@erp/api-client';
 import { createContext, type ReactElement } from 'react';
 import type { FieldValues } from './config';
-import type { LookupSources } from './lookups';
+import type { LookupItem, LookupSources } from './lookups';
 
 export interface FieldState {
   hidden?: boolean;
   disabled?: boolean;
   required?: boolean;
   placeholder?: string;
-  filter?: (item: ItemLookup) => boolean;
+  filter?: (item: LookupItem) => boolean;
 }
 
 export interface FieldBehavior {

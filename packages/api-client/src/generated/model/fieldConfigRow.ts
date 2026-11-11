@@ -10,6 +10,8 @@ import type { FieldSettingValues } from './fieldSettingValues.ts';
 export interface FieldConfigRow {
   key: string;
   type: string;
+  /** @nullable */
+  lookup: string | null;
   isLocked: boolean;
   canList: boolean;
   canFilter: boolean;

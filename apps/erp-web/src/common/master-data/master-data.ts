@@ -1,5 +1,5 @@
-import type { ItemLookup, StatusCounts } from '@erp/api-client';
-import { lookupLabel } from '@erp/metadata-engine';
+import type { StatusCounts } from '@erp/api-client';
+import { lookupLabel, type LookupItem } from '@erp/metadata-engine';
 import type { ListSort } from '@erp/ui';
 import { useAuthStore } from '@/common/store/auth-store';
 
@@ -59,7 +59,7 @@ export function useUnitKey<K extends readonly unknown[]>(key: K) {
 export { childSelectOptions, lookupLabel, parentOf, selectOptions } from '@erp/metadata-engine';
 
 export function filterOptions(
-  items: ItemLookup[] | undefined,
+  items: LookupItem[] | undefined,
   inactiveLabel: (name: string) => string,
 ) {
   return (items ?? []).map((item) => ({

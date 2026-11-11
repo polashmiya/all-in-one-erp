@@ -4,7 +4,9 @@ using Erp.Api.Hosting;
 using Erp.Api.Metadata;
 using Erp.Api.Navigation;
 using Erp.Api.Panel.Accounts;
+using Erp.Api.Lookups;
 using Erp.Api.Panel.Configuration;
+using Erp.Api.Panel.Lookups;
 using Erp.Api.Panel.Navigation;
 using Erp.Core.Modules;
 using Erp.Core.Tenancy;
@@ -62,12 +64,14 @@ panel.MapPanelNavigationEndpoints();
 panel.MapAccountEndpoints();
 panel.MapPanelErpMenuEndpoints();
 panel.MapFeatureConfigurationEndpoints();
+panel.MapLookupListEndpoints();
 foreach (var endpoints in app.Services.GetServices<IPanelEndpoints>()) endpoints.Map(panel);
 
 var erp = app.MapErpApi();
 erp.MapErpAuthEndpoints();
 erp.MapErpNavigationEndpoints();
 erp.MapFeatureConfigEndpoints();
+erp.MapLookupEndpoints();
 foreach (var endpoints in app.Services.GetServices<IErpEndpoints>()) endpoints.Map(erp);
 
 app.Run();

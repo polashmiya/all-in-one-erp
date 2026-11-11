@@ -45,7 +45,8 @@ public static class FeatureConfigBuilder
         IReadOnlyCollection<FeatureSection> sections,
         IReadOnlyCollection<FeatureField> fields,
         IReadOnlyCollection<AccountSectionSetting> sectionSettings,
-        IReadOnlyCollection<AccountFieldSetting> fieldSettings)
+        IReadOnlyCollection<AccountFieldSetting> fieldSettings,
+        IReadOnlyDictionary<string, string>? lookupDefaults = null)
     {
         var sectionSetting = sectionSettings.ToDictionary(s => s.SectionId);
         var fieldSetting = fieldSettings.ToDictionary(s => s.FieldId);
@@ -71,7 +72,7 @@ public static class FeatureConfigBuilder
                     : active[f.SectionId];
                 var tab = TabOf(section);
                 var visible = f.IsLocked || (setting?.IsVisible != false && !Hidden(section) && !Hidden(tab));
-                return (Field: f, Setting: setting, Section: section, Tab: tab, Visible: visible, Config: Field(f, setting));
+                return (Field: f, Setting: setting, Section: section, Tab: tab, Visible: visible, Config: Field(f, setting, lookupDefaults));
             })
             .ToList();
 
@@ -115,7 +116,8 @@ public static class FeatureConfigBuilder
     private static LocalizedLabel Label(FeatureSection section, AccountSectionSetting? setting) =>
         new(setting?.LabelEn ?? section.LabelEn, setting?.LabelBn ?? section.LabelBn);
 
-    private static ConfigField Field(FeatureField field, AccountFieldSetting? setting) => new(
+    private static ConfigField Field(
+        FeatureField field, AccountFieldSetting? setting, IReadOnlyDictionary<string, string>? lookupDefaults) => new(
         field.Key,
         field.DataType,
         new LocalizedLabel(setting?.LabelEn ?? field.LabelEn, setting?.LabelBn ?? field.LabelBn),
@@ -124,7 +126,7 @@ public static class FeatureConfigBuilder
         field.IsLocked || (setting?.IsRequired ?? field.IsRequired),
         !field.IsLocked && setting?.IsReadOnly == true,
         setting?.ColSpan ?? field.ColSpan,
-        setting?.DefaultValue ?? field.DefaultValue,
+        setting?.DefaultValue ?? field.DefaultValue ?? LookupDefault(field, lookupDefaults),
         Tighter(field.MaxLength, setting?.MaxLength, Math.Min),
         Tighter(field.MinValue, setting?.MinValue, Math.Max),
         Tighter(field.MaxValue, setting?.MaxValue, Math.Min),
@@ -133,6 +135,9 @@ public static class FeatureConfigBuilder
         field.ParentFieldKey);
 
     private static LocalizedLabel? Text(string? en, string? bn) => en is null ? null : new(en, bn);
+
+    private static string? LookupDefault(FeatureField field, IReadOnlyDictionary<string, string>? defaults) =>
+        field.LookupSource is { } source && defaults?.TryGetValue(source, out var value) == true ? value : null;
 
     private static T? Tighter<T>(T? limit, T? value, Func<T, T, T> pick) where T : struct =>
         limit is { } l && value is { } v ? pick(l, v) : value ?? limit;

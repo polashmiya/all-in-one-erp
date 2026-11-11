@@ -1,19 +1,20 @@
 import {
   getGetItemCategoryOptionsQueryKey,
-  getGetItemChoicesQueryKey,
   getGetItemDepartmentOptionsQueryKey,
   getGetItemMinorCategoryOptionsQueryKey,
   getGetItemSubCategoryOptionsQueryKey,
+  getGetLookupValuesQueryKey,
   getGetUomOptionsQueryKey,
   useGetItemCategoryOptions,
-  useGetItemChoices,
   useGetItemDepartmentOptions,
   useGetItemMinorCategoryOptions,
   useGetItemSubCategoryOptions,
+  useGetLookupValues,
   useGetUomOptions,
 } from '@erp/api-client';
 import type { LookupSources } from '@erp/metadata-engine';
 import { useUnitKey } from '@/common/master-data';
+import { ITEM_LOOKUPS } from './constants';
 
 export function useItemLookups(enabled = true) {
   const departments = useGetItemDepartmentOptions({
@@ -31,18 +32,21 @@ export function useItemLookups(enabled = true) {
   const uoms = useGetUomOptions({
     query: { queryKey: useUnitKey(getGetUomOptionsQueryKey()), enabled },
   });
-  const choices = useGetItemChoices({
-    query: { queryKey: getGetItemChoicesQueryKey(), enabled, staleTime: Infinity },
+  const itemTypes = useGetLookupValues(ITEM_LOOKUPS.itemType, {
+    query: { queryKey: getGetLookupValuesQueryKey(ITEM_LOOKUPS.itemType), enabled },
+  });
+  const supplyTypes = useGetLookupValues(ITEM_LOOKUPS.supplyType, {
+    query: { queryKey: getGetLookupValuesQueryKey(ITEM_LOOKUPS.supplyType), enabled },
   });
 
   return {
-    'item-department': departments.data,
-    'item-category': categories.data,
-    'item-sub-category': subCategories.data,
-    'item-minor-category': minorCategories.data,
-    uom: uoms.data,
-    'item-type': choices.data?.itemTypes,
-    'vat-supply-type': choices.data?.supplyTypes,
+    [ITEM_LOOKUPS.department]: departments.data,
+    [ITEM_LOOKUPS.category]: categories.data,
+    [ITEM_LOOKUPS.subCategory]: subCategories.data,
+    [ITEM_LOOKUPS.minorCategory]: minorCategories.data,
+    [ITEM_LOOKUPS.uom]: uoms.data,
+    [ITEM_LOOKUPS.itemType]: itemTypes.data,
+    [ITEM_LOOKUPS.supplyType]: supplyTypes.data,
   } satisfies LookupSources;
 }
 

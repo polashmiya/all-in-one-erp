@@ -1,19 +1,33 @@
-import type { ItemLookup } from '@erp/api-client';
+import type { Language } from '@erp/ui';
 
-export type LookupSources = Record<string, ItemLookup[] | undefined>;
+export interface LookupItem {
+  id: number;
+  code?: string | null;
+  name: string;
+  nameBn?: string | null;
+  isActive: boolean;
+  parentId?: number | null;
+}
 
-export const lookupLabel = (item: ItemLookup) =>
+export type LookupSources = Record<string, LookupItem[] | undefined>;
+
+export const localized = (items: LookupItem[] | undefined, language: Language) =>
+  language === 'bn'
+    ? items?.map((item) => (item.nameBn ? { ...item, name: item.nameBn } : item))
+    : items;
+
+export const lookupLabel = (item: LookupItem) =>
   item.code ? `${item.name} (${item.code})` : item.name;
 
-export function selectOptions(items: ItemLookup[] | undefined, current?: unknown) {
+export function selectOptions(items: LookupItem[] | undefined, current?: unknown) {
   return (items ?? [])
     .filter((item) => item.isActive || item.id === current)
     .map((item) => ({ value: item.id, label: lookupLabel(item) }));
 }
 
 export function childSelectOptions(
-  items: ItemLookup[] | undefined,
-  parents: ItemLookup[] | undefined,
+  items: LookupItem[] | undefined,
+  parents: LookupItem[] | undefined,
   parentId: unknown,
   current?: unknown,
 ) {
@@ -21,7 +35,7 @@ export function childSelectOptions(
     (item) =>
       (item.isActive || item.id === current) && (parentId == null || item.parentId === parentId),
   );
-  const toOption = (item: ItemLookup) => ({ value: item.id, label: lookupLabel(item) });
+  const toOption = (item: LookupItem) => ({ value: item.id, label: lookupLabel(item) });
   if (parentId != null) return visible.map(toOption);
 
   return (parents ?? [])
@@ -33,5 +47,5 @@ export function childSelectOptions(
     .filter((group) => group.options.length > 0);
 }
 
-export const parentOf = (items: ItemLookup[] | undefined, id: unknown) =>
+export const parentOf = (items: LookupItem[] | undefined, id: unknown) =>
   id == null ? undefined : (items?.find((item) => item.id === id)?.parentId ?? undefined);

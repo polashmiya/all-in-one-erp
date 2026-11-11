@@ -83,3 +83,30 @@ internal sealed class AccountFieldSettingConfiguration : IEntityTypeConfiguratio
         builder.HasOne<FeatureSection>().WithMany().HasForeignKey(s => s.SectionId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+internal sealed class LookupTypeConfiguration : IEntityTypeConfiguration<LookupType>
+{
+    public void Configure(EntityTypeBuilder<LookupType> builder)
+    {
+        builder.ToTable("LookupTypes");
+        builder.Property(t => t.Key).HasMaxLength(50);
+        builder.Property(t => t.NameEn).HasMaxLength(100);
+        builder.Property(t => t.NameBn).HasMaxLength(100);
+        builder.HasIndex(t => t.Key).IsUnique();
+    }
+}
+
+internal sealed class LookupValueConfiguration : IEntityTypeConfiguration<LookupValue>
+{
+    public void Configure(EntityTypeBuilder<LookupValue> builder)
+    {
+        builder.MapRecord("LookupValues", "LookupValueID");
+        builder.Property(v => v.LookupTypeId).HasColumnName("LookupTypeID");
+        builder.Property(v => v.Code).HasMaxLength(50);
+        builder.Property(v => v.NameEn).HasMaxLength(200);
+        builder.Property(v => v.NameBn).HasMaxLength(200);
+        builder.HasIndex(v => new { v.AccountId, v.LookupTypeId, v.Code }).IsUnique();
+
+        builder.HasOne(v => v.LookupType).WithMany().HasForeignKey(v => v.LookupTypeId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

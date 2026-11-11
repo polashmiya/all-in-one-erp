@@ -21,8 +21,6 @@ public sealed record ItemRow(
 
 public sealed record ItemList(IReadOnlyList<ItemRow> Items, int Total, StatusCounts Counts);
 
-public sealed record ItemChoiceLists(IReadOnlyList<ItemLookup> ItemTypes, IReadOnlyList<ItemLookup> SupplyTypes);
-
 public sealed record ItemDetail
 {
     public required int Id { get; init; }
@@ -119,8 +117,6 @@ internal sealed class SaveItemRequestValidator : AbstractValidator<SaveItemReque
         RuleFor(x => x.Code!).RecordCode(50).When(x => !string.IsNullOrWhiteSpace(x.Code));
         RuleFor(x => x.Name).RecordName(200);
         RuleFor(x => x.Description).MaximumLength(2000);
-        RuleFor(x => x.ItemTypeId).Must(id => ItemChoices.NameOf(ItemChoices.ItemTypes, id) is not null)
-            .WithMessage("Choose an item type.").When(x => x.ItemTypeId is not null);
         RuleFor(x => x.HsCode).MaximumLength(50);
         RuleFor(x => x.MinorCategoryId).GreaterThan(0).WithMessage("Choose a minor category.");
         RuleFor(x => x.BarCode).NotEmpty().WithMessage("Enter a barcode or turn on auto barcode.").MaximumLength(50)
@@ -137,15 +133,9 @@ internal sealed class SaveItemRequestValidator : AbstractValidator<SaveItemReque
         RuleFor(x => x.AverageCostPrice).GreaterThanOrEqualTo(0m).WithMessage("Use zero or more.");
         RuleFor(x => x.LastCostPrice).GreaterThanOrEqualTo(0m).WithMessage("Use zero or more.");
         RuleFor(x => x.SalesPrice).GreaterThanOrEqualTo(0m).WithMessage("Use zero or more.");
-        RuleFor(x => x.PurchaseSupplyTypeId).Must(BeSupplyType).WithMessage("Choose a supply type.")
-            .When(x => x.PurchaseSupplyTypeId is not null);
-        RuleFor(x => x.SalesSupplyTypeId).Must(BeSupplyType).WithMessage("Choose a supply type.")
-            .When(x => x.SalesSupplyTypeId is not null);
         RuleFor(x => x.PurchaseVatPercentage).InclusiveBetween(0m, 100m).WithMessage("Use 0 to 100.");
         RuleFor(x => x.SalesVatPercentage).InclusiveBetween(0m, 100m).WithMessage("Use 0 to 100.");
         RuleFor(x => x.SdPercentage).InclusiveBetween(0m, 100m).WithMessage("Use 0 to 100.");
         RuleFor(x => x.ImageSource).ImageSource();
     }
-
-    private static bool BeSupplyType(int? id) => ItemChoices.NameOf(ItemChoices.SupplyTypes, id) is not null;
 }

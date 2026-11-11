@@ -26,11 +26,6 @@ internal static class ItemEndpoints
             .WithSummary("Items of the current business unit with status counts")
             .RequirePermission($"{Feature}.view");
 
-        items.MapGet("/choices", Choices)
-            .WithName("GetItemChoices")
-            .WithSummary("Item types and VAT supply types for dropdowns")
-            .RequirePermission($"{Feature}.view");
-
         items.MapGet("/options", Options)
             .WithName("GetItemOptions")
             .WithSummary("Up to 20 items that can be a master item, matching the search")
@@ -75,13 +70,13 @@ internal static class ItemEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict);
     }
 
-    private static IQueryable<ItemRow> Rows(IQueryable<Item> query) =>
+    private static IQueryable<ItemRow> Rows(ErpDbContext db, IQueryable<Item> query) =>
         query.Select(i => new ItemRow(
             i.Id,
             i.Code,
             i.Name,
             i.BarCode,
-            i.ItemTypeName,
+            db.LookupValues.Where(v => v.Id == i.ItemTypeId).Select(v => v.NameEn).FirstOrDefault(),
             i.Department!.Name,
             i.Category!.Name,
             i.SubCategory!.Name,
@@ -101,7 +96,7 @@ internal static class ItemEndpoints
             Name = i.Name,
             Description = i.Description,
             ItemTypeId = i.ItemTypeId,
-            ItemTypeName = i.ItemTypeName,
+            ItemTypeName = db.LookupValues.Where(v => v.Id == i.ItemTypeId).Select(v => v.NameEn).FirstOrDefault(),
             HsCode = i.HsCode,
             DepartmentId = i.DepartmentId,
             DepartmentName = i.Department!.Name,
@@ -128,10 +123,10 @@ internal static class ItemEndpoints
             LastCostPrice = i.LastCostPrice,
             SalesPrice = i.SalesPrice,
             PurchaseSupplyTypeId = i.PurchaseSupplyTypeId,
-            PurchaseSupplyTypeName = i.PurchaseSupplyTypeName,
+            PurchaseSupplyTypeName = db.LookupValues.Where(v => v.Id == i.PurchaseSupplyTypeId).Select(v => v.NameEn).FirstOrDefault(),
             PurchaseVatPercentage = i.PurchaseVatPercentage,
             SalesSupplyTypeId = i.SalesSupplyTypeId,
-            SalesSupplyTypeName = i.SalesSupplyTypeName,
+            SalesSupplyTypeName = db.LookupValues.Where(v => v.Id == i.SalesSupplyTypeId).Select(v => v.NameEn).FirstOrDefault(),
             SalesVatPercentage = i.SalesVatPercentage,
             SdPercentage = i.SdPercentage,
             IsVatInclusive = i.IsVatInclusive,
@@ -182,11 +177,9 @@ internal static class ItemEndpoints
             _ => query.OrderBy(i => i.Name),
         };
 
-        var items = await Rows(sorted.ThenBy(i => i.Id).Page(page, pageSize)).ToListAsync(ct);
+        var items = await Rows(db, sorted.ThenBy(i => i.Id).Page(page, pageSize)).ToListAsync(ct);
         return new ItemList(items, counts.TotalFor(status), counts);
     }
-
-    private static ItemChoiceLists Choices() => new(ItemChoices.ItemTypes, ItemChoices.SupplyTypes);
 
     private static Task<List<ItemLookup>> Options(string? search, ErpDbContext db, CancellationToken ct)
     {
@@ -293,13 +286,31 @@ internal static class ItemEndpoints
         if (barCode is not null && await db.Items.AnyAsync(i => i.Id != item.Id && i.BarCode == barCode, ct))
             errors["barCode"] = ["Another item already uses this barcode."];
 
+        int?[] chosen = [request.ItemTypeId, request.PurchaseSupplyTypeId, request.SalesSupplyTypeId];
+        var choices = await db.LookupValues.AsNoTracking()
+            .Where(v => chosen.Contains(v.Id))
+            .Select(v => new { v.Id, Type = v.LookupType!.Key, v.NameEn, v.IsActive })
+            .ToListAsync(ct);
+
+        string? Choice(string field, int? id, int? current, string type)
+        {
+            var choice = choices.Find(c => c.Id == id && c.Type == type);
+            if (id is null || (choice is not null && (choice.IsActive || id == current))) return choice?.NameEn;
+            errors[field] = ["Choose an active value from the list."];
+            return null;
+        }
+
+        var itemTypeName = Choice("itemTypeId", request.ItemTypeId, item.ItemTypeId, ItemLookups.ItemType);
+        var purchaseSupplyName = Choice("purchaseSupplyTypeId", request.PurchaseSupplyTypeId, item.PurchaseSupplyTypeId, ItemLookups.SupplyType);
+        var salesSupplyName = Choice("salesSupplyTypeId", request.SalesSupplyTypeId, item.SalesSupplyTypeId, ItemLookups.SupplyType);
+
         if (MasterData.Invalid(errors) is { } invalid) return invalid;
 
         item.Code = code ?? await NextCodeAsync(db, minor!.CategoryCode, minor.CategoryId, ct);
         item.Name = request.Name.Trim();
         item.Description = Trimmed(request.Description);
         item.ItemTypeId = request.ItemTypeId;
-        item.ItemTypeName = ItemChoices.NameOf(ItemChoices.ItemTypes, request.ItemTypeId);
+        item.ItemTypeName = itemTypeName;
         item.HsCode = request.HsCode?.Trim() ?? "";
         item.DepartmentId = minor!.DepartmentId;
         item.CategoryId = minor.CategoryId;
@@ -316,10 +327,10 @@ internal static class ItemEndpoints
         item.LastCostPrice = request.LastCostPrice;
         item.SalesPrice = request.SalesPrice;
         item.PurchaseSupplyTypeId = request.PurchaseSupplyTypeId;
-        item.PurchaseSupplyTypeName = ItemChoices.NameOf(ItemChoices.SupplyTypes, request.PurchaseSupplyTypeId);
+        item.PurchaseSupplyTypeName = purchaseSupplyName;
         item.PurchaseVatPercentage = request.PurchaseVatPercentage;
         item.SalesSupplyTypeId = request.SalesSupplyTypeId;
-        item.SalesSupplyTypeName = ItemChoices.NameOf(ItemChoices.SupplyTypes, request.SalesSupplyTypeId);
+        item.SalesSupplyTypeName = salesSupplyName;
         item.SalesVatPercentage = request.SalesVatPercentage;
         item.SdPercentage = request.SdPercentage;
         item.IsVatInclusive = request.IsVatInclusive;

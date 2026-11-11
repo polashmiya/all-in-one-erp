@@ -80,8 +80,9 @@ dotnet ef database update      --project backend/src/Erp.Infrastructure --startu
   EAN-13 (`20` + serial + check digit); serials are never reused. Manual barcodes must be unique in the business unit.
 - **Child items** point to an active master item that is not itself a child. A master item cannot be deleted while it
   has child items.
-- Item types and VAT supply types are fixed lists in `ItemChoices.cs` until they get their own tables. `SupplierID`,
-  `PurchaseVatID` and `SalesVatID` stay empty until supplier and VAT setup exist; the supplier is free text for now.
+- Item types and VAT supply types are the account's **lookup lists** (`item-type`, `vat-supply-type`, see below);
+  `ItemTypeID`, `PurchaseSupplyTypeID` and `SalesSupplyTypeID` point to `LookupValues`. `SupplierID`, `PurchaseVatID`
+  and `SalesVatID` stay empty until supplier and VAT setup exist; the supplier is free text for now.
 - The form, view and list come from the feature configuration (see below). Item type, HS code and the supply types are
   required by default but can be made optional per account, so their columns are nullable.
 
@@ -112,6 +113,16 @@ configuration only shapes the screens.
   `PUT` / `DELETE …/fields/{key}?businessUnitId=`. The server rejects hiding or loosening a locked field, hiding a
   required field that has no default, limits beyond the manifest, list or filter on fields that have none, and unknown
   sections.
+- **Lookup lists per account.** Simple dropdown lists (item type, VAT supply type…) are declared in code with an
+  `ILookupProvider` (key, name and default values, e.g. `ItemLookups.cs`). Startup syncs `LookupTypes` and gives every
+  account (and every new account at setup) the default `LookupValues` once: code, name EN/বাংলা, order, active and
+  one optional **default** value. The default value is used for a field whose lookup is that list when neither the
+  manifest nor the account sets one. Values are never deleted, only deactivated.
+  - ERP: `GET /api/erp/lookups/{type}` (inactive values included and flagged, so a form can still show a saved one).
+  - Panel: **Lookup lists** (Accounts → row menu → Lookup lists, `/accounts/{id}/lookups`); API
+    `GET /api/panel/lookup-types`, `GET` / `POST /api/panel/accounts/{id}/lookups/{type}` and `PUT …/{valueId}`.
+    Saving bumps the account's `ConfigVersion`. In Screen settings, the default of a list-lookup field is chosen from
+    the list.
 - **ERP API:** `GET /api/erp/features/{code}/config` (needs `{code}.view`) returns the resolved tabs → sections →
   fields, list columns and filters. Hidden fields are left out. A feature without a manifest returns 404.
 - **The server enforces it.** Save endpoints call `FeatureConfigService.ApplyRulesAsync` before their own logic: hidden
@@ -283,7 +294,7 @@ Both apps share one theme engine in `packages/ui/src/theme`:
 | 2     | Feature manifests, field/section tables, account settings, resolved config API, versioning   | ✅ Done |
 | 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement   | ✅ Done |
 | 4     | Panel: field manager per account and business unit (show/hide, required, labels, order, list, filters, reset) | ✅ Done |
-| 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ⏳      |
+| 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ✅ Done |
 | 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export              | ⏳      |
 | 7     | Panel: layout builder (tabs, sections, drag and drop) with live preview                      | ⏳      |
 | 8     | Item master data screens (department → UOM) on the engine                                    | ⏳      |

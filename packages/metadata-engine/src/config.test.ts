@@ -1,6 +1,6 @@
-import type { ConfigField, FeatureConfig, ItemLookup } from '@erp/api-client';
+import type { ConfigField, FeatureConfig } from '@erp/api-client';
 import { defaultValues, displayKey, fieldsOf } from './config';
-import { childSelectOptions, selectOptions } from './lookups';
+import { childSelectOptions, localized, selectOptions, type LookupItem } from './lookups';
 
 const field = (key: string, type: string, defaultValue: string | null = null): ConfigField => ({
   key,
@@ -48,7 +48,7 @@ const config: FeatureConfig = {
   ],
 };
 
-const item = (id: number, parentId: number | null, isActive = true): ItemLookup => ({
+const item = (id: number, parentId: number | null, isActive = true): LookupItem => ({
   id,
   code: null,
   name: `N${id}`,
@@ -105,5 +105,17 @@ describe('metadata-engine config', () => {
       { value: 2, label: 'N2' },
       { value: 3, label: 'N3' },
     ]);
+  });
+});
+
+describe('metadata-engine lookups', () => {
+  it('shows Bangla names in Bangla and falls back to English', () => {
+    const items = [
+      { ...item(1, null), nameBn: 'এক' },
+      { ...item(2, null), nameBn: null },
+    ];
+
+    expect(localized(items, 'bn')?.map((i) => i.name)).toEqual(['এক', 'N2']);
+    expect(localized(items, 'en')?.map((i) => i.name)).toEqual(['N1', 'N2']);
   });
 });

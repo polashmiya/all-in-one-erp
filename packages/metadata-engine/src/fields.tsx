@@ -1,10 +1,10 @@
-import type { ConfigField, ItemLookup } from '@erp/api-client';
-import { Field, FieldInput, type FieldDataType } from '@erp/ui';
+import type { ConfigField } from '@erp/api-client';
+import { Field, FieldInput, useLanguageStore, type FieldDataType } from '@erp/ui';
 import { Form, Select, type SelectProps } from 'antd';
 import { use } from 'react';
 import { columnsOf, useText, type FieldValues } from './config';
 import { Engine, type FieldState } from './context';
-import { childSelectOptions, parentOf, selectOptions } from './lookups';
+import { childSelectOptions, localized, parentOf, selectOptions, type LookupItem } from './lookups';
 import { useFieldRules } from './rules';
 
 const NO_STATE: FieldState = {};
@@ -83,7 +83,7 @@ function LookupInput({
   onChange,
 }: {
   field: ConfigField;
-  filter?: (item: ItemLookup) => boolean;
+  filter?: (item: LookupItem) => boolean;
   disabled: boolean;
   placeholder?: string;
   allowClear: boolean;
@@ -92,15 +92,16 @@ function LookupInput({
   onChange?: (value: unknown) => void;
 }) {
   const { fields, lookups = {} } = use(Engine);
+  const language = useLanguageStore((s) => s.language);
   const form = Form.useFormInstance();
   const ancestors = ancestorsOf(fields, field.key);
   const chain =
     Form.useWatch((values: FieldValues) => ancestors.map((key) => values[key]), form) ?? [];
   const valueOf = (key: string) => chain[ancestors.indexOf(key)];
 
-  const allowed = (key: string): ItemLookup[] | undefined => {
+  const allowed = (key: string): LookupItem[] | undefined => {
     const own = fields.get(key);
-    const items = own?.lookup ? lookups[own.lookup] : undefined;
+    const items = own?.lookup ? localized(lookups[own.lookup], language) : undefined;
     if (!own?.parentField || !fields.has(own.parentField)) return items;
     const parentValue = valueOf(own.parentField);
     if (parentValue != null) return items?.filter((item) => item.parentId === parentValue);

@@ -25,7 +25,6 @@ import type {
   AffectedRecords,
   GetItemOptionsParams,
   HttpValidationProblemDetails,
-  ItemChoiceLists,
   ItemDetail,
   ItemList,
   ItemLookup,
@@ -299,119 +298,6 @@ export const useCreateItem = <
 > => {
   return useMutation(getCreateItemMutationOptions(options), queryClient);
 };
-export const getGetItemChoicesUrl = () => {
-  return `/api/erp/item-management/items/choices`;
-};
-
-/**
- * @summary Item types and VAT supply types for dropdowns
- */
-export const getItemChoices = async (
-  options?: Parameters<typeof customFetch>[1],
-): Promise<ItemChoiceLists> => {
-  return customFetch<ItemChoiceLists>(getGetItemChoicesUrl(), {
-    ...options,
-    method: 'GET',
-  });
-};
-
-export const getGetItemChoicesQueryKey = () => {
-  return [`/api/erp/item-management/items/choices`] as const;
-};
-
-export const getGetItemChoicesQueryOptions = <
-  TData = Awaited<ReturnType<typeof getItemChoices>>,
-  TError = ErrorType<ProblemDetails>,
->(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemChoices>>, TError, TData>>;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getGetItemChoicesQueryKey();
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemChoices>>> = ({ signal }) =>
-    getItemChoices({ signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getItemChoices>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetItemChoicesQueryResult = NonNullable<Awaited<ReturnType<typeof getItemChoices>>>;
-export type GetItemChoicesQueryError = ErrorType<ProblemDetails>;
-
-export function useGetItemChoices<
-  TData = Awaited<ReturnType<typeof getItemChoices>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemChoices>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getItemChoices>>,
-          TError,
-          Awaited<ReturnType<typeof getItemChoices>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetItemChoices<
-  TData = Awaited<ReturnType<typeof getItemChoices>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemChoices>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getItemChoices>>,
-          TError,
-          Awaited<ReturnType<typeof getItemChoices>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetItemChoices<
-  TData = Awaited<ReturnType<typeof getItemChoices>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemChoices>>, TError, TData>>;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-/**
- * @summary Item types and VAT supply types for dropdowns
- */
-
-export function useGetItemChoices<
-  TData = Awaited<ReturnType<typeof getItemChoices>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getItemChoices>>, TError, TData>>;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetItemChoicesQueryOptions(options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
 export const getGetItemOptionsUrl = (params?: GetItemOptionsParams) => {
   const normalizedParams = new URLSearchParams();
 

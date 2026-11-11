@@ -44,6 +44,8 @@ public static class DependencyInjection
         services.AddSingleton<FeatureManifestCatalog>();
         services.AddMemoryCache();
         services.AddScoped<FeatureConfigService>();
+        services.AddSingleton<LookupCatalog>();
+        services.AddScoped<LookupDefaults>();
         services.AddSingleton<IPermissionProvider, MenuPermissionProvider>();
         services.AddSingleton<PermissionCatalog>();
         services.AddScoped<IPermissionService, PermissionService>();

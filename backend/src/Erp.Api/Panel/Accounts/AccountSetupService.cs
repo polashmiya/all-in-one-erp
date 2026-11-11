@@ -2,6 +2,7 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Security;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using Erp.Infrastructure.Security;
 using Erp.Infrastructure.Tenancy;
@@ -16,7 +17,8 @@ public sealed record AccountSetupOutcome(AccountSetupResult? Result, IDictionary
 /// Creates an account with its business units, offices, warehouses, ERP features, system roles and primary ERP admin.
 /// Everything is saved with one SaveChanges, i.e. one transaction: either the whole tree exists or nothing does.
 /// </summary>
-public sealed class AccountSetupService(ErpDbContext db, IPasswordHasher hasher, PermissionCatalog catalog, AccountFeatureService features)
+public sealed class AccountSetupService(
+    ErpDbContext db, IPasswordHasher hasher, PermissionCatalog catalog, AccountFeatureService features, LookupDefaults lookups)
 {
     public async Task<AccountSetupOutcome> SetupAsync(AccountSetupRequest request, CancellationToken cancellationToken)
     {
@@ -81,6 +83,7 @@ public sealed class AccountSetupService(ErpDbContext db, IPasswordHasher hasher,
         }
 
         db.ErpUsers.Add(admin);
+        await lookups.AddMissingAsync(account.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return new AccountSetupOutcome(

@@ -6,6 +6,7 @@ import {
   PlusOutlined,
   SettingOutlined,
   ShopOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 import { useListAccounts, type AccountListItem } from '@erp/api-client';
 import {
@@ -186,6 +187,13 @@ export function AccountsPage() {
             icon: <SettingOutlined />,
             inMenu: true,
             onClick: () => navigate(ACCOUNT_PATHS.configuration(account.id)),
+          },
+          {
+            key: 'lookups',
+            label: t('lookups.action'),
+            icon: <UnorderedListOutlined />,
+            inMenu: true,
+            onClick: () => navigate(ACCOUNT_PATHS.lookups(account.id)),
           },
         ]}
         rows={result?.items}

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Erp.Api.Lookups;
 using Erp.Modules.Inventory;
 using Erp.Modules.Inventory.ItemManagement;
 using Erp.Modules.Inventory.ItemManagement.Categories;
@@ -20,7 +21,9 @@ public sealed class ItemProfileTests(ApiFactory factory)
 
     private sealed record Hierarchy(ItemCategoryRow Category, ItemMinorCategoryRow Minor);
 
-    private sealed record Setup(Hierarchy Hierarchy, UomRow Uom, UomRow AltUom);
+    private sealed record Choices(int FinishedGoods, int Service, int StandardVat);
+
+    private sealed record Setup(Hierarchy Hierarchy, UomRow Uom, UomRow AltUom, Choices Choices);
 
     private static string Unique(int length = 6) => Guid.NewGuid().ToString("N")[..length].ToUpperInvariant();
 
@@ -58,14 +61,21 @@ public sealed class ItemProfileTests(ApiFactory factory)
     private static async Task<Setup> CreateSetupAsync(HttpClient client) => new(
         await CreateHierarchyAsync(client),
         await CreateAsync<UomRow>(client, "uoms", new SaveUomRequest(Unique(5), $"Piece {Unique()}", null, false, null, true)),
-        await CreateAsync<UomRow>(client, "uoms", new SaveUomRequest(Unique(5), $"Box {Unique()}", null, false, null, true)));
+        await CreateAsync<UomRow>(client, "uoms", new SaveUomRequest(Unique(5), $"Box {Unique()}", null, false, null, true)),
+        new Choices(
+            await ChoiceAsync(client, ItemLookups.ItemType, "FG"),
+            await ChoiceAsync(client, ItemLookups.ItemType, "SRV"),
+            await ChoiceAsync(client, ItemLookups.SupplyType, "STD")));
+
+    private static async Task<int> ChoiceAsync(HttpClient client, string type, string code) =>
+        (await client.GetFromJsonAsync<List<LookupOption>>($"/api/erp/lookups/{type}"))!.Single(o => o.Code == code).Id;
 
     private static SaveItemRequest NewItem(Setup setup) => new()
     {
         Code = null,
         Name = $"Item {Unique()}",
         Description = null,
-        ItemTypeId = 1,
+        ItemTypeId = setup.Choices.FinishedGoods,
         HsCode = "3004.90.99",
         MinorCategoryId = setup.Hierarchy.Minor.Id,
         IsAutoBarcode = true,
@@ -80,9 +90,9 @@ public sealed class ItemProfileTests(ApiFactory factory)
         AverageCostPrice = 10m,
         LastCostPrice = 10m,
         SalesPrice = 12.5m,
-        PurchaseSupplyTypeId = 1,
+        PurchaseSupplyTypeId = setup.Choices.StandardVat,
         PurchaseVatPercentage = 15m,
-        SalesSupplyTypeId = 1,
+        SalesSupplyTypeId = setup.Choices.StandardVat,
         SalesVatPercentage = 15m,
         SdPercentage = null,
         IsVatInclusive = false,
@@ -115,7 +125,7 @@ public sealed class ItemProfileTests(ApiFactory factory)
         var updated = await ReadAsync<ItemDetail>(await client.PutAsJsonAsync($"{Base}/items/{created.Id}", NewItem(setup) with
         {
             Name = created.Name,
-            ItemTypeId = 7,
+            ItemTypeId = setup.Choices.Service,
             IsAutoBarcode = false,
             BarCode = $" {barCode} ",
             AltUomId = setup.AltUom.Id,
@@ -159,8 +169,21 @@ public sealed class ItemProfileTests(ApiFactory factory)
         });
 
         Assert.Equal(
-            ["altUomConversionQty", "altUomId", "barCode", "itemTypeId", "masterItemId", "name", "salesVatPercentage"],
+            ["altUomConversionQty", "altUomId", "barCode", "masterItemId", "name", "salesVatPercentage"],
             (await ErrorsAsync(response)).Order());
+    }
+
+    [Fact]
+    public async Task Lookup_values_must_come_from_the_right_list()
+    {
+        var client = await AdminAsync();
+        var setup = await CreateSetupAsync(client);
+
+        var wrongList = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { ItemTypeId = setup.Choices.StandardVat });
+        var unknown = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { SalesSupplyTypeId = int.MaxValue });
+
+        Assert.Equal(["itemTypeId"], await ErrorsAsync(wrongList));
+        Assert.Equal(["salesSupplyTypeId"], await ErrorsAsync(unknown));
     }
 
     [Fact]
@@ -312,8 +335,11 @@ public sealed class ItemProfileTests(ApiFactory factory)
         var login = await factory.ErpLoginAsync(ApiFactory.ViewerEmail, ApiFactory.TestPassword);
         var viewer = factory.CreateClient(login.AccessToken, factory.DhakaId);
 
-        var choices = await ReadAsync<ItemChoiceLists>(await viewer.GetAsync($"{Base}/items/choices"));
-        Assert.Equal((8, 6), (choices.ItemTypes.Count, choices.SupplyTypes.Count));
+        var itemTypes = await ReadAsync<List<LookupOption>>(await viewer.GetAsync($"/api/erp/lookups/{ItemLookups.ItemType}"));
+        var supplyTypes = await ReadAsync<List<LookupOption>>(await viewer.GetAsync($"/api/erp/lookups/{ItemLookups.SupplyType}"));
+        Assert.Equal((8, 6), (itemTypes.Count, supplyTypes.Count));
+        Assert.Equal("STD", Assert.Single(supplyTypes, o => o.IsDefault).Code);
+        Assert.Equal(HttpStatusCode.NotFound, (await viewer.GetAsync("/api/erp/lookups/unknown-list")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync($"{Base}/items")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync($"{Base}/minor-categories/options")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await viewer.PostAsJsonAsync($"{Base}/items/delete", new RecordIdsRequest([1]))).StatusCode);

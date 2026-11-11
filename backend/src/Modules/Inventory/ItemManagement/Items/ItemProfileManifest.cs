@@ -32,7 +32,7 @@ public sealed class ItemProfileManifest : IFeatureManifestProvider
             new("itemTypeId", FieldTypes.Lookup, new("Item type", "আইটেমের ধরন"), "basic", 20)
             {
                 Required = true,
-                Lookup = "item-type",
+                Lookup = ItemLookups.ItemType,
                 ListOrder = 40,
                 Filter = true,
             },
@@ -137,15 +137,13 @@ public sealed class ItemProfileManifest : IFeatureManifestProvider
             new("purchaseSupplyTypeId", FieldTypes.Lookup, new("Purchase supply type", "ক্রয় সাপ্লাই টাইপ"), "vat", 10)
             {
                 Required = true,
-                Lookup = "vat-supply-type",
-                Default = "1",
+                Lookup = ItemLookups.SupplyType,
             },
             new("purchaseVatPercentage", FieldTypes.Percent, new("Purchase VAT", "ক্রয় ভ্যাট"), "vat", 20) { Min = 0m, Max = 100m, Default = "15" },
             new("salesSupplyTypeId", FieldTypes.Lookup, new("Sales supply type", "বিক্রয় সাপ্লাই টাইপ"), "vat", 30)
             {
                 Required = true,
-                Lookup = "vat-supply-type",
-                Default = "1",
+                Lookup = ItemLookups.SupplyType,
             },
             new("salesVatPercentage", FieldTypes.Percent, new("Sales VAT", "বিক্রয় ভ্যাট"), "vat", 40) { Min = 0m, Max = 100m, Default = "15" },
             new("sdPercentage", FieldTypes.Percent, new("Supplementary duty (SD)", "সম্পূরক শুল্ক (এসডি)"), "vat", 50) { Min = 0m, Max = 100m },

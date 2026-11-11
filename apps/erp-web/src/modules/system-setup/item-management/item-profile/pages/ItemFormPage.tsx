@@ -21,7 +21,7 @@ import { useRefreshItemManagement } from '../../item-management';
 import { ConversionInput } from '../components/ConversionInput';
 import { ImageAttach } from '../components/ImageAttach';
 import { MasterItemSelect } from '../components/MasterItemSelect';
-import { ITEM_ASIDE_SECTIONS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
+import { ITEM_ASIDE_SECTIONS, ITEM_LOOKUPS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 import { copyOf, itemBehaviors, toRequest, type ItemFormValues } from '../item-form';
 import { useItemLookups } from '../item-lookups';
 
@@ -104,7 +104,7 @@ function ItemForm({
           placeholder={text(field.placeholder)}
         />
       ),
-      altUomConversionQty: () => <ConversionInput uoms={lookups.uom} />,
+      altUomConversionQty: () => <ConversionInput uoms={lookups[ITEM_LOOKUPS.uom]} />,
     },
   });
 

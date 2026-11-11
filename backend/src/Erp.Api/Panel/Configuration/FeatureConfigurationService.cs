@@ -1,5 +1,6 @@
 using System.Globalization;
 using Erp.Core.Domain.Metadata;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using Erp.Metadata;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,9 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
         string Code,
         Dictionary<Guid, FeatureSection> Sections,
         List<FeatureField> Fields,
-        List<AccountFieldSetting> Settings);
+        List<AccountFieldSetting> Settings,
+        Dictionary<string, List<int>> ListValues,
+        Dictionary<string, string> LookupDefaults);
 
     public async Task<FeatureConfigEditor?> GetAsync(Guid accountId, Guid? businessUnitId, string code, CancellationToken ct)
     {
@@ -100,7 +103,16 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             .Where(s => s.BusinessUnitId == null || s.BusinessUnitId == businessUnitId)
             .ToListAsync(ct);
 
-        return new Scope(accountId, businessUnitId, featureId.Value, featureCode, sections, fields, settings);
+        var sources = fields.Select(f => f.LookupSource).OfType<string>().Distinct().ToList();
+        var listValues = (await db.LookupValues.AcrossTenants()
+                .Where(v => v.AccountId == accountId && v.IsActive && sources.Contains(v.LookupType!.Key))
+                .Select(v => new { v.LookupType!.Key, v.Id })
+                .ToListAsync(ct))
+            .GroupBy(v => v.Key)
+            .ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToList());
+        var lookupDefaults = await FeatureConfigService.LookupDefaultsAsync(db, accountId, ct);
+
+        return new Scope(accountId, businessUnitId, featureId.Value, featureCode, sections, fields, settings, listValues, lookupDefaults);
     }
 
     private static AccountFieldSetting? OwnRow(Scope scope, FeatureField field) =>
@@ -140,6 +152,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
     private static FieldConfigRow Row(Scope scope, FeatureField field) => new(
         field.Key,
         field.DataType,
+        field.LookupSource,
         field.IsLocked,
         field.ListOrder is not null,
         field.CanFilter,
@@ -209,7 +222,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
         if (field.MaxValue is { } max && values.MaxValue > max) Add("maxValue", $"Use {Format(max)} or less.");
         if (values.InList == true && field.ListOrder is null) Add("inList", "This field has no list column.");
         if (values.InFilter == true && !field.CanFilter) Add("inFilter", "This field cannot be a list filter.");
-        if (Trimmed(values.DefaultValue) is { } value && DefaultProblem(field, value) is { } problem) Add("defaultValue", problem);
+        if (Trimmed(values.DefaultValue) is { } value && DefaultProblem(scope, field, value) is { } problem) Add("defaultValue", problem);
 
         var current = BaseRow(scope, field);
         if ((values.MinValue ?? current.MinValue) is { } low && (values.MaxValue ?? current.MaxValue) is { } high && low > high)
@@ -217,16 +230,19 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
 
         var hidden = (values.IsVisible ?? current.IsVisible) == false;
         var required = values.IsRequired ?? current.IsRequired ?? false;
-        var hasDefault = Trimmed(values.DefaultValue) is not null || current.DefaultValue is not null;
+        var hasDefault = Trimmed(values.DefaultValue) is not null || current.DefaultValue is not null ||
+            (field.LookupSource is { } source && scope.LookupDefaults.ContainsKey(source));
         if (hidden && required && !hasDefault && field.DataType != FieldTypes.Boolean)
             Add("isVisible", "A required field needs a default value before it can be hidden. Add one or make it optional.");
 
         return errors;
     }
 
-    private static string? DefaultProblem(FeatureField field, string value) => field.DataType switch
+    private static string? DefaultProblem(Scope scope, FeatureField field, string value) => field.DataType switch
     {
         FieldTypes.Boolean => bool.TryParse(value, out _) ? null : "Use true or false.",
+        FieldTypes.Lookup when field.LookupSource is { } source && scope.ListValues.TryGetValue(source, out var ids) =>
+            int.TryParse(value, out var id) && ids.Contains(id) ? null : "Choose an active value from the list.",
         FieldTypes.Number or FieldTypes.Decimal or FieldTypes.Money or FieldTypes.Percent or FieldTypes.Lookup =>
             decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out _) ? null : "Enter a number.",
         _ => field.MaxLength is { } cap && value.Length > cap ? $"Use at most {cap} characters." : null,

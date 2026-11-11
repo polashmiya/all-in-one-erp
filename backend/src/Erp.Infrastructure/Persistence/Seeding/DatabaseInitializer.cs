@@ -1,6 +1,7 @@
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Modules;
+using Erp.Infrastructure.Metadata;
 using Erp.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +40,15 @@ public static class DatabaseInitializer
         {
             await provider.GetRequiredService<DemoDataSeeder>().SeedAsync(cancellationToken);
         }
+
+        var lookups = provider.GetRequiredService<LookupDefaults>();
+        await lookups.SyncTypesAsync(cancellationToken);
+        foreach (var accountId in await db.Accounts.Select(a => a.Id).ToListAsync(cancellationToken))
+        {
+            await lookups.AddMissingAsync(accountId, cancellationToken);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

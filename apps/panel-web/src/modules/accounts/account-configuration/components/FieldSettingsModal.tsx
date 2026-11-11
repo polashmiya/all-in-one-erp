@@ -1,5 +1,7 @@
 import {
   ApiError,
+  useListAccountLookupValues,
+  useListLookupTypes,
   useSaveFieldSetting,
   type ConfigSectionOption,
   type FieldConfigRow,
@@ -41,13 +43,19 @@ export function FieldSettingsModal({
   const [form] = Form.useForm<FieldSettingValues>();
   const save = useSaveFieldSetting();
   const initialValues = useMemo(() => (row ? effective(row) : undefined), [row]);
+  const types = useListLookupTypes();
+  const list =
+    row?.type === 'lookup' && types.data?.some((type) => type.key === row.lookup)
+      ? (row.lookup ?? '')
+      : '';
+  const listValues = useListAccountLookupValues(accountId, list, { query: { enabled: !!list } });
 
   if (!row) return null;
 
   const locked = row.isLocked;
   const isText = TEXT_TYPES.includes(row.type);
   const isNumber = NUMBER_TYPES.includes(row.type);
-  const hasDefault = isText || isNumber || row.type === 'lookup' || row.type === 'boolean';
+  const hasDefault = isText || isNumber || !!list || row.type === 'boolean';
   const numberProps = {
     getValueProps: (value: unknown) => ({ value: value == null ? undefined : Number(value) }),
     normalize: (value: number | null) => (value == null ? null : String(value)),
@@ -169,6 +177,21 @@ export function FieldSettingsModal({
             ) : isText ? (
               <Field name="defaultValue" label={t('config.f.default')}>
                 <Input maxLength={DEFAULT_MAX} />
+              </Field>
+            ) : list ? (
+              <Field name="defaultValue" label={t('config.f.default')} {...numberProps}>
+                <Select
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  loading={listValues.isPending}
+                  options={(listValues.data ?? [])
+                    .filter((value) => value.isActive)
+                    .map((value) => ({
+                      value: value.id,
+                      label: text({ en: value.nameEn, bn: value.nameBn }),
+                    }))}
+                />
               </Field>
             ) : (
               <Field name="defaultValue" label={t('config.f.default')} {...numberProps}>

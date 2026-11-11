@@ -566,7 +566,13 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DepartmentId");
 
+                    b.HasIndex("ItemTypeId");
+
                     b.HasIndex("MinorCategoryId");
+
+                    b.HasIndex("PurchaseSupplyTypeId");
+
+                    b.HasIndex("SalesSupplyTypeId");
 
                     b.HasIndex("SubCategoryId");
 
@@ -1364,6 +1370,123 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("FeatureSections", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Metadata.LookupType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NameBn")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("LookupTypes", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Metadata.LookupValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("LookupValueID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LookupTypeId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LookupTypeID");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID");
+
+                    b.Property<string>("NameBn")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LookupTypeId");
+
+                    b.HasIndex("AccountId", "LookupTypeId", "Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
+
+                    b.ToTable("LookupValues", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Navigation.ErpFeature", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2037,11 +2160,26 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("ItemTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Erp.Core.Domain.Inventory.ItemMinorCategory", "MinorCategory")
                         .WithMany()
                         .HasForeignKey("MinorCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PurchaseSupplyTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("SalesSupplyTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Erp.Core.Domain.Inventory.ItemSubCategory", "SubCategory")
                         .WithMany()
@@ -2265,6 +2403,23 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.Navigation("Feature");
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Metadata.LookupValue", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupType", "LookupType")
+                        .WithMany()
+                        .HasForeignKey("LookupTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LookupType");
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Navigation.ErpFeature", b =>

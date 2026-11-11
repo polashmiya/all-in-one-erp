@@ -31,6 +31,7 @@ public sealed record ConfigSectionOption(string Key, LocalizedLabel Label, strin
 public sealed record FieldConfigRow(
     string Key,
     string Type,
+    string? Lookup,
     bool IsLocked,
     bool CanList,
     bool CanFilter,
