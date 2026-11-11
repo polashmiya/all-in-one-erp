@@ -20,6 +20,7 @@ export interface PageHeaderProps {
   actions?: ActionItem[];
   extra?: ReactNode;
   backTo?: string;
+  sticky?: boolean;
 }
 
 export interface PageContainerProps extends Omit<PageHeaderProps, 'title'> {
@@ -37,11 +38,12 @@ export function PageHeader({
   actions,
   extra,
   backTo,
+  sticky = false,
 }: PageHeaderProps) {
   const hasActions = !!extra || !!actions?.some((a) => !a.hidden);
 
   return (
-    <div className="erp-page__head">
+    <div className={`erp-page__head${sticky ? ' is-sticky' : ''}`}>
       <div className="erp-page__titles">
         <div className="erp-page__titlerow">
           {backTo && <BackButton to={backTo} />}

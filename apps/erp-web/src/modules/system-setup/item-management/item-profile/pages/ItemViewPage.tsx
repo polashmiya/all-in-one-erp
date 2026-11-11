@@ -14,7 +14,7 @@ import {
   type FeatureConfig,
   type ItemDetail,
 } from '@erp/api-client';
-import { useViewTabs } from '@erp/metadata-engine';
+import { useViewSections } from '@erp/metadata-engine';
 import {
   DescriptionList,
   DetailSection,
@@ -31,7 +31,8 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import { problemMessage } from '@/common/utils/api-errors';
-import { useRefreshItemManagement, useUnitKey } from '../../common/master-data';
+import { useUnitKey } from '@/common/master-data';
+import { useRefreshItemManagement } from '../../item-management';
 import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 
 export function ItemViewPage() {
@@ -69,7 +70,7 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
   const setStatus = useSetItemsStatus();
   const remove = useDeleteItem();
   const refresh = useRefreshItemManagement();
-  const tabs = useViewTabs(config, item, {
+  const sections = useViewSections(config, item, {
     masterItemId: (r) =>
       r.masterItemId ? (
         <Link to={itemPaths.view(r.masterItemId)}>
@@ -114,7 +115,7 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
   const recordInfo = (
     <DetailSection title={t('item.side.recordInfo')}>
       <DescriptionList
-        columns={4}
+        columns={3}
         items={[
           { key: 'unit', label: t('item.side.businessUnit'), value: unit?.name },
           { key: 'createdBy', label: t('item.side.createdBy'), value: item.createdByName },
@@ -170,6 +171,14 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
         ],
         actions: [
           {
+            key: 'edit',
+            label: t('master.edit'),
+            icon: <EditOutlined />,
+            variant: 'primary',
+            hidden: !access.edit,
+            to: itemPaths.edit(item.id),
+          },
+          {
             key: 'duplicate',
             label: t('item.duplicate'),
             icon: <CopyOutlined />,
@@ -202,29 +211,9 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
               },
             ],
           },
-          {
-            key: 'edit',
-            label: t('master.edit'),
-            icon: <EditOutlined />,
-            variant: 'primary',
-            hidden: !access.edit,
-            to: itemPaths.edit(item.id),
-          },
         ],
       }}
-      tabs={tabs.map((tab, index) =>
-        index === tabs.length - 1
-          ? {
-              ...tab,
-              content: (
-                <>
-                  {tab.content}
-                  {recordInfo}
-                </>
-              ),
-            }
-          : tab,
-      )}
+      sections={[...sections, { key: 'record', content: recordInfo }]}
     />
   );
 }

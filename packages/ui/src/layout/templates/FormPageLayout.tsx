@@ -5,13 +5,11 @@ import type { ActionItem, ActionVariant } from '../../components/actions/types';
 import { useHotkey } from '../../hooks/useHotkey';
 import { useGoBack } from '../../hooks/useGoBack';
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard';
-import { ActionBar, PageContainer, type PageStatus } from '../page/PageContainer';
+import { PageContainer, type PageStatus } from '../page/PageContainer';
 import { SplitLayout } from '../page/CardGrid';
-import { SectionTabs } from './SectionTabs';
 
-export interface FormTab {
+export interface FormSection {
   key: string;
-  label: ReactNode;
   fields?: string[];
   content: ReactNode;
 }
@@ -22,7 +20,6 @@ export interface FormSubmitAction {
   icon?: ReactNode;
   variant?: ActionVariant;
   validate?: 'all' | string[];
-  placement?: ('header' | 'footer')[];
   hidden?: boolean;
 }
 
@@ -34,14 +31,26 @@ export interface FormPageLayoutProps<T> {
   status?: PageStatus;
   backTo?: string;
   crumbs?: string[];
-  tabs?: FormTab[];
+  sections?: FormSection[];
+  aside?: FormSection[];
   children?: ReactNode;
-  aside?: ReactNode;
   submitActions: FormSubmitAction[];
   cancelTo?: string;
   saving?: boolean;
   guard?: boolean;
   onSubmit: (values: T, actionKey: string) => Promise<unknown>;
+}
+
+function Cards({ sections }: { sections: FormSection[] }) {
+  return (
+    <div className="erp-form-stack">
+      {sections.map((section) => (
+        <section key={section.key} className="erp-card erp-form-block">
+          {section.content}
+        </section>
+      ))}
+    </div>
+  );
 }
 
 export function FormPageLayout<T extends object>({
@@ -52,9 +61,9 @@ export function FormPageLayout<T extends object>({
   status,
   backTo,
   crumbs,
-  tabs,
-  children,
+  sections,
   aside,
+  children,
   submitActions,
   cancelTo,
   saving,
@@ -64,9 +73,8 @@ export function FormPageLayout<T extends object>({
   const { t } = useTranslation();
   const { message } = App.useApp();
   const [dirty, setDirty] = useState(false);
-  const [errors, setErrors] = useState<Record<string, number>>({});
+  const [errorCount, setErrorCount] = useState(0);
   const dirtyRef = useRef(false);
-  const errorTotal = Object.values(errors).reduce((sum, n) => sum + n, 0);
 
   const goBack = useGoBack(cancelTo ?? '/');
 
@@ -77,24 +85,13 @@ export function FormPageLayout<T extends object>({
     setDirty(value);
   };
 
-  const tabOf = (name: (string | number)[]) =>
-    tabs?.find((tb) => tb.fields?.includes(String(name[0])))?.key ?? tabs?.[0]?.key ?? 'main';
-
-  const countErrors = () => {
-    const counts: Record<string, number> = {};
-    for (const field of form.getFieldsError()) {
-      if (field.errors.length) {
-        const key = tabOf(field.name);
-        counts[key] = (counts[key] ?? 0) + 1;
-      }
-    }
-    setErrors(counts);
-  };
+  const countErrors = () =>
+    setErrorCount(form.getFieldsError().filter((field) => field.errors.length).length);
 
   const revealErrors = () => {
     countErrors();
     const first = form.getFieldsError().find((field) => field.errors.length);
-    if (first) form.scrollToField(first.name, { block: 'center', behavior: 'smooth' });
+    if (first) form.scrollToField(first.name, { block: 'center', behavior: 'smooth', focus: true });
   };
 
   const submit = async (action: FormSubmitAction) => {
@@ -110,7 +107,7 @@ export function FormPageLayout<T extends object>({
     dirtyRef.current = false;
     try {
       await onSubmit(values, action.key);
-      setErrors({});
+      setErrorCount(0);
       setDirty(false);
     } catch {
       dirtyRef.current = dirty;
@@ -124,51 +121,42 @@ export function FormPageLayout<T extends object>({
 
   useHotkey('s', () => saveAction && void submit(saveAction), { mod: true, enabled: !saving });
 
-  const toAction = (action: FormSubmitAction): ActionItem => ({
-    key: action.key,
-    label: action.label,
-    icon: action.icon,
-    variant: action.variant ?? 'default',
-    loading: saving,
-    hidden: action.hidden,
-    onClick: () => submit(action),
-  });
-
-  const headerActions = submitActions
-    .filter((a) => a.placement?.includes('header') ?? true)
-    .map(toAction);
-  const footerActions: ActionItem[] = [
+  const actions: ActionItem[] = [
     ...(cancelTo
       ? [{ key: 'cancel', label: t('common.cancel'), variant: 'text' as const, onClick: goBack }]
       : []),
-    ...submitActions.filter((a) => a.placement?.includes('footer') ?? true).map(toAction),
+    ...submitActions.map((action) => ({
+      key: action.key,
+      label: action.label,
+      icon: action.icon,
+      variant: action.variant ?? 'default',
+      loading: saving,
+      hidden: action.hidden,
+      onClick: () => submit(action),
+    })),
   ];
 
-  const statusText = errorTotal
-    ? [dirty ? t('common.unsaved') : null, t('common.needsAttention', { count: errorTotal })]
-        .filter(Boolean)
-        .join(' · ')
-    : dirty
-      ? t('common.unsaved')
-      : t('common.noChanges');
-
-  const tone = errorTotal ? 'warning' : dirty ? 'warning' : 'success';
-
-  const tabLabel = (tb: FormTab) => (
-    <span>
-      {tb.label}
-      {!!errors[tb.key] && <span className="erp-tab-err">{errors[tb.key]}</span>}
-    </span>
-  );
+  const statusText = [
+    dirty ? t('common.unsaved') : null,
+    errorCount ? t('common.needsAttention', { count: errorCount }) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <PageContainer
+      sticky
       title={title}
       subTitle={subTitle}
       status={status}
       backTo={backTo}
       crumbs={crumbs}
-      actions={headerActions}
+      extra={
+        statusText && (
+          <span className="erp-status-dot erp-status-dot--warning erp-text-sm">{statusText}</span>
+        )
+      }
+      actions={actions}
     >
       <Form<T>
         form={form}
@@ -176,30 +164,16 @@ export function FormPageLayout<T extends object>({
         className="erp-form"
         initialValues={initialValues}
         onValuesChange={() => markDirty(true)}
-        onFieldsChange={() => errorTotal > 0 && countErrors()}
+        onFieldsChange={() => errorCount > 0 && countErrors()}
       >
         <SplitLayout
-          aside={aside}
+          aside={aside?.length ? <Cards sections={aside} /> : undefined}
           main={
-            <section className="erp-card erp-form-card">
-              {tabs ? (
-                <SectionTabs
-                  tabs={tabs.map((tb) => ({
-                    key: tb.key,
-                    label: tabLabel(tb),
-                    content: tb.content,
-                  }))}
-                />
-              ) : (
-                children
-              )}
-              <ActionBar
-                status={
-                  <span className={`erp-status-dot erp-status-dot--${tone}`}>{statusText}</span>
-                }
-                actions={footerActions}
-              />
-            </section>
+            sections ? (
+              <Cards sections={sections} />
+            ) : (
+              <section className="erp-card erp-form-block">{children}</section>
+            )
           }
         />
       </Form>

@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router';
-import { itemManagementPaths } from '../common/master-data';
+import { itemManagementPaths } from '../item-management';
 
 export const itemCategoryRoutes: RouteObject[] = [
   {

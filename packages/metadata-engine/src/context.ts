@@ -22,6 +22,7 @@ export interface FormOptions {
   lookups?: LookupSources;
   widgets?: Record<string, FieldRenderer>;
   behaviors?: Record<string, FieldBehavior>;
+  aside?: string[];
 }
 
 export interface EngineContext extends FormOptions {

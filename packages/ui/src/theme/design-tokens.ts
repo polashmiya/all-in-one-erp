@@ -17,7 +17,7 @@ export const sizes = {
   topbarHeight: 56,
   panelGutter: 8,
   panelRadius: 14,
-  asideWidth: 300,
+  asideWidth: 320,
   searchWidth: 280,
   filterMaxWidth: 260,
   authFormWidth: 400,

@@ -36,13 +36,14 @@ Decide which existing feature the request looks like, then open that feature's f
 
 - The page renders `MasterListPage` with columns, CSV columns, filters, empty state, and the generated list, status and delete hooks.
 - The modal wraps `MasterFormModal` with `Field` / `FieldGrid` and ends with `ActiveField`.
-- Shared helpers are in `item-management/common/master-data.ts`: `listParams`, `useUnitKey`, `useRefreshItemManagement`, `CODE_PATTERN`, `trimmed`, `EXPORT_PAGE_SIZE`, feature keys and paths. Shared texts are the `master.*` keys in `item-management/common/i18n.ts`.
+- The whole master-data kit is app-wide in `@/common/master-data`: `MasterListPage`, `MasterFormModal`, `ActiveField`, `ImageField`, `RecordNameCell`, `ImageSourceInput`, `listParams`, `useUnitKey`, `CODE_PATTERN`, `trimmed`, `toUpper`, `idParam`, `filterOptions`, `EXPORT_PAGE_SIZE`, `StatusView`. Shared texts are the `master.*` keys in `@/common/master-data/i18n.ts`.
+- Things that belong to one area (its API prefix, feature keys, paths and refresh hook) live in one file per area, e.g. `item-management/item-management.ts`. A new area (suppliers, VAT, warehouses) gets its own file of the same shape.
 
 **B. Configuration-driven feature (list, full-page form, view page).** The fields of the screen come from the per-account feature configuration. Exemplar: `.../item-management/item-profile/`.
 
 - Load the configuration with `useFeatureConfig(FEATURE_KEY)`.
-- Form: `useFormTabs(config, { lookups, widgets, behaviors })` feeds `FormPageLayout`.
-- View: `useViewTabs(config, record, renderers)` feeds `DetailsPageLayout`.
+- Form: `useFormSections(config, { lookups, widgets, behaviors, aside })` returns `{ sections, aside }` for `FormPageLayout`. Every manifest section becomes one card. `aside` lists the section keys that go to the right column (status, classification, image, organize), kept as a constant in the feature's `constants.ts` (e.g. `ITEM_ASIDE_SECTIONS`).
+- View: `useViewSections(config, record, renderers)` gives `DetailsPageLayout` the same sections as read-only cards. Extra cards (record info) are appended as `{ key, content }`.
 - List: `useConfigColumns(config, renderers)` gives the table columns and the CSV export columns.
 - Do not add fields, labels or list columns in the React code. Those come from the backend manifest. `widgets` replace a field's input; `behaviors` (`watch` + `state`) can only narrow a field: hide, disable, require, filter options.
 - Lookups are a hook returning `{ [lookupKey]: options }` (see `item-lookups.ts`). Request mapping and behaviors live in a plain `*-form.ts` file next to the pages.
@@ -60,7 +61,7 @@ Decide which existing feature the request looks like, then open that feature's f
 
 When you add a feature, each item below is one small edit:
 
-1. **Feature key and path.** The key is `<module>.<feature>`, e.g. `system-setup.uom`. Build the path with `featurePath('<module>', '<feature>')` from `@/common/constants/routes`. Keep both in the feature's `constants.ts`, or in the area's shared file as `master-data.ts` does. Never write a path string inline in a page.
+1. **Feature key and path.** The key is `<module>.<feature>`, e.g. `system-setup.uom`. Build the path with `featurePath('<module>', '<feature>')` from `@/common/constants/routes`. Keep both in the feature's `constants.ts`, or in the area's file as `item-management.ts` does. Never write a path string inline in a page.
 2. **Routes.** The feature's `routes.tsx` exports a `RouteObject[]` with `lazy` page imports and the path from step 1 (`.slice(1)` drops the leading slash). Spread it into the module's `routes.tsx`. A new module also goes into `apps/erp-web/src/modules/index.ts`.
 3. **i18n.** The feature's `i18n.ts` exports `<feature>Resources: AppResources` with `en` and `bn` blocks. Register it in `mergeResources(...)` in `apps/erp-web/src/common/i18n/resources.ts`.
 4. **Permissions.** `const access = useFeatureAccess(FEATURE_KEY)`. Return `<ForbiddenResult />` when `!access.view`. Hide actions with `hidden: !access.create` / `edit` / `delete` / `export`. The API enforces permissions anyway; the UI just should not offer what the role cannot do.
@@ -74,7 +75,7 @@ The sidebar menu comes from the API (`/api/erp/navigation`), not from frontend c
 - Every visible string is `t('<feature>.<key>')`. That includes labels, placeholders, column titles, empty states, toasts, export file names and `aria` labels.
 - Add each key to both `en` and `bn` in the same edit. Write natural Bangla, not transliterated English. Keep codes and units such as `KG` or `PCS` as they are.
 - Use i18next plurals (`key_one` / `key_other` with `{ count }`) and `{{name}}`-style interpolation. Never join translated pieces with `+`.
-- Reuse before you add. Check `master.*` (item-management common), `common.*` (in `packages/ui/src/i18n/resources.ts`) and the feature's existing keys.
+- Reuse before you add. Check `master.*` (`@/common/master-data/i18n.ts`), `common.*` (in `packages/ui/src/i18n/resources.ts`) and the feature's existing keys.
 - Group keys by prefix the way existing files do: `x.title`, `x.col.*`, `x.f.*` for fields, `x.form.*` for the form.
 
 ## Styling
@@ -83,6 +84,51 @@ The sidebar menu comes from the API (`/api/erp/navigation`), not from frontend c
 - When CSS is needed, put it in a small `<feature>.css` imported by the component that uses it. Use `erp-` class names and `var(--erp-*)` variables only: `--erp-space-*`, `--erp-radius-*`, `--erp-font-*`, `--erp-text*`, `--erp-border*`, `--erp-primary*`, `--erp-tone-*`, `--erp-tint-*`. The full list is in `packages/ui/src/theme/tokens.ts`.
 - In TSX, take numbers from the tokens exported by `@erp/ui` (`space`, `radius`, `fontSize`, `sizes`, `controlHeight`) and use existing utility classes (`erp-w-full`, `erp-text-sm`, `erp-stack`, `erp-grid--*`). Do not write hex colors, raw `px` spacing or inline `style` colors.
 - Status colors come from `StatusTag tone="success|warning|danger|neutral|info|violet"`. Light and dark mode both work only if colors come from tokens.
+
+## UI and UX standard
+
+Every screen in both apps looks and works the same way. The shared templates already do most of this, so follow them and never rebuild a page header, table toolbar, pagination, save bar, stepper or row-action column by hand. A change that should apply to every screen goes into the shared template, not into one feature.
+
+**Which template**
+
+| Screen                         | Template                                                                            |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| List of records                | `ListPageLayout`; for code/name/active records always `MasterListPage`              |
+| Create / edit, many fields     | `FormPageLayout` (config-driven: `useFormSections`)                                 |
+| Create / edit, up to ~6 fields | `MasterFormModal` (ERP) or `FormModal`                                              |
+| Record details                 | `DetailsPageLayout` (config-driven: `useViewSections`)                              |
+| Quick look from a list         | `AppDrawer`                                                                         |
+| Multi-step setup               | `WizardLayout`                                                                      |
+| Summary numbers                | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals |
+
+**Page header.** A title, one line of description, and actions on the right: Export (default) first, then New (primary). Only one primary button per page.
+
+**Lists**
+
+- Column order: checkbox, then the identity column (`RecordNameCell` or `TitleCell`: avatar or image, name, one sub-line such as code or barcode), then data, then status (`StatusTag` with `dot`). The template adds the actions column last and pins it to the right.
+- No row-number column. Money and numbers are right-aligned (`formatMoney`, `formatNumber`).
+- Row actions: `view` and `edit` stay as inline icons. Everything else uses `inMenu: true` (activate or deactivate, duplicate, delete with `confirm`). Never put a switch in a row.
+- Clicking a row opens the record (`onRowClick`; `MasterListPage` does this).
+- The status filter is `views` (All / Active / Inactive with counts). Other filters are `filters`. Search has the `/` shortcut and New has `n`.
+
+**Forms**
+
+- Each section is a card. The main column has at most 3 field columns. The right column (`aside`) has 1 and holds status, classification, image or organize sections.
+- There is one save location: the sticky page header with Cancel, Save & new, and Save. Ctrl+S saves. No floating buttons.
+- Spacing is fixed in the shared CSS; do not override it. Label to field: 4 px (`--erp-space-xs`). Field to help or error: 4 px. Between fields: 16 px (`--erp-space-lg`) in both directions. Section heading to first field: 12 px (`--erp-space-md`). Card padding: 20 px (`--erp-space-xl`).
+- Help text goes under the field (`extra`), not in a tooltip. On/off fields are switches.
+- A modal for new records offers "Create & add another" (`addAnotherText`).
+
+**View pages.** `DetailsPageLayout` puts a profile card on the left: image or icon, title, `StatusTag` tags, a meta list, and the actions Edit (primary), Duplicate, More. Read-only section cards go on the right.
+
+**UX rules**
+
+- Status changes can be undone from a toast (`useUndoMessage`). Only delete asks for confirmation.
+- Server field errors go on the inputs (`applyFieldErrors`). The form scrolls to the first error and focuses it.
+- List search, filters, sort and page live in the URL (`useListState`). Do not keep them in local state.
+- Templates already wire the shortcuts (`/` search, `n` new, Ctrl+S save, Esc close). Do not add your own.
+- Every label exists in English and Bangla, and the screen still fits with the longer Bangla text.
+- Colors only come from tokens. In dark mode, the primary color and the text on primary buttons come from `theme/brand.ts`, which keeps them readable for every preset.
 
 ## Constants and limits
 

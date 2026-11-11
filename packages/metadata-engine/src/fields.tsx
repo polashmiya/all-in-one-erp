@@ -37,7 +37,7 @@ function FieldItem({ field, state }: { field: ConfigField; state: FieldState }) 
     <Field
       name={field.key}
       label={label}
-      tooltip={text(field.help)}
+      extra={text(field.help)}
       rules={rules(field, label, required)}
       className={field.colSpan > 1 ? `erp-field-span-${columnsOf(field.colSpan)}` : undefined}
     >

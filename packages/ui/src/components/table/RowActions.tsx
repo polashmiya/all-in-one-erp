@@ -1,40 +1,39 @@
-import { Switch, Tooltip } from 'antd';
-import type { ReactNode } from 'react';
+import { MoreOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { ActionButton } from '../actions/ActionButton';
+import type { ActionItem } from '../actions/types';
+import type { RowAction } from './row-actions';
 
-export interface RowAction {
-  key: string;
-  label: string;
-  icon?: ReactNode;
-  checked?: boolean;
-  hidden?: boolean;
-  onClick: () => unknown;
-}
+const toItem = ({ inMenu: _inMenu, ...action }: RowAction): ActionItem => action;
 
 export function RowActions({ actions }: { actions: RowAction[] }) {
+  const { t } = useTranslation();
+  const visible = actions.filter((action) => !action.hidden);
+  const inline = visible.filter((action) => !action.inMenu);
+  const menu = visible.filter((action) => action.inMenu);
+
   return (
     <div className="erp-row-actions">
-      {actions
-        .filter((action) => !action.hidden)
-        .map((action) =>
-          action.checked === undefined ? (
-            <ActionButton
-              key={action.key}
-              size="small"
-              action={{ ...action, variant: 'text', iconOnly: true, tone: 'primary' }}
-            />
-          ) : (
-            <Tooltip key={action.key} title={action.label}>
-              <Switch
-                size="small"
-                checked={action.checked}
-                aria-label={action.label}
-                onClick={(_, event) => event.stopPropagation()}
-                onChange={() => void action.onClick()}
-              />
-            </Tooltip>
-          ),
-        )}
+      {inline.map((action) => (
+        <ActionButton
+          key={action.key}
+          size="small"
+          action={{ ...toItem(action), variant: 'text', iconOnly: true }}
+        />
+      ))}
+      {menu.length > 0 && (
+        <ActionButton
+          size="small"
+          action={{
+            key: 'more',
+            label: t('table.moreActions'),
+            icon: <MoreOutlined />,
+            variant: 'text',
+            iconOnly: true,
+            menu: menu.map(toItem),
+          }}
+        />
+      )}
     </div>
   );
 }

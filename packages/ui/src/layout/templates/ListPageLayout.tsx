@@ -8,7 +8,8 @@ import { useHotkey } from '../../hooks/useHotkey';
 import { FilterSelect, type FilterOption } from '../../components/dropdown/FilterSelect';
 import { FilterBar, QuickViews, SearchInput } from '../../components/filters/filters';
 import { DataTable, type DataTableEmpty } from '../../components/table/DataTable';
-import { RowActions, type RowAction } from '../../components/table/RowActions';
+import { RowActions } from '../../components/table/RowActions';
+import { rowActionsWidth, type RowAction } from '../../components/table/row-actions';
 import type { ListFilters, ListSort, ListState } from '../../hooks/useListState';
 import { PageContainer } from '../page/PageContainer';
 
@@ -108,22 +109,14 @@ export function ListPageLayout<
   useHotkey('n', () => newAction && void runAction(newAction), { enabled: !!newAction });
 
   const hasFilterBar = !!search || filters.length > 0 || !!views;
-  const serialColumn: TableColumnsType<T>[number] = {
-    key: 'sl',
-    title: t('table.sl'),
-    width: 44,
-    align: 'center',
-    fixed: 'left',
-    render: (_value, _row, index) => (state.page - 1) * state.pageSize + index + 1,
-  };
   const actionColumns: TableColumnsType<T> = rowActions
     ? [
         {
           key: 'actions',
           title: t('table.actions'),
-          width: 72,
-          align: 'center',
-          fixed: 'left',
+          align: 'end',
+          fixed: 'right',
+          width: rowActionsWidth(rows?.[0] && rowActions(rows[0])),
           render: (_value, row) => <RowActions actions={rowActions(row)} />,
         },
       ]
@@ -182,7 +175,7 @@ export function ListPageLayout<
         toolsContainer={hasFilterBar ? toolsEl : undefined}
         settingsKey={pathname}
         rowKey={rowKey}
-        columns={[serialColumn, ...actionColumns, ...columns]}
+        columns={[...columns, ...actionColumns]}
         dataSource={rows}
         loading={loading}
         sort={state.sort}

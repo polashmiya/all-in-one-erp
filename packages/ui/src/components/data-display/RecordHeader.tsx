@@ -30,30 +30,32 @@ export function RecordHeader({
   backTo,
 }: RecordHeaderProps) {
   return (
-    <section className="erp-card erp-record-head">
-      {backTo && <BackButton to={backTo} />}
-      {icon && (
-        <span className={`erp-tile erp-tile--${tint} is-xl`} aria-hidden="true">
-          {icon}
-        </span>
-      )}
-      <div className="erp-record-head__main">
-        <div className="erp-page__titlerow">
-          <h1 className="erp-page__title">{title}</h1>
-          {tags}
+    <section className="erp-card erp-record">
+      {backTo && (
+        <div className="erp-record__back">
+          <BackButton to={backTo} />
         </div>
-        {meta.length > 0 && (
-          <div className="erp-record-head__meta">
-            {meta.map((item) => (
-              <span key={item.key}>
-                {item.icon}
-                {item.label}
-              </span>
-            ))}
-          </div>
+      )}
+      <div className="erp-record__hero">
+        {icon && (
+          <span className={`erp-tile erp-tile--${tint} erp-record__image`} aria-hidden="true">
+            {icon}
+          </span>
         )}
+        <h1 className="erp-record__title">{title}</h1>
+        {tags && <div className="erp-record__tags">{tags}</div>}
       </div>
-      {actions.length > 0 && <ActionGroup actions={actions} className="erp-record-head__actions" />}
+      {meta.length > 0 && (
+        <ul className="erp-record__meta">
+          {meta.map((item) => (
+            <li key={item.key}>
+              {item.icon}
+              <span>{item.label}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {actions.length > 0 && <ActionGroup actions={actions} className="erp-record__actions" />}
     </section>
   );
 }

@@ -48,6 +48,7 @@ function cssVariables(brand: Brand, prefs: UiPrefs): Record<string, string> {
     '--erp-primary': brand.primary,
     '--erp-primary-hover': brand.primaryHover,
     '--erp-primary-soft': brand.primarySoft,
+    '--erp-primary-ink': brand.primaryInk,
     '--erp-frame': brand.frameBg,
     '--erp-panel': brand.layoutBg,
     '--erp-surface': brand.containerBg,

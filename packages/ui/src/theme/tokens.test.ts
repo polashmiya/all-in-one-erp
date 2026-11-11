@@ -87,6 +87,13 @@ describe('buildBrand', () => {
     expect(luminance(brand.containerBg)).toBeLessThan(0.03);
     expect(brand.sider.inverse).toBe(true);
   });
+
+  it.each(themePresets.map((p) => [p.key]))('%s primary stays readable in dark mode', (key) => {
+    const brand = buildBrand(findPreset(key), 'dark', 'light');
+
+    expect(contrast(brand.primary, brand.containerBg)).toBeGreaterThanOrEqual(3);
+    expect(contrast(brand.primaryInk, brand.primary)).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 describe('buildTheme', () => {

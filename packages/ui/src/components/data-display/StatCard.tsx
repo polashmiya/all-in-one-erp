@@ -27,22 +27,24 @@ export function StatCard({
   return (
     <section className="erp-card erp-stat">
       <div className="erp-stat__head">
-        <span className={`erp-tile erp-tile--${tint}`}>{icon}</span>
-        <span className="erp-stat__label">{label}</span>
-        {delta && <StatusTag tone={delta.tone}>{delta.text}</StatusTag>}
-      </div>
-      <div className="erp-stat__body">
         <div className="erp-stat__values">
+          <span className="erp-stat__label">{label}</span>
           <span className="erp-stat__value">{value}</span>
           {caption && <span className="erp-stat__caption">{caption}</span>}
         </div>
-        {trend && (
-          <Sparkline
-            values={trend}
-            color={tint === 'primary' ? 'var(--erp-primary)' : `var(--erp-tint-${tint}-fg)`}
-          />
-        )}
+        <span className={`erp-tile erp-tile--${tint}`}>{icon}</span>
       </div>
+      {(delta || trend) && (
+        <div className="erp-stat__body">
+          {delta && <StatusTag tone={delta.tone}>{delta.text}</StatusTag>}
+          {trend && (
+            <Sparkline
+              values={trend}
+              color={tint === 'primary' ? 'var(--erp-primary)' : `var(--erp-tint-${tint}-fg)`}
+            />
+          )}
+        </div>
+      )}
     </section>
   );
 }

@@ -45,7 +45,53 @@ export function WizardLayout({
 }: WizardLayoutProps) {
   const { t } = useTranslation();
   const screens = Grid.useBreakpoint();
+  const rail = screens.lg !== false;
   const last = current === steps.length - 1;
+
+  const stepper = (
+    <Steps
+      current={current}
+      size="small"
+      direction={rail || screens.md === false ? 'vertical' : 'horizontal'}
+      onChange={onStepChange}
+      items={steps.map((step, index) => ({ ...step, disabled: index > reached }))}
+    />
+  );
+
+  const main = (
+    <section className="erp-card erp-form-card">
+      {!rail && <div className="erp-wizard__steps">{stepper}</div>}
+      <div className="erp-wizard__body">{children}</div>
+      <ActionBar
+        status={t('common.stepOf', { current: current + 1, total: steps.length })}
+        actions={[
+          {
+            key: 'back',
+            label: t('common.back'),
+            icon: <ArrowLeftOutlined />,
+            disabled: current === 0,
+            onClick: () => onStepChange(current - 1),
+          },
+          last
+            ? {
+                key: 'finish',
+                label: finishLabel,
+                icon: <CheckOutlined />,
+                variant: 'primary',
+                loading: finishing,
+                onClick: onFinish,
+              }
+            : {
+                key: 'next',
+                label: t('common.next'),
+                icon: <ArrowRightOutlined />,
+                variant: 'primary',
+                onClick: () => onStepChange(current + 1),
+              },
+        ]}
+      />
+    </section>
+  );
 
   return (
     <PageContainer
@@ -54,52 +100,17 @@ export function WizardLayout({
       crumbs={crumbs}
       actions={cancelTo ? [{ key: 'cancel', label: t('common.cancel'), to: cancelTo }] : undefined}
     >
-      <SplitLayout
-        aside={aside}
-        main={
-          <section className="erp-card erp-form-card">
-            <div className="erp-wizard__steps">
-              <Steps
-                current={current}
-                size="small"
-                direction={screens.md === false ? 'vertical' : 'horizontal'}
-                labelPlacement={screens.lg ? 'vertical' : 'horizontal'}
-                onChange={onStepChange}
-                items={steps.map((step, index) => ({ ...step, disabled: index > reached }))}
-              />
-            </div>
-            <div className="erp-wizard__body">{children}</div>
-            <ActionBar
-              status={t('common.stepOf', { current: current + 1, total: steps.length })}
-              actions={[
-                {
-                  key: 'back',
-                  label: t('common.back'),
-                  icon: <ArrowLeftOutlined />,
-                  disabled: current === 0,
-                  onClick: () => onStepChange(current - 1),
-                },
-                last
-                  ? {
-                      key: 'finish',
-                      label: finishLabel,
-                      icon: <CheckOutlined />,
-                      variant: 'primary',
-                      loading: finishing,
-                      onClick: onFinish,
-                    }
-                  : {
-                      key: 'next',
-                      label: t('common.next'),
-                      icon: <ArrowRightOutlined />,
-                      variant: 'primary',
-                      onClick: () => onStepChange(current + 1),
-                    },
-              ]}
-            />
-          </section>
-        }
-      />
+      {rail ? (
+        <div className="erp-wizard">
+          <div className="erp-wizard__rail">
+            <section className="erp-card erp-wizard__steps">{stepper}</section>
+            {aside}
+          </div>
+          {main}
+        </div>
+      ) : (
+        <SplitLayout aside={aside} main={main} />
+      )}
     </PageContainer>
   );
 }

@@ -3,8 +3,7 @@ import { Field, FieldGrid } from '@erp/ui';
 import { Form, Input, InputNumber, Switch } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActiveField, MasterFormModal } from '../../common/components/MasterFormModal';
-import { CODE_PATTERN, trimmed } from '../../common/master-data';
+import { ActiveField, MasterFormModal, CODE_PATTERN, trimmed } from '@/common/master-data';
 
 interface UomFormValues {
   code: string;

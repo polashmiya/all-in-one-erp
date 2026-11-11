@@ -1,6 +1,6 @@
 import { generate } from '@ant-design/colors';
 import type { TableHeaderStyle } from './appearance';
-import { alpha, mix } from './color';
+import { alpha, contrast, mix } from './color';
 import { shadows, sidebarPalettes, surfaces, tones } from './design-tokens';
 import type { ThemePreset } from './presets';
 
@@ -39,6 +39,7 @@ export interface Brand {
   primary: string;
   primaryHover: string;
   primarySoft: string;
+  primaryInk: string;
   accent: string;
   palette: string[];
   accentPalette: string[];
@@ -70,9 +71,28 @@ export interface Brand {
 
 const WHITE = '#FFFFFF';
 const BLACK = '#000000';
+const MIN_SURFACE_CONTRAST = 3;
+const MIN_TEXT_CONTRAST = 4.5;
+const DARK_PRIMARY_STEPS = [5, 4, 3, 2, 1];
 
 export function shade(color: string, amount: number): string {
   return mix(BLACK, color, amount);
+}
+
+function inkOn(color: string): string {
+  const dark = shade(color, 0.85);
+  return contrast(WHITE, color) >= contrast(dark, color) ? WHITE : dark;
+}
+
+function readablePrimary(palette: string[], surface: string): string {
+  const steps = DARK_PRIMARY_STEPS.map((step) => palette[step]!);
+  return (
+    steps.find(
+      (color) =>
+        contrast(color, surface) >= MIN_SURFACE_CONTRAST &&
+        contrast(inkOn(color), color) >= MIN_TEXT_CONTRAST,
+    ) ?? steps.at(-1)!
+  );
 }
 
 function siderColors(
@@ -189,13 +209,15 @@ export function buildBrand(preset: ThemePreset, mode: ThemeMode, siderStyle: Sid
 
   const tone = surfaces[mode];
   const containerBg = tone.surface!;
+  const main = light ? primary : readablePrimary(palette, containerBg);
 
   return {
     key: preset.key,
     mode,
-    primary,
-    primaryHover: light ? shade(primary, 0.18) : palette[4]!,
-    primarySoft: light ? mix(primary, WHITE, 0.12) : mix(primary, containerBg, 0.24),
+    primary: main,
+    primaryHover: light ? shade(primary, 0.18) : mix(main, WHITE, 0.85),
+    primarySoft: light ? mix(primary, WHITE, 0.12) : mix(main, containerBg, 0.24),
+    primaryInk: inkOn(main),
     accent,
     palette,
     accentPalette,

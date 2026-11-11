@@ -8,8 +8,13 @@ import { Field, FieldGrid } from '@erp/ui';
 import { Form, Input, InputNumber } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActiveField, ImageField, MasterFormModal } from '../../common/components/MasterFormModal';
-import { CODE_PATTERN, toUpper } from '../../common/master-data';
+import {
+  ActiveField,
+  ImageField,
+  MasterFormModal,
+  CODE_PATTERN,
+  toUpper,
+} from '@/common/master-data';
 
 interface DepartmentFormValues {
   code: string;

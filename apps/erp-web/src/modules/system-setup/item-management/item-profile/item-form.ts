@@ -1,6 +1,6 @@
 import type { ItemDetail, SaveItemRequest } from '@erp/api-client';
 import type { FieldBehavior } from '@erp/metadata-engine';
-import { trimmed } from '../common/master-data';
+import { trimmed } from '@/common/master-data';
 
 export type ItemFormValues = SaveItemRequest & {
   departmentId?: number | null;

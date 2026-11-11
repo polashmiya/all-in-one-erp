@@ -13,3 +13,5 @@ export const itemPaths = {
   view: (id: Id) => `${ITEM_PROFILE_PATH}/${encodeURIComponent(id)}`,
   edit: (id: Id) => `${ITEM_PROFILE_PATH}/${encodeURIComponent(id)}/edit`,
 };
+
+export const ITEM_ASIDE_SECTIONS = ['usage', 'classification', 'barcode'];

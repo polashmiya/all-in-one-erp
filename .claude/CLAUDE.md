@@ -15,6 +15,13 @@
 - Routes, API paths, feature keys, limits and page sizes come from existing constants or config, never inline literals.
 - Lists and options come from the database, API or lookups. Use fixed lists in code only when no table exists yet.
 
+## Same structure for every feature
+
+- Build every screen from the shared templates: `ListPageLayout`, `FormPageLayout`, `DetailsPageLayout`, `WizardLayout` and `FormModal` in `@erp/ui`, plus the master-data kit in `apps/erp-web/src/common/master-data`. Never hand-build a page header, table, save bar, stepper or row-action column.
+- A feature folder always has the same files: `routes.tsx`, `i18n.ts`, `constants.ts`, `pages/`, `components/`, and `services/` only when it needs a mock.
+- A change that should apply to every screen goes into the shared template, not into one feature.
+- Follow the "UI and UX standard" in `.claude/skills/erp-feature/SKILL.md` for layout, row actions, form spacing and UX rules.
+
 ## Comments
 
 - Do not add comments to code.

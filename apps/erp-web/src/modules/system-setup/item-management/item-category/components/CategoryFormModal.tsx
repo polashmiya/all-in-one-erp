@@ -9,8 +9,14 @@ import { Field, FieldGrid } from '@erp/ui';
 import { Form, Input, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActiveField, ImageField, MasterFormModal } from '../../common/components/MasterFormModal';
-import { CODE_PATTERN, selectOptions, toUpper } from '../../common/master-data';
+import {
+  ActiveField,
+  ImageField,
+  MasterFormModal,
+  CODE_PATTERN,
+  selectOptions,
+  toUpper,
+} from '@/common/master-data';
 
 interface CategoryFormValues {
   departmentId?: number;

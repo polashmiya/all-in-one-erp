@@ -4,6 +4,9 @@ import { DATE_FORMAT, DATE_TIME_FORMAT } from '../../utils/format';
 import { MoneyInput, NumberStepper, PercentInput, YesNoSwitch } from './inputs';
 import { LookupSelect, type LookupOption } from './LookupSelect';
 
+const TEXTAREA_MIN_ROWS = 2;
+const TEXTAREA_MAX_ROWS = 6;
+
 export type FieldDataType =
   | 'text'
   | 'textarea'
@@ -65,7 +68,7 @@ export function FieldInput({
           value={v}
           onChange={(e) => onChange?.(e.target.value)}
           maxLength={maxLength}
-          autoSize={{ minRows: 1, maxRows: 4 }}
+          autoSize={{ minRows: TEXTAREA_MIN_ROWS, maxRows: TEXTAREA_MAX_ROWS }}
         />
       );
     case 'number':

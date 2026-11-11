@@ -8,7 +8,7 @@ import { useDebouncedValue } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
 import { Select } from 'antd';
 import { useState } from 'react';
-import { lookupLabel, useUnitKey } from '../../common/master-data';
+import { lookupLabel, useUnitKey } from '@/common/master-data';
 
 const masterOf = (source?: ItemDetail): ItemLookup | undefined =>
   source?.masterItemId

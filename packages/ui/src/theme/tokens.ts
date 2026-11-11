@@ -37,7 +37,7 @@ export function buildTheme({ mode, compact, brand, prefs }: ThemeOptions): Theme
       colorSuccess: tones[mode].success.dot,
       colorWarning: tones[mode].warning.dot,
       colorError: surfaces[mode].required,
-      colorLink: light ? brand.primary : brand.palette[4],
+      colorLink: brand.primary,
       colorLinkHover: brand.primaryHover,
       colorBgLayout: brand.layoutBg,
       colorBgContainer: brand.containerBg,
@@ -76,6 +76,7 @@ export function buildTheme({ mode, compact, brand, prefs }: ThemeOptions): Theme
         dangerShadow: 'none',
         fontWeight: 500,
         defaultBorderColor: brand.border,
+        primaryColor: brand.primaryInk,
       },
       Card: { headerFontSize: fontSize.lg, headerHeight: 52, paddingLG: 20 },
       Menu: {

@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 import type { ActionItem } from '../../components/actions/types';
 import { RecordHeader, type RecordHeaderProps } from '../../components/data-display/RecordHeader';
-import { MiniStatGrid, type MiniStatItem } from '../../components/data-display/StatGrid';
 import { PageState } from '../../components/feedback/PageState';
 import { PageContainer } from '../page/PageContainer';
-import { SplitLayout } from '../page/CardGrid';
-import { SectionTabs, type SectionTab } from './SectionTabs';
 
-export type DetailsTab = SectionTab;
+export interface DetailsSection {
+  key: string;
+  content: ReactNode;
+}
 
 export interface DetailsPageLayoutProps {
   loading?: boolean;
@@ -16,10 +16,8 @@ export interface DetailsPageLayoutProps {
   missingActions?: ActionItem[];
   crumbs?: string[];
   header?: RecordHeaderProps;
-  stats?: MiniStatItem[];
-  tabs?: DetailsTab[];
+  sections?: DetailsSection[];
   children?: ReactNode;
-  aside?: ReactNode;
 }
 
 export function DetailsPageLayout({
@@ -29,10 +27,8 @@ export function DetailsPageLayout({
   missingActions,
   crumbs,
   header,
-  stats,
-  tabs,
+  sections = [],
   children,
-  aside,
 }: DetailsPageLayoutProps) {
   return (
     <PageState
@@ -42,16 +38,17 @@ export function DetailsPageLayout({
       missingActions={missingActions}
     >
       <PageContainer title={false} crumbs={crumbs}>
-        {header && <RecordHeader {...header} />}
-        {stats && stats.length > 0 && <MiniStatGrid items={stats} />}
-        <SplitLayout
-          aside={aside}
-          main={
-            <section className={tabs ? 'erp-card erp-form-card' : 'erp-card'}>
-              {tabs ? <SectionTabs tabs={tabs} /> : children}
-            </section>
-          }
-        />
+        <div className="erp-details">
+          {header && <RecordHeader {...header} />}
+          <div className="erp-form-stack">
+            {sections.map((section) => (
+              <section key={section.key} className="erp-card erp-form-block">
+                {section.content}
+              </section>
+            ))}
+            {children}
+          </div>
+        </div>
       </PageContainer>
     </PageState>
   );

@@ -1,6 +1,5 @@
 import {
   ApartmentOutlined,
-  AppstoreOutlined,
   BankOutlined,
   EyeOutlined,
   InboxOutlined,
@@ -9,7 +8,6 @@ import {
 } from '@ant-design/icons';
 import { useListAccounts, type AccountListItem } from '@erp/api-client';
 import {
-  DotValue,
   formatDate,
   formatNumber,
   InitialsTile,
@@ -65,14 +63,7 @@ export function AccountsPage() {
         <TitleCell
           leading={<InitialsTile name={account.name} index={index} />}
           title={account.name}
-          subtitle={
-            <span className="erp-inline-stats">
-              <span>{account.code}</span>
-              <StatusTag tone={account.isActive ? 'success' : 'neutral'} dot>
-                {account.isActive ? t('accounts.status.active') : t('accounts.status.inactive')}
-              </StatusTag>
-            </span>
-          }
+          subtitle={account.code}
         />
       ),
     },
@@ -93,28 +84,27 @@ export function AccountsPage() {
     {
       key: 'structure',
       title: t('accounts.col.structure'),
-      render: (_, account) => (
-        <span className="erp-inline-stats">
-          <DotValue tone="primary" label={t('accounts.stat.businessUnits')}>
-            <ApartmentOutlined /> {account.businessUnits}
-          </DotValue>
-          <DotValue tone="info" label={t('accounts.stat.offices')}>
-            <ShopOutlined /> {account.offices}
-          </DotValue>
-          <DotValue tone="warning" label={t('accounts.stat.warehouses')}>
-            <InboxOutlined /> {account.warehouses}
-          </DotValue>
-          <DotValue label={t('menus.title')}>
-            <AppstoreOutlined /> {account.features}
-          </DotValue>
-        </span>
-      ),
+      render: (_, account) =>
+        t('accounts.structure', {
+          units: t('accounts.count.units', { count: account.businessUnits }),
+          offices: t('accounts.count.offices', { count: account.offices }),
+          warehouses: t('accounts.count.warehouses', { count: account.warehouses }),
+        }),
     },
     {
       key: 'admin',
       title: t('accounts.col.admin'),
       ellipsis: true,
       render: (_, account) => account.adminEmail ?? '—',
+    },
+    {
+      key: 'status',
+      title: t('accounts.col.status'),
+      render: (_, account) => (
+        <StatusTag tone={account.isActive ? 'success' : 'neutral'} dot>
+          {account.isActive ? t('accounts.status.active') : t('accounts.status.inactive')}
+        </StatusTag>
+      ),
     },
     {
       key: 'createdAt',

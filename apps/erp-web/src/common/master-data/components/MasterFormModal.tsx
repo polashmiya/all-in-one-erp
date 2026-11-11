@@ -52,6 +52,7 @@ export function MasterFormModal<V extends object>({
       form={form}
       initialValues={initialValues}
       submitText={editing ? t('master.save') : t('master.create')}
+      addAnotherText={editing ? undefined : t('master.createAnother')}
       onSubmit={submit}
     >
       {children}

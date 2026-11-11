@@ -17,18 +17,18 @@ import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { MasterListPage } from '../../common/components/MasterListPage';
-import { RecordNameCell } from '../../common/components/RecordNameCell';
 import {
+  MasterListPage,
+  RecordNameCell,
   EXPORT_PAGE_SIZE,
   filterOptions,
   idParam,
   listParams,
   parentOf,
-  useRefreshItemManagement,
   useUnitKey,
   type StatusView,
-} from '../../common/master-data';
+} from '@/common/master-data';
+import { useRefreshItemManagement } from '../../item-management';
 import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 import { useItemLookups } from '../item-lookups';
 

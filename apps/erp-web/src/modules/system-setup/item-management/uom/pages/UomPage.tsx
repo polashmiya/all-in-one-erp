@@ -13,16 +13,15 @@ import { useTranslation } from 'react-i18next';
 import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useAuthStore } from '@/common/store/auth-store';
-import { MasterListPage } from '../../common/components/MasterListPage';
-import { RecordNameCell } from '../../common/components/RecordNameCell';
 import {
+  MasterListPage,
+  RecordNameCell,
   EXPORT_PAGE_SIZE,
-  itemManagementFeatures,
   listParams,
-  useRefreshItemManagement,
   useUnitKey,
   type StatusView,
-} from '../../common/master-data';
+} from '@/common/master-data';
+import { itemManagementFeatures, useRefreshItemManagement } from '../../item-management';
 import { UomFormModal } from '../components/UomFormModal';
 
 type Filters = { decimalAllowed: string | null };

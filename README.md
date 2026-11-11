@@ -109,13 +109,14 @@ per **account**. Business logic stays in typed tables and endpoints; configurati
   fields are checked for required, max length, min and max. Errors come back keyed by field. FluentValidation keeps only
   rules that never change (types, database limits, locked fields, business rules such as "barcode or auto barcode").
 - **The ERP renders it.** `@erp/metadata-engine` turns the configuration into screens:
-  - `useFormTabs(config, { lookups, widgets, behaviors })` gives `FormPageLayout` its tabs. Each section is a
-    `FieldSection` grid and each field uses `FieldInput`, or a lookup select whose options come from `lookups[field.lookup]`.
+  - `useFormSections(config, { lookups, widgets, behaviors, aside })` gives `FormPageLayout` its section cards. Each
+    section is a `FieldSection` grid in its own card; the sections named in `aside` go to the right column. Each field
+    uses `FieldInput`, or a lookup select whose options come from `lookups[field.lookup]`.
     Lookups with a `parentField` cascade: choosing a child fills its parents, and changing a parent clears its children.
   - `widgets` replace the input of a field (e.g. the image attach button), and `behaviors` change a field at runtime from
     other values (`watch` + `state`: hidden, disabled, required, placeholder, option filter). Configuration decides
     whether a field exists for the account; behaviors can only narrow that.
-  - `useViewTabs(config, record, renderers)` builds the view page with the same sections, and
+  - `useViewSections(config, record, renderers)` builds the view page with the same sections as read-only cards, and
     `useConfigColumns(config, renderers)` the list columns and CSV export. A lookup field shows the record's
     `…Name` property (`itemTypeId` → `itemTypeName`).
   - `useFeatureConfig(code)` in the ERP app loads the configuration, keyed by the `configVersion` from navigation.
@@ -200,20 +201,26 @@ Each app follows the same layout:
 apps/<app>/src/
   main.tsx
   app/          App, router, layouts (ShellLayout)
-  common/       config (app.config.ts, .env values), constants, guards, services, store, navigation, i18n, pages
+  common/       config (app.config.ts, .env values), constants, guards, services, store, navigation, i18n, pages,
+                master-data (ERP: list page, form modal and helpers every code/name/active screen shares)
   modules/      <module>/<sub-module>/<feature>/{pages,components,services,types,i18n.ts,routes.tsx,constants.ts}
 ```
 
 How to build a feature:
 
-- **Landing page** — `useListState` + `ListPageLayout` (filters, quick views, columns, bulk actions as config).
-- **Create / edit** — `FormPageLayout` (tabs with their field names, submit actions). All tabs render as one scrolling
-  form: the tab bar stays on top, follows the scroll and jumps to a section on click, with a go-to-top/bottom button.
-  Error counts per tab (including server field errors, which are scrolled into view), dirty state and the leave-page
-  guard are built in. Multi-step creation uses `WizardLayout`.
-- **View / details** — `DetailsPageLayout` (record header, stats, tabs, aside, loading and not-found states).
-- **Configurable feature** — add a manifest on the backend, then build the tabs, view and columns with
+- **Landing page** — `useListState` + `ListPageLayout` (filters, quick views, columns, bulk actions as config). Row
+  actions sit in the last column: view and edit as icons, everything else in a ⋮ menu. Clicking a row opens the
+  record. Code/name/active records use `MasterListPage` from `apps/erp-web/src/common/master-data`.
+- **Create / edit** — `FormPageLayout` (section cards, an optional right column, submit actions). Save lives in the
+  sticky page header (Cancel, Save & new, Save; Ctrl+S). The first invalid field is scrolled into view and focused;
+  dirty state and the leave-page guard are built in. Small records use `MasterFormModal` / `FormModal`, with
+  "Create & add another". Multi-step creation uses `WizardLayout` (vertical step list from the `lg` breakpoint).
+- **View / details** — `DetailsPageLayout` (profile card on the left, read-only section cards on the right, loading and
+  not-found states).
+- **Configurable feature** — add a manifest on the backend, then build the form, view and columns with
   `@erp/metadata-engine` instead of hand-written sections (example: Item Profile).
+- **UI and UX standard** — the full rules (layout, row actions, form spacing, UX) are in
+  `.claude/skills/erp-feature/SKILL.md`.
 - **Buttons** — pass `ActionItem` objects (`label`, `icon`, `variant`, `to`, `onClick`, `confirm`, `menu`) instead of hand-made buttons.
 - **Modals** — `AppModal` / `FormModal` with `useDisclosure()`; confirmations with `useConfirm()`.
 
@@ -264,10 +271,10 @@ Both apps share one theme engine in `packages/ui/src/theme`:
 | 0     | Repo skeleton, API host, LocalDB health, shared UI shell (3-level menu, dark mode, EN/বাংলা) | ✅ Done |
 | 1     | Core domain, migrations, JWT auth (panel/erp audiences), tenant context, login + BU picker   | ✅ Done |
 | 2     | Feature manifests, field/section tables, account settings, resolved config API, versioning   | ✅ Done |
-| 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement  | ✅ Done |
-| 4     | Panel: field manager per account (show/hide, required, label, order, list, filters, reset)  | ⏳      |
+| 3     | metadata-engine (form, view, list from config); Item Profile on config; server enforcement   | ✅ Done |
+| 4     | Panel: field manager per account (show/hide, required, label, order, list, filters, reset)   | ⏳      |
 | 5     | Lookup lists per account (LookupTypes/LookupValues), generic lookup API, Panel lookup pages  | ⏳      |
-| 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export             | ⏳      |
+| 6     | Custom fields per account (`CustomData` json): form, view, list, filter, export              | ⏳      |
 | 7     | Panel: layout builder (tabs, sections, drag and drop) with live preview                      | ⏳      |
 | 8     | Item master data screens (department → UOM) on the engine                                    | ⏳      |
 | 9     | Hardening: E2E, audit log, docs                                                              | ⏳      |

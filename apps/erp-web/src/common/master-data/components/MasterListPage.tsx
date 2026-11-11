@@ -10,6 +10,7 @@ import {
 import {
   downloadCsv,
   ForbiddenResult,
+  formatDate,
   formatDateTime,
   ListPageLayout,
   StatusTag,
@@ -174,11 +175,29 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
     {
       key: 'status',
       label: row.isActive ? t('master.deactivate') : t('master.activate'),
-      checked: row.isActive,
+      icon: row.isActive ? <StopOutlined /> : <CheckCircleOutlined />,
+      inMenu: true,
       hidden: !access.edit,
       onClick: () => changeStatus([row.id], !row.isActive),
     },
+    {
+      key: 'delete',
+      label: t('master.delete'),
+      icon: <DeleteOutlined />,
+      inMenu: true,
+      danger: true,
+      hidden: !access.delete,
+      confirm: {
+        title: t('master.deleteOne', { name: row.name }),
+        description: t('master.deleteHint'),
+        okText: t('master.delete'),
+        danger: true,
+      },
+      onClick: () => remove([row.id]),
+    },
   ];
+
+  const openRow = onView ?? (access.edit ? onEdit : undefined);
 
   const allColumns: TableColumnsType<T> = [
     ...columns,
@@ -195,7 +214,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
       key: 'modifiedAt',
       title: t('master.colUpdated'),
       sorter: true,
-      render: (_, row) => formatDateTime(row.modifiedAt ?? row.createdAt),
+      render: (_, row) => formatDate(row.modifiedAt ?? row.createdAt),
     },
   ];
 
@@ -232,7 +251,8 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
           { key: 'inactive', label: t('master.viewInactive'), count: data?.counts.inactive },
         ]}
         columns={allColumns}
-        rowActions={onView || access.edit ? rowActions : undefined}
+        rowActions={onView || access.edit || access.delete ? rowActions : undefined}
+        onRowClick={openRow}
         rows={rows}
         rowKey={(row) => row.id}
         total={data?.total}

@@ -13,7 +13,7 @@ import {
   useGetUomOptions,
 } from '@erp/api-client';
 import type { LookupSources } from '@erp/metadata-engine';
-import { useUnitKey } from '../common/master-data';
+import { useUnitKey } from '@/common/master-data';
 
 export function useItemLookups(enabled = true) {
   const departments = useGetItemDepartmentOptions({

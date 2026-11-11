@@ -1,7 +1,7 @@
 import { mergeResources, type AppResources } from '@erp/ui';
 import { authResources } from '@/modules/auth/i18n';
 import { dashboardResources } from '@/modules/dashboard/i18n';
-import { masterDataResources } from '@/modules/system-setup/item-management/common/i18n';
+import { masterDataResources } from '@/common/master-data';
 import { itemCategoryResources } from '@/modules/system-setup/item-management/item-category/i18n';
 import { itemDepartmentResources } from '@/modules/system-setup/item-management/item-department/i18n';
 import { itemMinorCategoryResources } from '@/modules/system-setup/item-management/item-minor-category/i18n';

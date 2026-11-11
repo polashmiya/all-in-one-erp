@@ -224,11 +224,7 @@ export function AccountSetupPage() {
       finishLabel={t('setup.create')}
       finishing={setup.isPending}
       onFinish={() => void submit()}
-      aside={
-        <div className="erp-sticky">
-          <SetupSummary values={values} />
-        </div>
-      }
+      aside={<SetupSummary values={values} />}
     >
       <Form
         form={form}

@@ -1,9 +1,6 @@
 import type { ItemLookup, StatusCounts } from '@erp/api-client';
 import { lookupLabel } from '@erp/metadata-engine';
 import type { ListSort } from '@erp/ui';
-import { useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
-import { featurePath } from '@/common/constants/routes';
 import { useAuthStore } from '@/common/store/auth-store';
 
 export type StatusView = 'all' | 'active' | 'inactive';
@@ -22,25 +19,7 @@ export interface MasterList<T> {
   counts: StatusCounts;
 }
 
-export const ITEM_MANAGEMENT_API = '/api/erp/item-management';
-
 export const EXPORT_PAGE_SIZE = 1000;
-
-export const itemManagementFeatures = {
-  department: 'system-setup.item-department',
-  category: 'system-setup.item-category',
-  subCategory: 'system-setup.item-sub-category',
-  minorCategory: 'system-setup.item-minor-category',
-  uom: 'system-setup.uom',
-} as const;
-
-export const itemManagementPaths = {
-  department: featurePath('system-setup', 'item-department'),
-  category: featurePath('system-setup', 'item-category'),
-  subCategory: featurePath('system-setup', 'item-sub-category'),
-  minorCategory: featurePath('system-setup', 'item-minor-category'),
-  uom: featurePath('system-setup', 'uom'),
-};
 
 interface ListQuery {
   search: string;
@@ -75,18 +54,6 @@ export const trimmed = (value: string | null | undefined) => {
 export function useUnitKey<K extends readonly unknown[]>(key: K) {
   const unitId = useAuthStore((s) => s.currentBusinessUnitId);
   return [...key, unitId] as const;
-}
-
-export function useRefreshItemManagement() {
-  const client = useQueryClient();
-  return useCallback(
-    () =>
-      client.invalidateQueries({
-        predicate: ({ queryKey }) =>
-          typeof queryKey[0] === 'string' && queryKey[0].startsWith(ITEM_MANAGEMENT_API),
-      }),
-    [client],
-  );
 }
 
 export { childSelectOptions, lookupLabel, parentOf, selectOptions } from '@erp/metadata-engine';

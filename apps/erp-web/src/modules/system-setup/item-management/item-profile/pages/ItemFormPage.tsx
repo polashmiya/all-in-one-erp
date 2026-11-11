@@ -7,7 +7,7 @@ import {
   type FeatureConfig,
   type ItemDetail,
 } from '@erp/api-client';
-import { defaultValues, useFormTabs, useText } from '@erp/metadata-engine';
+import { defaultValues, useFormSections, useText } from '@erp/metadata-engine';
 import { ForbiddenResult, FormPageLayout, PageState, useGoBack } from '@erp/ui';
 import { App, Form } from 'antd';
 import { useMemo } from 'react';
@@ -16,11 +16,12 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
-import { useRefreshItemManagement, useUnitKey } from '../../common/master-data';
+import { useUnitKey } from '@/common/master-data';
+import { useRefreshItemManagement } from '../../item-management';
 import { ConversionInput } from '../components/ConversionInput';
 import { ImageAttach } from '../components/ImageAttach';
 import { MasterItemSelect } from '../components/MasterItemSelect';
-import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
+import { ITEM_ASIDE_SECTIONS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 import { copyOf, itemBehaviors, toRequest, type ItemFormValues } from '../item-form';
 import { useItemLookups } from '../item-lookups';
 
@@ -90,8 +91,9 @@ function ItemForm({
     [item, copyFrom, config, t],
   );
 
-  const tabs = useFormTabs(config, {
+  const { sections, aside } = useFormSections(config, {
     lookups,
+    aside: ITEM_ASIDE_SECTIONS,
     behaviors: itemBehaviors(t),
     widgets: {
       imageSource: () => <ImageAttach />,
@@ -147,10 +149,11 @@ function ItemForm({
       saving={create.isPending || update.isPending}
       onSubmit={submit}
       submitActions={[
-        { key: 'new', label: t('item.form.saveNew'), placement: ['footer'] },
+        { key: 'new', label: t('item.form.saveNew') },
         { key: 'save', label: t('item.form.save'), icon: <CheckOutlined />, variant: 'primary' },
       ]}
-      tabs={tabs}
+      sections={sections}
+      aside={aside}
     />
   );
 }
