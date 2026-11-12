@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { appConfig } from '@/common/config/app.config';
 import { useAuthStore } from '@/common/store/auth-store';
+import { applyAccountTheme } from '@/common/utils/account-theme';
 import { AuthLayout } from '../components/AuthLayout';
 
 const ERROR_KEYS: Record<number, string> = {
@@ -39,6 +40,7 @@ export function LoginPage() {
           )
         : undefined;
       signIn(login);
+      if (login.theme) applyAccountTheme(login.theme);
       if (selection) selectUnit(selection);
     } catch (e) {
       const status = errorStatus(e);

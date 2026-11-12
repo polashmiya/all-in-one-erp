@@ -28,11 +28,15 @@ import type {
   AccountListResponse,
   AccountSetupRequest,
   AccountSetupResult,
+  AccountTheme,
   AvailabilityResponse,
   CheckAccountAvailabilityParams,
   HttpValidationProblemDetails,
   ListAccountsParams,
   ProblemDetails,
+  StructureNodeRequest,
+  StructureNodeResult,
+  UpdateAccountRequest,
 } from '../../model';
 
 import { customFetch } from '../../../http/client.ts';
@@ -462,6 +466,113 @@ export function useGetAccount<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
+export const getUpdateAccountUrl = (id: string) => {
+  return `/api/panel/accounts/${id}`;
+};
+
+/**
+ * @summary Change the account's profile and whether it is active; the code never changes
+ */
+export const updateAccount = async (
+  id: string,
+  updateAccountRequest: UpdateAccountRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<void>(getUpdateAccountUrl(id), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateAccountRequest),
+  });
+};
+
+export const getUpdateAccountMutationKey = () => ['updateAccount'] as const;
+
+export const getUpdateAccountMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAccount>>,
+    TError,
+    UpdateAccountMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAccount>>,
+  TError,
+  UpdateAccountMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateAccountMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAccount>>,
+    UpdateAccountMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAccount(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccount>>>;
+export type UpdateAccountMutationBody = BodyType<UpdateAccountRequest>;
+export type UpdateAccountMutationError = ErrorType<HttpValidationProblemDetails | ProblemDetails>;
+export type UpdateAccountMutationVariables = { id: string; data: BodyType<UpdateAccountRequest> };
+
+/**
+ * @summary Change the account's profile and whether it is active; the code never changes
+ */
+export const useUpdateAccount = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateAccount>>,
+      TError,
+      UpdateAccountMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateAccount>>,
+  TError,
+  UpdateAccountMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateAccountMutationOptions(options), queryClient);
+};
 export const getSetupAccountUrl = () => {
   return `/api/panel/accounts/setup`;
 };
@@ -809,4 +920,429 @@ export const useUpdateAccountFeatures = <
   TContext
 > => {
   return useMutation(getUpdateAccountFeaturesMutationOptions(options), queryClient);
+};
+export const getAddStructureNodeUrl = (id: string) => {
+  return `/api/panel/accounts/${id}/structure`;
+};
+
+/**
+ * @summary Add a business unit, an office or a warehouse to the account
+ */
+export const addStructureNode = async (
+  id: string,
+  structureNodeRequest: StructureNodeRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<StructureNodeResult> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<StructureNodeResult>(getAddStructureNodeUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(structureNodeRequest),
+  });
+};
+
+export const getAddStructureNodeMutationKey = () => ['addStructureNode'] as const;
+
+export const getAddStructureNodeMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addStructureNode>>,
+    TError,
+    AddStructureNodeMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addStructureNode>>,
+  TError,
+  AddStructureNodeMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAddStructureNodeMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addStructureNode>>,
+    AddStructureNodeMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return addStructureNode(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddStructureNodeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addStructureNode>>
+>;
+export type AddStructureNodeMutationBody = BodyType<StructureNodeRequest>;
+export type AddStructureNodeMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type AddStructureNodeMutationVariables = {
+  id: string;
+  data: BodyType<StructureNodeRequest>;
+};
+
+/**
+ * @summary Add a business unit, an office or a warehouse to the account
+ */
+export const useAddStructureNode = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addStructureNode>>,
+      TError,
+      AddStructureNodeMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof addStructureNode>>,
+  TError,
+  AddStructureNodeMutationVariables,
+  TContext
+> => {
+  return useMutation(getAddStructureNodeMutationOptions(options), queryClient);
+};
+export const getUpdateStructureNodeUrl = (id: string, nodeId: string) => {
+  return `/api/panel/accounts/${id}/structure/${nodeId}`;
+};
+
+/**
+ * @summary Rename, move or deactivate a business unit, office or warehouse; nothing is ever deleted
+ */
+export const updateStructureNode = async (
+  id: string,
+  nodeId: string,
+  structureNodeRequest: StructureNodeRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<StructureNodeResult> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<StructureNodeResult>(getUpdateStructureNodeUrl(id, nodeId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(structureNodeRequest),
+  });
+};
+
+export const getUpdateStructureNodeMutationKey = () => ['updateStructureNode'] as const;
+
+export const getUpdateStructureNodeMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStructureNode>>,
+    TError,
+    UpdateStructureNodeMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateStructureNode>>,
+  TError,
+  UpdateStructureNodeMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateStructureNodeMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateStructureNode>>,
+    UpdateStructureNodeMutationVariables
+  > = (props) => {
+    const { id, nodeId, data } = props ?? {};
+
+    return updateStructureNode(id, nodeId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateStructureNodeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateStructureNode>>
+>;
+export type UpdateStructureNodeMutationBody = BodyType<StructureNodeRequest>;
+export type UpdateStructureNodeMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type UpdateStructureNodeMutationVariables = {
+  id: string;
+  nodeId: string;
+  data: BodyType<StructureNodeRequest>;
+};
+
+/**
+ * @summary Rename, move or deactivate a business unit, office or warehouse; nothing is ever deleted
+ */
+export const useUpdateStructureNode = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateStructureNode>>,
+      TError,
+      UpdateStructureNodeMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateStructureNode>>,
+  TError,
+  UpdateStructureNodeMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateStructureNodeMutationOptions(options), queryClient);
+};
+export const getSaveAccountThemeUrl = (id: string) => {
+  return `/api/panel/accounts/${id}/theme`;
+};
+
+/**
+ * @summary The look the account's ERP users get when they sign in
+ */
+export const saveAccountTheme = async (
+  id: string,
+  accountTheme: AccountTheme,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<void>(getSaveAccountThemeUrl(id), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountTheme),
+  });
+};
+
+export const getSaveAccountThemeMutationKey = () => ['saveAccountTheme'] as const;
+
+export const getSaveAccountThemeMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveAccountTheme>>,
+    TError,
+    SaveAccountThemeMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof saveAccountTheme>>,
+  TError,
+  SaveAccountThemeMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSaveAccountThemeMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof saveAccountTheme>>,
+    SaveAccountThemeMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return saveAccountTheme(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SaveAccountThemeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof saveAccountTheme>>
+>;
+export type SaveAccountThemeMutationBody = BodyType<AccountTheme>;
+export type SaveAccountThemeMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type SaveAccountThemeMutationVariables = { id: string; data: BodyType<AccountTheme> };
+
+/**
+ * @summary The look the account's ERP users get when they sign in
+ */
+export const useSaveAccountTheme = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof saveAccountTheme>>,
+      TError,
+      SaveAccountThemeMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof saveAccountTheme>>,
+  TError,
+  SaveAccountThemeMutationVariables,
+  TContext
+> => {
+  return useMutation(getSaveAccountThemeMutationOptions(options), queryClient);
+};
+export const getResetAccountThemeUrl = (id: string) => {
+  return `/api/panel/accounts/${id}/theme`;
+};
+
+/**
+ * @summary Go back to the default ERP look
+ */
+export const resetAccountTheme = async (
+  id: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  return customFetch<void>(getResetAccountThemeUrl(id), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getResetAccountThemeMutationKey = () => ['resetAccountTheme'] as const;
+
+export const getResetAccountThemeMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetAccountTheme>>,
+    TError,
+    ResetAccountThemeMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetAccountTheme>>,
+  TError,
+  ResetAccountThemeMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResetAccountThemeMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetAccountTheme>>,
+    ResetAccountThemeMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return resetAccountTheme(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetAccountThemeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetAccountTheme>>
+>;
+
+export type ResetAccountThemeMutationError = ErrorType<ProblemDetails>;
+export type ResetAccountThemeMutationVariables = { id: string };
+
+/**
+ * @summary Go back to the default ERP look
+ */
+export const useResetAccountTheme = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetAccountTheme>>,
+      TError,
+      ResetAccountThemeMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetAccountTheme>>,
+  TError,
+  ResetAccountThemeMutationVariables,
+  TContext
+> => {
+  return useMutation(getResetAccountThemeMutationOptions(options), queryClient);
 };

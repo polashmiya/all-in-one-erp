@@ -4,7 +4,7 @@ import { Alert, Button, Card, Col, Descriptions, Divider, Form, Input, Radio, Ro
 import { useTranslation } from 'react-i18next';
 import { FeatureAccessSummary } from '../../../components/FeatureAccess';
 import { structureFromForm } from '../../../components/structure';
-import { StructureTree } from '../../../components/StructureTree';
+import { StructureView } from '../../../components/StructureView';
 import { countryName } from '../../../utils/format';
 import { FormSection } from '../FormSection';
 import { setupRules } from '../../model/rules';
@@ -113,7 +113,7 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
           ]}
         />
         <Card size="small" title={t('detail.structure')} extra={edit(1)} className="acc-card-gap">
-          <StructureTree units={structureFromForm(values.businessUnits)} />
+          <StructureView units={structureFromForm(values.businessUnits)} />
         </Card>
         <Card size="small" title={t('menus.title')} extra={edit(4)} className="acc-card-gap">
           <FeatureAccessSummary codes={values.featureCodes ?? []} />

@@ -17,5 +17,6 @@ export interface OfficeDetail {
   phone: string | null;
   /** @nullable */
   address: string | null;
+  isActive: boolean;
   warehouses: WarehouseDetail[];
 }

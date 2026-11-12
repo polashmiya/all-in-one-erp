@@ -10,7 +10,7 @@ import { Typography } from 'antd';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { STRUCTURE_TINT, structureFromForm } from '../../components/structure';
-import { StructureTree } from '../../components/StructureTree';
+import { StructureView } from '../../components/StructureView';
 import { countStructure, type SetupFormValues } from '../model/setup-model';
 
 function Count({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
@@ -73,7 +73,7 @@ export function SetupSummary({ values }: { values: SetupFormValues | undefined }
       )}
 
       <div className="acc-divider" />
-      <StructureTree units={structureFromForm(values?.businessUnits)} />
+      <StructureView units={structureFromForm(values?.businessUnits)} compact />
     </SectionCard>
   );
 }

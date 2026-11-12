@@ -12,4 +12,5 @@ export interface WarehouseDetail {
   name: string;
   /** @nullable */
   address: string | null;
+  isActive: boolean;
 }

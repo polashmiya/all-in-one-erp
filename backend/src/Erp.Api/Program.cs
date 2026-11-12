@@ -62,6 +62,7 @@ var panel = app.MapPanelApi();
 panel.MapPanelAuthEndpoints();
 panel.MapPanelNavigationEndpoints();
 panel.MapAccountEndpoints();
+panel.MapAccountEditEndpoints();
 panel.MapPanelErpMenuEndpoints();
 panel.MapFeatureConfigurationEndpoints();
 panel.MapLookupListEndpoints();

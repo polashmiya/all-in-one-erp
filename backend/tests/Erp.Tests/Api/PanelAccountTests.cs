@@ -229,6 +229,75 @@ public sealed class PanelAccountTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Account_profile_structure_and_theme_can_be_changed_after_setup()
+    {
+        var client = await PanelClientAsync();
+        var code = UniqueCode();
+        var email = $"{code.ToLowerInvariant()}@test.example";
+        var setup = await client.PostAsJsonAsync("/api/panel/accounts/setup", Request(code, email, "Edit@12345"));
+        var id = (await setup.Content.ReadFromJsonAsync<AccountSetupResult>())!.AccountId;
+        var path = $"/api/panel/accounts/{id}";
+        async Task<AccountDetail> DetailAsync() => (await client.GetFromJsonAsync<AccountDetail>(path))!;
+        async Task<IEnumerable<string>> ErrorsAsync(HttpResponseMessage response)
+        {
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            return (await response.Content.ReadFromJsonAsync<ValidationProblemDetails>())!.Errors.Keys;
+        }
+
+        var info = Request(code, email).Account with { Code = "IGNORED", Name = " Renamed Trading ", City = null };
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(path, new UpdateAccountRequest(info, true))).StatusCode);
+        Assert.Equal(["account.email"], await ErrorsAsync(await client.PutAsJsonAsync(path, new UpdateAccountRequest(info with { Email = "nope" }, true))));
+
+        var before = await DetailAsync();
+        Assert.Equal((code, "Renamed Trading", null), (before.Code, before.Name, before.City));
+        var north = before.BusinessUnits.Single(b => b.Code == "NORTH");
+        var south = before.BusinessUnits.Single(b => b.Code == "SOUTH");
+        var headOffice = north.Offices.Single(o => o.Code == "HO");
+
+        StructureNodeRequest Node(string kind, string nodeCode, Guid? unit = null, Guid? office = null, bool active = true) =>
+            new(kind, unit, office, nodeCode, $"Node {nodeCode}", null, null, null, active);
+        Task<HttpResponseMessage> AddAsync(StructureNodeRequest node) => client.PostAsJsonAsync($"{path}/structure", node);
+
+        Assert.Equal(HttpStatusCode.OK, (await AddAsync(Node(StructureKinds.BusinessUnit, "east"))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await AddAsync(Node(StructureKinds.Office, "br9", north.Id))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await AddAsync(Node(StructureKinds.Warehouse, "wh9", north.Id, headOffice.Id))).StatusCode);
+        Assert.Equal(["code"], await ErrorsAsync(await AddAsync(Node(StructureKinds.BusinessUnit, "north"))));
+        Assert.Equal(["code"], await ErrorsAsync(await AddAsync(Node(StructureKinds.Office, "ho", north.Id))));
+        Assert.Equal(["officeId"], await ErrorsAsync(await AddAsync(Node(StructureKinds.Warehouse, "wh8", south.Id, headOffice.Id))));
+        Assert.Equal(["businessUnitId"], await ErrorsAsync(await AddAsync(Node(StructureKinds.Office, "x1", Guid.NewGuid()))));
+        Assert.Equal(["kind"], await ErrorsAsync(await AddAsync(Node("room", "x2"))));
+
+        var transit = north.Warehouses.Single(w => w.Code == "TR");
+        var moved = await client.PutAsJsonAsync($"{path}/structure/{transit.Id}", Node(StructureKinds.Warehouse, "tr", office: headOffice.Id, active: false));
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await client.PutAsJsonAsync($"{path}/structure/{Guid.NewGuid()}", Node(StructureKinds.Office, "zz"))).StatusCode);
+
+        var after = await DetailAsync();
+        Assert.Equal(["EAST", "NORTH", "SOUTH"], after.BusinessUnits.Select(b => b.Code));
+        var office = after.BusinessUnits.Single(b => b.Code == "NORTH").Offices.Single(o => o.Code == "HO");
+        Assert.Equal(["TR", "WH1", "WH9"], office.Warehouses.Select(w => w.Code));
+        Assert.False(office.Warehouses.Single(w => w.Code == "TR").IsActive);
+
+        foreach (var unit in after.BusinessUnits.Where(b => b.Code != "SOUTH"))
+            await client.PutAsJsonAsync($"{path}/structure/{unit.Id}", Node(StructureKinds.BusinessUnit, unit.Code, active: false));
+        Assert.Equal(["isActive"],
+            await ErrorsAsync(await client.PutAsJsonAsync($"{path}/structure/{south.Id}", Node(StructureKinds.BusinessUnit, "south", active: false))));
+
+        var theme = new AccountTheme("custom", "#123ABC", "brand", "dark", true);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync($"{path}/theme", theme)).StatusCode);
+        Assert.Equal(["customPrimary", "mode"],
+            (await ErrorsAsync(await client.PutAsJsonAsync($"{path}/theme", theme with { CustomPrimary = "red", Mode = "night" }))).Order());
+        Assert.Equal(theme, (await DetailAsync()).Theme);
+
+        var login = await factory.ErpLoginAsync(email, "Edit@12345");
+        Assert.Equal(theme, login.Theme);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"{path}/theme")).StatusCode);
+        Assert.Null((await DetailAsync()).Theme);
+    }
+
+    [Fact]
     public async Task Unknown_account_is_404()
     {
         var client = await PanelClientAsync();

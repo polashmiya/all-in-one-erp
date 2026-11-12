@@ -187,14 +187,14 @@ public static class AccountEndpoints
             .Select(u => new AccountAdminDto(u.Id, u.FullName, u.Email, u.IsActive, u.LastLoginAt))
             .FirstOrDefaultAsync(cancellationToken);
 
-        static WarehouseDetail ToWarehouse(Core.Domain.Tenancy.Warehouse w) => new(w.Id, w.Code, w.Name, w.Address);
+        static WarehouseDetail ToWarehouse(Core.Domain.Tenancy.Warehouse w) => new(w.Id, w.Code, w.Name, w.Address, w.IsActive);
 
         var units = account.BusinessUnits
             .OrderBy(b => b.Code)
             .Select(b => new BusinessUnitDetail(
                 b.Id, b.Code, b.Name, b.Email, b.Phone, b.Address, b.IsActive,
                 b.Offices.OrderBy(o => o.Code)
-                    .Select(o => new OfficeDetail(o.Id, o.Code, o.Name, o.Email, o.Phone, o.Address,
+                    .Select(o => new OfficeDetail(o.Id, o.Code, o.Name, o.Email, o.Phone, o.Address, o.IsActive,
                         o.Warehouses.OrderBy(w => w.Code).Select(ToWarehouse).ToList()))
                     .ToList(),
                 b.Warehouses.Where(w => w.OfficeId is null).OrderBy(w => w.Code).Select(ToWarehouse).ToList()))
@@ -203,7 +203,8 @@ public static class AccountEndpoints
         return TypedResults.Ok(new AccountDetail(
             account.Id, account.Code, account.Name, account.Email, account.Phone, account.Website, account.Industry,
             account.TaxId, account.Address, account.City, account.Country, account.BaseCurrency, account.TimeZone,
-            account.IsActive, account.CreatedAt, admin, units, await features.CodesAsync(id, cancellationToken)));
+            account.IsActive, account.CreatedAt, admin, units, await features.CodesAsync(id, cancellationToken),
+            AccountTheme.Parse(account.Theme)));
     }
 
     private static async Task<Results<Created<AccountSetupResult>, ValidationProblem, ProblemHttpResult>> Setup(

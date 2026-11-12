@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1
  */
 import type { AccountAdminDto } from './accountAdminDto.ts';
+import type { AccountTheme } from './accountTheme.ts';
 import type { BusinessUnitDetail } from './businessUnitDetail.ts';
 
 export interface AccountDetail {
@@ -35,4 +36,5 @@ export interface AccountDetail {
   admin: null | AccountAdminDto;
   businessUnits: BusinessUnitDetail[];
   featureCodes: string[];
+  theme: null | AccountTheme;
 }

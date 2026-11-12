@@ -25,8 +25,7 @@ can be changed.
 | 8     | Item master data screens (department → UOM) on the engine                                      | ✅ 2026-11-12 |
 | 9     | Hardening: E2E, audit log (Panel History), docs                                                | ✅ 2026-11-12 |
 
-Not scheduled yet, on hold by the owner: ERP module › sub-module › feature permissions per role, and editing or
-deactivating an account after setup.
+Not scheduled yet, on hold by the owner: ERP module › sub-module › feature permissions per role.
 
 ## Decisions to keep
 
@@ -58,6 +57,10 @@ deactivating an account after setup.
   later (owner, 2026-11-12). A save that changes nothing writes no history row.
 - **E2E runs on its own database** (`myErp_E2E`) and ports (API 5065, Panel 5193, ERP 5194) with the installed Chrome,
   so it never touches the dev data and needs no browser download.
+- **Accounts are edited, never deleted.** Profile and structure can change after setup; the account code and the ERP
+  admin cannot. Business units, offices and warehouses are deactivated, not deleted (owner, 2026-11-12).
+- **The account theme is a starting point.** The ERP applies it at sign-in; each user can still change the look in
+  the browser afterwards.
 - **Drag and drop uses dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`), in the Panel only (owner, 2026-11-12).
 - **A layout save stores only what differs from the level below.** Dragging a field back to its default place removes
   that override again, so an untouched screen keeps no rows.
@@ -155,12 +158,26 @@ Left open:
 - E2E covers one flow. Layout drag and drop and Item Profile are not in E2E yet.
 - Custom field questions from phase 6 are still open (list column, filter, CSV).
 
+## Done: account editing, structure view, screen configuration and ERP theme (2026-11-12)
+
+- **Account page** `/accounts/{id}` replaces the detail drawer: profile, admin, structure and menu access.
+- **Edit account** `/accounts/{id}/edit` reuses the setup wizard's `AccountStep` (`lockedCode`), plus active /
+  inactive. API `PUT /api/panel/accounts/{id}` (`AccountEditEndpoints.cs`).
+- **Structure view** `StructureView.tsx` replaces the old tree everywhere (account page, setup summary, review): unit
+  cards with office cards and warehouse rows. On the account page it adds and edits nodes through
+  `StructureNodeModal` and `POST` / `PUT /api/panel/accounts/{id}/structure`.
+- **Screen configuration** `/configuration` (Panel menu, seeded): account picker and links to every configuration
+  tool of that account.
+- **ERP theme** `/accounts/{id}/theme`: migration `AccountTheme` (`Accounts.Theme` json). The ERP login response
+  carries `theme`; `applyAccountTheme` sets the theme store at sign-in.
+- Checked with an API test, typecheck, lint, unit tests, the E2E flow and screenshots of every new page in Chrome.
+
 ## Next: owner to choose
 
-Every planned phase is done. Candidates, in no fixed order:
+Candidates, in no fixed order:
 
 1. **ERP permissions per role** (module › sub-module › feature actions), on hold by the owner.
-2. **Edit or deactivate an account after setup**, on hold by the owner.
+2. **Edit the ERP admin** (name, email, password reset), left out of account editing on purpose.
 3. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
 4. **Read-only history in the ERP** for account admins.
 5. **The next business module** (for example suppliers or VAT setup) built as a configurable screen (skill pattern E).

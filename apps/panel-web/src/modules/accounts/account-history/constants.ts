@@ -1,4 +1,11 @@
-export const HISTORY_AREAS = ['field', 'section', 'layout', 'custom-field', 'lookup-value'];
+export const HISTORY_AREAS = [
+  'field',
+  'section',
+  'layout',
+  'custom-field',
+  'lookup-value',
+  'theme',
+];
 
 export const PROPERTY_LABELS: Record<string, string> = {
   isVisible: 'config.f.visible',
@@ -30,4 +37,9 @@ export const PROPERTY_LABELS: Record<string, string> = {
   nameBn: 'lookups.f.nameBn',
   isDefault: 'lookups.f.default',
   isActive: 'lookups.f.active',
+  preset: 'shell.primaryColor',
+  customPrimary: 'shell.customColor',
+  sider: 'shell.sidebarStyle',
+  mode: 'theme.mode',
+  compact: 'shell.compactMode',
 };

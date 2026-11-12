@@ -7,6 +7,7 @@ public static class ConfigurationAreas
     public const string Layout = "layout";
     public const string CustomField = "custom-field";
     public const string LookupValue = "lookup-value";
+    public const string Theme = "theme";
 }
 
 public class ConfigurationChange : BaseEntity, IAccountOwned

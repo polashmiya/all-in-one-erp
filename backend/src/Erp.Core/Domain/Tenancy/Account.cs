@@ -35,5 +35,7 @@ public class Account : BaseEntity
 
     public bool IsActive { get; set; } = true;
 
+    public string? Theme { get; set; }
+
     public ICollection<BusinessUnit> BusinessUnits { get; } = [];
 }

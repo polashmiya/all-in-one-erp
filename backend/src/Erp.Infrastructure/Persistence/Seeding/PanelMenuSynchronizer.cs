@@ -15,6 +15,7 @@ public static class PanelMenuSynchronizer
     private static readonly Default[] Defaults =
     [
         new("accounts", "Accounts", "অ্যাকাউন্ট", "bank", "/accounts", 10),
+        new("configuration", "Screen configuration", "স্ক্রিন কনফিগারেশন", "setting", "/configuration", 20),
     ];
 
     public static async Task SyncAsync(ErpDbContext db, ILogger logger, CancellationToken cancellationToken)

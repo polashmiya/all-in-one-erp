@@ -17,6 +17,7 @@ const login = (overrides: Partial<ErpLoginResponse> = {}): ErpLoginResponse => (
   },
   businessUnits: [ctg, dhaka],
   lastBusinessUnitId: 'dhk',
+  theme: null,
   ...overrides,
 });
 

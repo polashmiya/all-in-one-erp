@@ -9,7 +9,7 @@ import { FormSection } from '../FormSection';
 import { setupRules } from '../../model/rules';
 import { normalizeCode } from '../../model/setup-model';
 
-export function AccountStep() {
+export function AccountStep({ lockedCode = false }: { lockedCode?: boolean }) {
   const { t } = useTranslation();
   const language = useLanguageStore((s) => s.language);
   const rules = setupRules(t);
@@ -35,13 +35,13 @@ export function AccountStep() {
             <Form.Item
               name={['account', 'code']}
               label={t('field.code')}
-              tooltip={t('setup.codeHelp')}
+              tooltip={t(lockedCode ? 'edit.codeLocked' : 'setup.codeHelp')}
               validateDebounce={400}
               normalize={normalizeCode}
-              hasFeedback
-              rules={[...rules.code, { min: 2 }, rules.accountCodeAvailable]}
+              hasFeedback={!lockedCode}
+              rules={lockedCode ? [] : [...rules.code, { min: 2 }, rules.accountCodeAvailable]}
             >
-              <Input placeholder="DEMO-PHARMA" className="erp-code" maxLength={32} />
+              <Input placeholder="DEMO-PHARMA" className="erp-code" maxLength={32} disabled={lockedCode} />
             </Form.Item>
           </Col>
           <Col xs={24} md={8}>

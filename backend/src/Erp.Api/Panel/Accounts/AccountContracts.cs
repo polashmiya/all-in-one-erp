@@ -79,7 +79,7 @@ public sealed record AccountListResponse(IReadOnlyList<AccountListItem> Items, i
 
 // ---------- Detail ----------
 
-public sealed record WarehouseDetail(Guid Id, string Code, string Name, string? Address);
+public sealed record WarehouseDetail(Guid Id, string Code, string Name, string? Address, bool IsActive);
 
 public sealed record OfficeDetail(
     Guid Id,
@@ -88,6 +88,7 @@ public sealed record OfficeDetail(
     string? Email,
     string? Phone,
     string? Address,
+    bool IsActive,
     IReadOnlyList<WarehouseDetail> Warehouses);
 
 /// <param name="Warehouses">Warehouses directly under the business unit (not under an office).</param>
@@ -122,7 +123,8 @@ public sealed record AccountDetail(
     DateTimeOffset CreatedAt,
     AccountAdminDto? Admin,
     IReadOnlyList<BusinessUnitDetail> BusinessUnits,
-    IReadOnlyList<string> FeatureCodes);
+    IReadOnlyList<string> FeatureCodes,
+    AccountTheme? Theme);
 
 // ---------- Menu access (features) ----------
 

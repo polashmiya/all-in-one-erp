@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Erp.Api.Hosting;
+using Erp.Api.Panel.Accounts;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Security;
@@ -87,7 +88,7 @@ public static class ErpAuthEndpoints
         ]);
 
         return TypedResults.Ok(new ErpLoginResponse(
-            token.AccessToken, token.ExpiresAt, ToDto(user), units, LastUsed(user, units)));
+            token.AccessToken, token.ExpiresAt, ToDto(user), units, LastUsed(user, units), AccountTheme.Parse(user.Account?.Theme)));
     }
 
     private static async Task<Results<Ok<ErpSessionResponse>, UnauthorizedHttpResult>> Me(

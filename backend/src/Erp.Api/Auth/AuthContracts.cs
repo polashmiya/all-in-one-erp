@@ -1,3 +1,4 @@
+using Erp.Api.Panel.Accounts;
 using FluentValidation;
 
 namespace Erp.Api.Auth;
@@ -18,7 +19,8 @@ public sealed record ErpLoginResponse(
     DateTimeOffset ExpiresAt,
     ErpUserDto User,
     IReadOnlyList<BusinessUnitAccessDto> BusinessUnits,
-    Guid? LastBusinessUnitId);
+    Guid? LastBusinessUnitId,
+    AccountTheme? Theme);
 
 public sealed record ErpSessionResponse(
     ErpUserDto User,

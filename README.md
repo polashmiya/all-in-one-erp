@@ -52,10 +52,22 @@ dotnet ef database update      --project backend/src/Erp.Infrastructure --startu
 
 - **The Panel sidebar is read from the `PanelMenuItems` table** (`GET /api/panel/navigation`): any depth, EN/বাংলা
   labels, an icon name from the shared icon registry, path and sort order. Startup only _inserts_ missing default
-  items (currently just **Accounts**) and never overwrites edited rows. Menu entries without a built screen show a
-  placeholder.
-- **Accounts** (`/accounts`) has totals, a server-paged table (status tabs, search, sort) and a detail drawer with
-  the business unit → office → warehouse tree.
+  items (**Accounts** and **Screen configuration**) and never overwrites edited rows. Menu entries without a built
+  screen show a placeholder.
+- **Accounts** (`/accounts`) has totals and a server-paged table (status tabs, search, sort). A row opens the
+  **account page** (`/accounts/{id}`): profile and ERP admin, the **structure** (one card per business unit with its
+  offices and their warehouses, plus warehouses directly under the unit) and menu access. From there:
+  - **Edit account** (`/accounts/{id}/edit`, `PUT /api/panel/accounts/{id}`): every profile field and active /
+    inactive. The code never changes. An inactive account cannot sign in to the ERP.
+  - **Structure**: add, rename, move (a warehouse to another office) and deactivate business units, offices and
+    warehouses (`POST /api/panel/accounts/{id}/structure`, `PUT …/structure/{nodeId}`). Nothing is deleted, and an
+    account keeps at least one active business unit.
+- **Screen configuration** (`/configuration`): pick an account, then open Screen settings, Layout, Lookup lists, ERP
+  theme or Change history for it.
+- **ERP theme per account** (`/accounts/{id}/theme`, `PUT` / `DELETE /api/panel/accounts/{id}/theme`): primary
+  colour (preset or custom), sidebar style, light / dark / system mode and density, with a live preview. Stored as
+  json in `Accounts.Theme`; the ERP login returns it and the ERP applies it at sign-in. Users can still change the
+  look for themselves from the ERP top bar. Theme changes appear in the change history.
 - **New account setup** (`/accounts/new`) is one page with five steps: account info → business units → offices and
   branches per unit → warehouses per unit, either at unit level or under an office → ERP admin and review. Nothing is
   stored until **Create account**. `POST /api/panel/accounts/setup` then saves the whole tree, the system roles

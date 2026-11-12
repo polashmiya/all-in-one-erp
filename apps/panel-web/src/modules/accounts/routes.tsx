@@ -18,6 +18,24 @@ export const accountsRoutes: RouteObject[] = [
         }),
       },
       {
+        path: ':id',
+        lazy: async () => ({
+          Component: (await import('./account-detail/pages/AccountDetailPage')).AccountDetailPage,
+        }),
+      },
+      {
+        path: ':id/edit',
+        lazy: async () => ({
+          Component: (await import('./account-edit/pages/AccountEditPage')).AccountEditPage,
+        }),
+      },
+      {
+        path: ':id/theme',
+        lazy: async () => ({
+          Component: (await import('./account-theme/pages/AccountThemePage')).AccountThemePage,
+        }),
+      },
+      {
         path: ':id/configuration',
         lazy: async () => ({
           Component: (await import('./account-configuration/pages/AccountConfigurationPage'))
@@ -45,5 +63,12 @@ export const accountsRoutes: RouteObject[] = [
         }),
       },
     ],
+  },
+  {
+    path: 'configuration',
+    lazy: async () => ({
+      Component: (await import('./account-workspace/pages/ConfigurationWorkspacePage'))
+        .ConfigurationWorkspacePage,
+    }),
   },
 ];

@@ -22,13 +22,11 @@ import {
 } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
 import { ACCOUNT_PATHS } from '../../constants';
 import { countryName } from '../../utils/format';
-import { AccountDetailDrawer } from '../components/AccountDetailDrawer';
 
 type View = 'all' | 'active' | 'inactive';
 type SortField = 'name' | 'createdAt';
@@ -37,7 +35,6 @@ export function AccountsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const language = useLanguageStore((s) => s.language);
-  const [selectedId, setSelectedId] = useState<string>();
   const list = useListState<Record<string, never>, View, SortField>({
     filters: {},
     view: 'all',
@@ -179,7 +176,7 @@ export function AccountsPage() {
             key: 'view',
             label: t('accounts.view'),
             icon: <EyeOutlined />,
-            onClick: () => setSelectedId(account.id),
+            onClick: () => navigate(ACCOUNT_PATHS.detail(account.id)),
           },
           {
             key: 'configure',
@@ -201,7 +198,7 @@ export function AccountsPage() {
         total={result?.total}
         loading={query.isFetching}
         onRefresh={() => void query.refetch()}
-        onRowClick={(account) => setSelectedId(account.id)}
+        onRowClick={(account) => navigate(ACCOUNT_PATHS.detail(account.id))}
         empty={{
           title: t('accounts.empty'),
           actions: [
@@ -215,7 +212,6 @@ export function AccountsPage() {
           ],
         }}
       />
-      <AccountDetailDrawer accountId={selectedId} onClose={() => setSelectedId(undefined)} />
     </>
   );
 }
