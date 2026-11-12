@@ -6,8 +6,8 @@ export function applyFieldErrors(form: FormInstance, error: unknown): boolean {
 
   const known = new Set(Object.keys(form.getFieldsValue(true) as object));
   const fields = Object.entries(error.fieldErrors)
-    .filter(([name]) => known.has(name))
-    .map(([name, errors]) => ({ name, errors }));
+    .map(([name, errors]) => ({ name: name.split('.'), errors }))
+    .filter(({ name }) => known.has(name[0] ?? ''));
 
   if (fields.length > 0) form.setFields(fields);
   return fields.length > 0;

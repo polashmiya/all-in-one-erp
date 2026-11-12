@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Erp.Core.Modules;
 using Erp.Metadata;
 
@@ -13,6 +14,49 @@ public sealed class FieldRulesTests
             maxLength, min, max, null, null, null), visible);
 
     private static readonly Sample Input = new("  ", 0, true, 5m, "client");
+
+    private sealed record WithCustom(string? Name, Dictionary<string, JsonElement>? CustomData);
+
+    private static FieldRule Custom(string key, string type, bool visible = true, bool required = false, string? lookup = null) =>
+        new(new ConfigField(key, type, new LocalizedLabel(key, null), null, null, required, false, 1, null,
+            null, null, null, null, lookup, null, true), visible);
+
+    private static Dictionary<string, JsonElement> Data(string json) =>
+        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json)!;
+
+    [Fact]
+    public void Custom_values_are_checked_by_type_and_unknown_keys_are_dropped()
+    {
+        var input = new WithCustom("x", Data("""{"months":"long","note":"ok","grade":9,"since":"2026-13-01","unknown":1}"""));
+
+        var (request, errors) = FieldRules.Apply(input, [
+            Custom("months", FieldTypes.Number),
+            Custom("note", FieldTypes.Text),
+            Custom("grade", FieldTypes.Lookup, lookup: "grade"),
+            Custom("since", FieldTypes.Date),
+            Custom("color", FieldTypes.Text, required: true),
+        ], null, new Dictionary<string, HashSet<int>> { ["grade"] = [3] });
+
+        Assert.Equal(["customData.color", "customData.grade", "customData.months", "customData.since"], errors.Keys.Order());
+        Assert.DoesNotContain("unknown", request.CustomData!.Keys);
+        Assert.Equal("ok", request.CustomData["note"].GetString());
+    }
+
+    [Fact]
+    public void Custom_values_of_hidden_and_removed_fields_are_kept_on_update()
+    {
+        var saved = new { name = "x", customData = new { secret = "s", old = 5, grade = 9 } };
+        var input = new WithCustom("x", Data("""{"secret":"changed","grade":9,"note":"n"}"""));
+
+        var (request, errors) = FieldRules.Apply(input, [
+            Custom("secret", FieldTypes.Text, visible: false),
+            Custom("grade", FieldTypes.Lookup, lookup: "grade"),
+            Custom("note", FieldTypes.Text),
+        ], saved, new Dictionary<string, HashSet<int>> { ["grade"] = [3] });
+
+        Assert.Empty(errors);
+        Assert.Equal("""{"old":5,"secret":"s","grade":9,"note":"n"}""", JsonSerializer.Serialize(request.CustomData));
+    }
 
     [Fact]
     public void Visible_fields_are_checked_for_required_length_and_range()

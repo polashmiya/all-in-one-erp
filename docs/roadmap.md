@@ -20,8 +20,8 @@ can be changed.
 | 3     | `@erp/metadata-engine` (form, view, list from config); Item Profile on config; server rules    | ✅ 2026-11-09 |
 | 4     | Business unit overrides; Panel **Screen settings** (show/hide, required, labels, order, list)  | ✅ 2026-11-11 |
 | 5     | Lookup lists per account (`LookupTypes`/`LookupValues`), lookup API, Panel **Lookup lists**    | ✅ 2026-11-12 |
-| 6     | Custom fields per account (`CustomData` json)                                                  | ⏳ next       |
-| 7     | Panel layout builder: tabs and sections (rename, hide, order, columns), drag and drop, preview | ⏳            |
+| 6     | Custom fields per account (`CustomData` json), Panel **New custom field**                      | ✅ 2026-11-12 |
+| 7     | Panel layout builder: tabs and sections (rename, hide, order, columns), drag and drop, preview | ⏳ next       |
 | 8     | Item master data screens (department → UOM) on the engine                                      | ⏳            |
 | 9     | Hardening: E2E, audit log, docs                                                                | ⏳            |
 
@@ -40,33 +40,65 @@ deactivating an account after setup.
   hide or reorder them but never add another column (owner, 2026-11-09).
 - **Lookup lists are per account** (same for every branch). Values are never deleted, only deactivated. One optional
   default value per list; it is the default of every field using that list unless a screen sets its own.
+- **Custom fields are per account** (`FeatureFields.AccountId`; null = system field) and added at account level only.
+  Their values live in one `CustomData` json column of the record, keyed by field key, and travel as `customData`
+  on the detail and save contracts. Everything else (settings, business unit overrides, rules) is the same as for a
+  system field.
+- **A custom field's key and type never change.** The key comes from the English label when the field is created. To
+  change the type, deactivate the field and add a new one. Fields are never deleted, only deactivated; saved values
+  stay in `CustomData` and come back when the field is activated again.
+- **Custom fields are not list columns or filters** (owner has not decided yet, so "list columns are fixed" wins).
+  They show on the form and the view page only.
 - **Conditional rules** ("show X when Y") stay in code as `behaviors`; configuration can only narrow them.
 - The `erp-feature` skill covers screens only. The configuration phases also change the backend, so they include
   backend work, tests and `pnpm gen:api`.
 
-## Next: phase 6 — custom fields per account
+## Done: phase 6 — custom fields per account
 
-Goal: an account can add its own fields to a screen in the Panel, and they behave like system fields in the ERP.
+What was built (details are in the README, "Custom fields per account"):
+
+- Migration `CustomFields`: `FeatureFields.AccountId` and `Item.CustomData`.
+- `FieldRules` checks custom values (type, required, limits, active lookup value), drops unknown keys and keeps the
+  saved values of hidden and deactivated fields. Errors are keyed `customData.{key}`.
+- Panel API: `POST …/configuration/{code}/fields` and `PUT …/fields/{key}/status`; Screen settings has
+  **New custom field** and Activate / Deactivate in the row menu.
+- Engine: custom fields bind to `['customData', key]`, the view page shows them, and a `date` input now holds a
+  `YYYY-MM-DD` string. `useCustomLookups(config)` in the ERP loads the lookup lists custom fields use.
+
+To give another screen custom fields: add a `CustomData` string column to its table, `customData` to its detail and
+save contracts (see `ItemContracts.cs` and `ItemEndpoints.cs`), send `customData` from the form's `toRequest`, and
+pass `useCustomLookups(config)` to `useFormSections` and `useViewTabs`.
+
+Left open:
+
+- The Panel and ERP screens were checked by typecheck, lint and tests only, not by hand in a browser. Try once: add a
+  custom field of each type in Screen settings, then create, edit and view an item.
+- Ask the owner: should custom fields appear in the list (column, filter, CSV export)?
+- There is no Panel component test for the new modal; the API tests cover the rules.
+
+## Next: phase 7 — Panel layout builder
+
+Goal: the internal team arranges a screen in the Panel: rename, hide and reorder tabs and sections, set a section's
+columns, drag fields between sections, and see a preview before users do.
+
+What already exists: `AccountSectionSettings` (label, order, columns, visible, parent tab) with account and business
+unit rows, and `FeatureConfigBuilder` already applies them. Only the Panel API and the screen are missing.
 
 Plan:
 
-1. **Data.** `FeatureFields.AccountId` (nullable; null = system field). A custom key must not clash with a system key of
-   the same feature. Settings (`AccountFieldSettings`) work for custom fields as for any other field, including
-   business unit overrides.
-2. **Values.** A `CustomData` json column on each configurable table, starting with `Item`, keyed by field key.
-   Contracts get `customData` (object) on detail and save request.
-3. **Types.** text, textarea, number, decimal, money, percent, date, boolean, lookup (lookup lists only).
-4. **Panel.** In Screen settings: "New custom field" (English and Bangla label, key generated from the English label,
-   type, section, lookup list for a lookup field), then the usual settings. Custom fields can be edited and deactivated
-   (data is kept). The type cannot change once values exist.
-5. **ERP.** The resolved config marks custom fields; the engine binds them to `['customData', key]`; the view shows
-   them; `toRequest` sends `customData`.
-6. **Server.** `FieldRules` validates custom values (type, required, limits, lookup value exists), drops unknown keys,
-   and keeps saved values of hidden or deactivated fields on update.
-7. **Tests.** Unit tests for the rules, API tests for create/validate/save, Panel tests for adding a custom field.
+1. **API.** The editor (`GET …/configuration/{code}`) returns tabs and sections with their base and own values, like
+   fields do. Add `PUT` / `DELETE …/sections/{key}?businessUnitId=` (label EN/বাংলা, order, columns 1 to 4, visible,
+   tab for a section). Reject hiding a tab or section that holds a locked field, or a required field without a
+   default. Bump `ConfigVersion`.
+2. **Preview.** A Panel endpoint that returns the resolved `FeatureConfig` for an account and optional business unit
+   (reuse `FeatureConfigService.GetAsync`). The Panel renders it with `useFormSections`, inputs disabled.
+3. **Panel.** A "Layout" view in Screen settings: tabs → sections → fields. Drag to reorder tabs, sections and fields
+   and to move a field to another section (saves `sortOrder` and `sectionKey` through the existing field endpoint).
+   Rename, hide and set columns in a small modal. Reset per tab or section.
+4. **Tests.** Unit tests for section rules, API tests for save, reset and business unit override.
 
-Ask the owner before building: should custom fields appear in the list (column, filter, CSV export)? That conflicts
-with the "list columns are fixed" decision above.
+Ask the owner before building: may an account add its own tabs and sections, or only rearrange the ones the manifest
+declares? And which drag and drop library to add (none is installed yet).
 
 ## Working on another machine
 
@@ -79,4 +111,4 @@ with the "list columns are fixed" decision above.
 - Before finishing: `pnpm typecheck`, `pnpm lint`, `pnpm test:web` and `dotnet test backend/Erp.sln`.
 - Run Prettier on the files you changed only, not on whole folders.
 
-To continue, ask Claude to "start phase 6".
+To continue, ask Claude to "start phase 7".

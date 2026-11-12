@@ -1,5 +1,5 @@
 import type { ConfigField, FeatureConfig } from '@erp/api-client';
-import { defaultValues, displayKey, fieldsOf } from './config';
+import { defaultValues, displayKey, fieldsOf, namePath } from './config';
 import { childSelectOptions, localized, selectOptions, type LookupItem } from './lookups';
 
 const field = (key: string, type: string, defaultValue: string | null = null): ConfigField => ({
@@ -65,6 +65,21 @@ describe('metadata-engine config', () => {
       vat: 15,
       note: 'hello',
     });
+  });
+
+  it('keeps custom fields under customData', () => {
+    const warranty = { ...field('warranty', 'number', '12'), custom: true };
+    const section = {
+      key: 'more',
+      label: { en: 'More', bn: null },
+      columns: 4,
+      fields: [warranty],
+    };
+    const custom = { ...config, tabs: [{ ...config.tabs[0]!, sections: [section] }] };
+
+    expect(defaultValues(custom)).toEqual({ customData: { warranty: 12 } });
+    expect(namePath(warranty)).toEqual(['customData', 'warranty']);
+    expect(namePath(field('name', 'text'))).toBe('name');
   });
 
   it('flattens fields and reads lookup names from the matching Name property', () => {

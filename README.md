@@ -123,6 +123,17 @@ configuration only shapes the screens.
     `GET /api/panel/lookup-types`, `GET` / `POST /api/panel/accounts/{id}/lookups/{type}` and `PUT …/{valueId}`.
     Saving bumps the account's `ConfigVersion`. In Screen settings, the default of a list-lookup field is chosen from
     the list.
+- **Custom fields per account.** In Screen settings, **New custom field** adds a field to a screen for one account:
+  English and Bangla label, type (text, long text, number, decimal, money, percent, date, yes / no, dropdown), section
+  and, for a dropdown, one of the account's lookup lists. The key is made from the English label (`Warranty months` →
+  `warrantyMonths`) and, like the type, never changes. After that it is an ordinary field: shown or hidden, required,
+  relabelled, moved and overridden per business unit. It can be deactivated and activated again; it is never deleted.
+  - Data: `FeatureFields.AccountId` (null = system field). Values are stored in the record's `CustomData` json column
+    (currently `Item`) and sent as `customData` on the detail and the save request.
+  - The server checks each value (type, required, limits, an active value of the lookup list), drops keys that are not
+    fields, and keeps the saved values of hidden and deactivated fields. Errors are keyed `customData.{key}`.
+  - Custom fields are on the form and the view page; they are not list columns or filters.
+  - API: `POST /api/panel/accounts/{id}/configuration/{code}/fields` and `PUT …/fields/{key}/status`.
 - **ERP API:** `GET /api/erp/features/{code}/config` (needs `{code}.view`) returns the resolved tabs → sections →
   fields, list columns and filters. Hidden fields are left out. A feature without a manifest returns 404.
 - **The server enforces it.** Save endpoints call `FeatureConfigService.ApplyRulesAsync` before their own logic: hidden
@@ -141,6 +152,8 @@ configuration only shapes the screens.
     `useConfigColumns(config, renderers)` the list columns and CSV export. A lookup field shows the record's
     `…Name` property (`itemTypeId` → `itemTypeName`).
   - `useFeatureConfig(code)` in the ERP app loads the configuration, keyed by the `configVersion` from navigation.
+  - A custom field (`field.custom`) is bound to `['customData', key]`. `useCustomLookups(config)` loads the lookup
+    lists that custom dropdowns use; pass its result to `useFormSections` and `useViewTabs`.
 
 ### Authentication model
 

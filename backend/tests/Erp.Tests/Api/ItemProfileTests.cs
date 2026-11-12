@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Erp.Api.Lookups;
+using Erp.Metadata;
 using Erp.Modules.Inventory;
 using Erp.Modules.Inventory.ItemManagement;
 using Erp.Modules.Inventory.ItemManagement.Categories;
@@ -233,6 +235,34 @@ public sealed class ItemProfileTests(ApiFactory factory)
         }));
         Assert.Equal((existing.HsCode, true, "Acme"), (updated.HsCode, updated.IsSaleable, updated.SupplierName));
     }
+
+    [Fact]
+    public async Task Custom_fields_are_checked_saved_and_kept_when_deactivated()
+    {
+        var client = await AdminAsync();
+        var setup = await CreateSetupAsync(client);
+        await using var fields = await CustomFieldScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile,
+            ("warrantyMonths", FieldTypes.Number, null),
+            ("grade", FieldTypes.Lookup, ItemLookups.ItemType),
+            ("note", FieldTypes.Text, null));
+
+        var invalid = await client.PostAsJsonAsync($"{Base}/items",
+            NewItem(setup) with { CustomData = Data("""{"warrantyMonths":"long","grade":-1}""") });
+        Assert.Equal(["customData.grade", "customData.warrantyMonths"], (await ErrorsAsync(invalid)).Order());
+
+        var created = await CreateAsync<ItemDetail>(client, "items",
+            NewItem(setup) with { CustomData = Data($$"""{"warrantyMonths":12,"grade":{{setup.Choices.Service}},"unknown":"x"}""") });
+        Assert.Equal(["grade", "warrantyMonths"], created.CustomData!.Keys.Order());
+        Assert.Equal(12, created.CustomData["warrantyMonths"].GetInt32());
+
+        await fields.DeactivateAsync("warrantyMonths");
+        var updated = await ReadAsync<ItemDetail>(await client.PutAsJsonAsync($"{Base}/items/{created.Id}",
+            NewItem(setup) with { Name = created.Name, CustomData = Data("""{"note":"hi"}""") }));
+        Assert.Equal(["note", "warrantyMonths"], updated.CustomData!.Keys.Order());
+    }
+
+    private static Dictionary<string, JsonElement> Data(string json) =>
+        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json)!;
 
     [Fact]
     public async Task Duplicate_code_and_barcode_are_field_errors()

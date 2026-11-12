@@ -5,6 +5,7 @@
  * Configurable ERP API. `/api/panel/*` serves the internal configuration Panel, `/api/erp/*` serves the client ERP app. Authenticate with the bearer token from the matching `/auth/login`; ERP calls that work on business-unit data also send `X-Business-Unit: {id}`.
  * OpenAPI spec version: v1
  */
+import type { SaveItemRequestCustomData } from './saveItemRequestCustomData.ts';
 
 export interface SaveItemRequest {
   /** @nullable */
@@ -55,5 +56,7 @@ export interface SaveItemRequest {
   isMultipleSalesPrice: boolean;
   /** @nullable */
   imageSource: string | null;
+  /** @nullable */
+  customData?: SaveItemRequestCustomData;
   isActive: boolean;
 }

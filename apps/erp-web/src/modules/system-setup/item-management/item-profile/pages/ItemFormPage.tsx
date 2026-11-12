@@ -13,6 +13,7 @@ import { App, Form } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useCustomLookups } from '@/common/hooks/useCustomLookups';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
@@ -75,7 +76,7 @@ function ItemForm({
   const { message } = App.useApp();
   const navigate = useNavigate();
   const [form] = Form.useForm<ItemFormValues>();
-  const lookups = useItemLookups();
+  const lookups = { ...useCustomLookups(config), ...useItemLookups() };
   const create = useCreateItem();
   const update = useUpdateItem();
   const refresh = useRefreshItemManagement();

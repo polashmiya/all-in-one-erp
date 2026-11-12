@@ -1,6 +1,7 @@
 import { Checkbox, DatePicker, Input, InputNumber, Radio, Segmented, Select } from 'antd';
+import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
-import { DATE_FORMAT, DATE_TIME_FORMAT } from '../../utils/format';
+import { API_DATE_FORMAT, DATE_FORMAT, DATE_TIME_FORMAT } from '../../utils/format';
 import { MoneyInput, NumberStepper, PercentInput, YesNoSwitch } from './inputs';
 import { LookupSelect, type LookupOption } from './LookupSelect';
 
@@ -92,8 +93,8 @@ export function FieldInput({
       return (
         <DatePicker
           {...common}
-          value={v}
-          onChange={change}
+          value={value ? dayjs(value as string) : null}
+          onChange={(date) => onChange?.(date ? date.format(API_DATE_FORMAT) : null)}
           format={DATE_FORMAT}
           className="erp-w-full"
         />

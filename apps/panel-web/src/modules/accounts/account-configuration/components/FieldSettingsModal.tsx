@@ -12,9 +12,16 @@ import { Field, FieldSection, FormModal, YesNoSwitch } from '@erp/ui';
 import { App, Form, Input, InputNumber, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { effective, FIELD_WIDTHS, NUMBER_TYPES, TEXT_TYPES, toOverride } from '../field-settings';
+import {
+  effective,
+  FIELD_WIDTHS,
+  LABEL_MAX,
+  LOOKUP_TYPE,
+  NUMBER_TYPES,
+  TEXT_TYPES,
+  toOverride,
+} from '../field-settings';
 
-const LABEL_MAX = 100;
 const HELP_MAX = 300;
 const DEFAULT_MAX = 200;
 
@@ -45,7 +52,7 @@ export function FieldSettingsModal({
   const initialValues = useMemo(() => (row ? effective(row) : undefined), [row]);
   const types = useListLookupTypes();
   const list =
-    row?.type === 'lookup' && types.data?.some((type) => type.key === row.lookup)
+    row?.type === LOOKUP_TYPE && types.data?.some((type) => type.key === row.lookup)
       ? (row.lookup ?? '')
       : '';
   const listValues = useListAccountLookupValues(accountId, list, { query: { enabled: !!list } });

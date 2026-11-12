@@ -2,7 +2,7 @@ import type { ConfigField } from '@erp/api-client';
 import { Field, FieldInput, useLanguageStore, type FieldDataType } from '@erp/ui';
 import { Form, Select, type SelectProps } from 'antd';
 import { use } from 'react';
-import { columnsOf, useText, type FieldValues } from './config';
+import { columnsOf, namePath, useText, type FieldValues } from './config';
 import { Engine, type FieldState } from './context';
 import { childSelectOptions, localized, parentOf, selectOptions, type LookupItem } from './lookups';
 import { useFieldRules } from './rules';
@@ -35,7 +35,7 @@ function FieldItem({ field, state }: { field: ConfigField; state: FieldState }) 
 
   return (
     <Field
-      name={field.key}
+      name={namePath(field)}
       label={label}
       extra={text(field.help)}
       rules={rules(field, label, required)}

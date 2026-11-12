@@ -30,4 +30,5 @@ export interface ConfigField {
   lookup: string | null;
   /** @nullable */
   parentField: string | null;
+  custom?: boolean;
 }

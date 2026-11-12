@@ -13,7 +13,7 @@ public static class FeatureManifestSynchronizer
         {
             var featureId = await db.ErpFeatures.Where(f => f.Code == manifest.Feature).Select(f => f.Id).SingleAsync(cancellationToken);
             var sections = await db.FeatureSections.Where(s => s.FeatureId == featureId).ToListAsync(cancellationToken);
-            var fields = await db.FeatureFields.Where(f => f.FeatureId == featureId).ToListAsync(cancellationToken);
+            var fields = await db.FeatureFields.Where(f => f.FeatureId == featureId && f.AccountId == null).ToListAsync(cancellationToken);
             var sectionIds = new Dictionary<string, Guid>();
 
             foreach (var def in manifest.Sections.OrderBy(s => s.Tab is not null))

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 
 namespace Erp.Modules.Inventory.ItemManagement.Items;
@@ -68,6 +69,7 @@ public sealed record ItemDetail
     public required bool IsNegativeSales { get; init; }
     public required bool IsMultipleSalesPrice { get; init; }
     public required string? ImageSource { get; init; }
+    public required Dictionary<string, JsonElement>? CustomData { get; init; }
     public required bool IsActive { get; init; }
     public required DateTime? CreatedAt { get; init; }
     public required string? CreatedByName { get; init; }
@@ -107,6 +109,7 @@ public sealed record SaveItemRequest
     public required bool IsNegativeSales { get; init; }
     public required bool IsMultipleSalesPrice { get; init; }
     public required string? ImageSource { get; init; }
+    public Dictionary<string, JsonElement>? CustomData { get; init; }
     public required bool IsActive { get; init; }
 }
 

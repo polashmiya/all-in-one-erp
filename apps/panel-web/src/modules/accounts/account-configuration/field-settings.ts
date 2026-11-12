@@ -2,6 +2,10 @@ import type { FieldConfigRow, FieldSettingValues } from '@erp/api-client';
 
 export const FIELD_WIDTHS = [1, 2, 3, 4];
 
+export const LABEL_MAX = 100;
+
+export const LOOKUP_TYPE = 'lookup';
+
 export const TEXT_TYPES = ['text', 'textarea'];
 
 export const NUMBER_TYPES = ['number', 'decimal', 'money', 'percent'];

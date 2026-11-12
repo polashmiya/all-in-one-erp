@@ -4,6 +4,7 @@ using Erp.Core.Tenancy;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
+using Erp.Metadata;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -136,6 +137,7 @@ internal static class ItemEndpoints
             IsNegativeSales = i.IsNegativeSales,
             IsMultipleSalesPrice = i.IsMultipleSalesPrice,
             ImageSource = i.ImageSource,
+            CustomData = CustomFieldData.Parse(i.CustomData),
             IsActive = i.IsActive,
             CreatedAt = i.CreatedAt,
             CreatedByName = db.ErpUsers.Where(u => u.Id == i.CreatedById).Select(u => u.FullName).FirstOrDefault(),
@@ -342,6 +344,7 @@ internal static class ItemEndpoints
         item.IsChildBarcode = request.IsChildBarcode;
         item.MasterItemId = request.IsChildBarcode ? request.MasterItemId : null;
         item.ImageSource = MasterData.CleanImage(request.ImageSource);
+        item.CustomData = CustomFieldData.ToJson(request.CustomData);
         item.IsActive = request.IsActive;
         await SetBarCodeAsync(db, item, request.IsAutoBarcode, barCode, ct);
         return null;

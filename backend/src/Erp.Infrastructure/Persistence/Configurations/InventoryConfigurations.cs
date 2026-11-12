@@ -240,6 +240,7 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
             nameof(Item.MasterItemId), nameof(Item.BarCodeSerial), nameof(Item.ImageSource), nameof(Item.AccountId),
             nameof(Item.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
+            nameof(Item.CustomData),
         ]);
     }
 }

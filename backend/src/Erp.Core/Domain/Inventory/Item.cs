@@ -99,4 +99,6 @@ public class Item : MasterRecord, IBusinessUnitOwned
     public int? BarCodeSerial { get; set; }
 
     public string? ImageSource { get; set; }
+
+    public string? CustomData { get; set; }
 }

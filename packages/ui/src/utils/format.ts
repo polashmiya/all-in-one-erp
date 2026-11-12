@@ -52,6 +52,7 @@ export function formatDelta(value: number, suffix = '%'): string {
 }
 
 export const DATE_FORMAT = 'D MMM YYYY';
+export const API_DATE_FORMAT = 'YYYY-MM-DD';
 export const DATE_TIME_FORMAT = 'D MMM YYYY, HH:mm';
 
 export function formatDate(value: ConfigType, format = DATE_FORMAT): string {

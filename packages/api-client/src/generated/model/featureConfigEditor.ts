@@ -12,4 +12,5 @@ export interface FeatureConfigEditor {
   feature: string;
   sections: ConfigSectionOption[];
   fields: FieldConfigRow[];
+  customTypes: string[];
 }

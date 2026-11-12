@@ -1,13 +1,20 @@
-import { EditOutlined, UndoOutlined } from '@ant-design/icons';
+import {
+  CheckCircleOutlined,
+  EditOutlined,
+  PlusOutlined,
+  StopOutlined,
+  UndoOutlined,
+} from '@ant-design/icons';
 import {
   getGetFeatureConfigurationQueryKey,
   useGetAccount,
   useGetFeatureConfiguration,
   useResetFieldSetting,
+  useSetCustomFieldStatus,
   type FieldConfigRow,
 } from '@erp/api-client';
 import { useText } from '@erp/metadata-engine';
-import { ListPageLayout, StatusTag, TitleCell, useListState } from '@erp/ui';
+import { ListPageLayout, StatusTag, TitleCell, useListState, useUndoMessage } from '@erp/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { App, type TableColumnsType } from 'antd';
 import { useEffect, useState } from 'react';
@@ -15,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
 import { useFeatureCatalog } from '../../components/feature-catalog';
+import { CustomFieldModal } from '../components/CustomFieldModal';
 import { FieldSettingsModal } from '../components/FieldSettingsModal';
 import { effective } from '../field-settings';
 
@@ -29,7 +37,10 @@ export function AccountConfigurationPage() {
   const account = useGetAccount(accountId);
   const { modules } = useFeatureCatalog();
   const reset = useResetFieldSetting();
+  const setStatus = useSetCustomFieldStatus();
+  const showUndo = useUndoMessage();
   const [editing, setEditing] = useState<FieldConfigRow>();
+  const [adding, setAdding] = useState(false);
   const list = useListState<Filters>({
     filters: { feature: null, unit: null },
     pageSize: appConfig.defaultPageSize,
@@ -104,6 +115,23 @@ export function AccountConfigurationPage() {
     }
   };
 
+  const setActive = async (row: FieldConfigRow, isActive: boolean, undoable = true) => {
+    try {
+      await setStatus.mutateAsync({
+        id: accountId,
+        code: feature,
+        key: row.key,
+        data: { isActive },
+      });
+      await refresh();
+      const done = t(isActive ? 'config.custom.activated' : 'config.custom.deactivated');
+      if (undoable) showUndo(done, () => void setActive(row, !isActive, false));
+      else void message.success(done);
+    } catch {
+      void message.error(t('config.failed'));
+    }
+  };
+
   const columns: TableColumnsType<FieldConfigRow> = [
     {
       key: 'field',
@@ -115,7 +143,16 @@ export function AccountConfigurationPage() {
       title: t('config.col.section'),
       render: (_, row) => sectionLabel(effective(row).sectionKey),
     },
-    { key: 'type', title: t('config.col.type'), render: (_, row) => t(`config.type.${row.type}`) },
+    {
+      key: 'type',
+      title: t('config.col.type'),
+      render: (_, row) => (
+        <>
+          {t(`config.type.${row.type}`)}{' '}
+          {row.isCustom && <StatusTag tone="info">{t('config.custom.tag')}</StatusTag>}
+        </>
+      ),
+    },
     {
       key: 'shown',
       title: t('config.col.shown'),
@@ -140,7 +177,9 @@ export function AccountConfigurationPage() {
       key: 'setting',
       title: t('config.col.setting'),
       render: (_, row) =>
-        row.override ? (
+        !row.isActive ? (
+          <StatusTag tone="neutral">{t('accounts.status.inactive')}</StatusTag>
+        ) : row.override ? (
           <StatusTag tone="violet">{t('config.changed')}</StatusTag>
         ) : (
           <StatusTag>{t('config.default')}</StatusTag>
@@ -153,6 +192,16 @@ export function AccountConfigurationPage() {
       <ListPageLayout<FieldConfigRow, Filters, string>
         title={t('config.title', { account: account.data?.name ?? '' })}
         subtitle={t('config.subtitle')}
+        actions={[
+          {
+            key: 'new',
+            label: t('config.custom.new'),
+            icon: <PlusOutlined />,
+            variant: 'primary',
+            disabled: !editor.data,
+            onClick: () => setAdding(true),
+          },
+        ]}
         state={list}
         search={{ label: t('config.search'), placeholder: t('config.search') }}
         filters={[
@@ -186,6 +235,14 @@ export function AccountConfigurationPage() {
             },
             onClick: () => resetField(row),
           },
+          {
+            key: 'status',
+            label: row.isActive ? t('lookups.deactivate') : t('lookups.activate'),
+            icon: row.isActive ? <StopOutlined /> : <CheckCircleOutlined />,
+            inMenu: true,
+            hidden: !row.isCustom,
+            onClick: () => setActive(row, !row.isActive),
+          },
         ]}
         empty={{ title: t(feature ? 'config.empty' : 'config.noScreens') }}
       />
@@ -198,6 +255,15 @@ export function AccountConfigurationPage() {
         row={editing}
         sections={sections}
         onClose={() => setEditing(undefined)}
+        onSaved={refresh}
+      />
+      <CustomFieldModal
+        accountId={accountId}
+        feature={feature}
+        open={adding}
+        types={editor.data?.customTypes ?? []}
+        sections={sections}
+        onClose={() => setAdding(false)}
         onSaved={refresh}
       />
     </>

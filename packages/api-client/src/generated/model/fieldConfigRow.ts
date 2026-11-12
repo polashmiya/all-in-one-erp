@@ -13,6 +13,8 @@ export interface FieldConfigRow {
   /** @nullable */
   lookup: string | null;
   isLocked: boolean;
+  isCustom: boolean;
+  isActive: boolean;
   canList: boolean;
   canFilter: boolean;
   /** @nullable */

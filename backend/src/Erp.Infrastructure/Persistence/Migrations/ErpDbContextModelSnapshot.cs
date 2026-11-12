@@ -361,6 +361,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("CreatedByID")
                         .HasColumnOrder(48);
 
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(51);
+
                     b.Property<int>("DepartmentId")
                         .HasColumnType("int")
                         .HasColumnName("ItemDepartmentID")
@@ -1188,6 +1192,9 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("CanFilter")
                         .HasColumnType("bit");
 
@@ -1299,9 +1306,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AccountId");
+
                     b.HasIndex("SectionId");
 
-                    b.HasIndex("FeatureId", "Key")
+                    b.HasIndex("FeatureId", "AccountId", "Key")
                         .IsUnique();
 
                     b.ToTable("FeatureFields", (string)null);
@@ -2370,6 +2379,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Erp.Core.Domain.Metadata.FeatureField", b =>
                 {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Erp.Core.Domain.Navigation.ErpFeature", "Feature")
                         .WithMany()
                         .HasForeignKey("FeatureId")

@@ -35,6 +35,8 @@ public class FeatureField : BaseEntity
 
     public FeatureSection? Section { get; set; }
 
+    public Guid? AccountId { get; set; }
+
     public required string Key { get; set; }
 
     public required string DataType { get; set; }

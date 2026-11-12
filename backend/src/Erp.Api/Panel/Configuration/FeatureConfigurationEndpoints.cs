@@ -14,6 +14,17 @@ public static class FeatureConfigurationEndpoints
             .WithSummary("Fields of a screen with their defaults and the account's (or business unit's) changes")
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        configuration.MapPost("/fields", Create)
+            .WithName("CreateCustomField")
+            .WithSummary("Add a custom field to a screen of the account; the key comes from the English label")
+            .Validate<CreateCustomFieldRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        configuration.MapPut("/fields/{key}/status", SetStatus)
+            .WithName("SetCustomFieldStatus")
+            .WithSummary("Deactivate or activate a custom field; saved values are kept")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         configuration.MapPut("/fields/{key}", Save)
             .WithName("SaveFieldSetting")
             .WithSummary("Change one field for the account, or for one business unit with businessUnitId")
@@ -31,6 +42,14 @@ public static class FeatureConfigurationEndpoints
     private static async Task<Results<Ok<FeatureConfigEditor>, NotFound>> Get(
         Guid id, string code, Guid? businessUnitId, FeatureConfigurationService service, CancellationToken ct) =>
         await service.GetAsync(id, businessUnitId, code, ct) is { } editor ? TypedResults.Ok(editor) : TypedResults.NotFound();
+
+    private static Task<Results<Ok<FieldConfigRow>, NotFound, ValidationProblem>> Create(
+        Guid id, string code, CreateCustomFieldRequest request, FeatureConfigurationService service, CancellationToken ct) =>
+        Respond(service.CreateAsync(id, code, request, ct));
+
+    private static Task<Results<Ok<FieldConfigRow>, NotFound, ValidationProblem>> SetStatus(
+        Guid id, string code, string key, CustomFieldStatusRequest request, FeatureConfigurationService service, CancellationToken ct) =>
+        Respond(service.SetStatusAsync(id, code, key, request.IsActive, ct));
 
     private static Task<Results<Ok<FieldConfigRow>, NotFound, ValidationProblem>> Save(
         Guid id, string code, string key, Guid? businessUnitId, FieldSettingValues values,

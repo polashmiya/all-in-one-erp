@@ -105,6 +105,40 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Custom_fields_are_added_checked_and_deactivated()
+    {
+        var client = await PanelClientAsync();
+        var accountId = await DemoAccountIdAsync();
+        var fields = $"{Path(accountId)}/fields";
+        await using var cleanup = await CustomFieldScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+
+        var created = await client.PostAsJsonAsync(fields, new CreateCustomFieldRequest(" Warranty months ", "ওয়ারেন্টি", FieldTypes.Number, "basic", null));
+        var row = (await created.Content.ReadFromJsonAsync<FieldConfigRow>())!;
+        Assert.Equal(("warrantyMonths", true, true, false, "basic"), (row.Key, row.IsCustom, row.IsActive, row.CanList, row.Base.SectionKey));
+        Assert.Contains("warrantyMonths", await ErpFieldKeysAsync(factory.DhakaId));
+
+        Assert.Equal(["labelEn"],
+            await ErrorsAsync(await client.PostAsJsonAsync(fields, new CreateCustomFieldRequest("Warranty Months", null, FieldTypes.Text, "basic", null))));
+        Assert.Equal(["labelEn"],
+            await ErrorsAsync(await client.PostAsJsonAsync(fields, new CreateCustomFieldRequest("Name", null, FieldTypes.Text, "basic", null))));
+        Assert.Equal(["lookup", "sectionKey"],
+            (await ErrorsAsync(await client.PostAsJsonAsync(fields, new CreateCustomFieldRequest("Grade", null, FieldTypes.Lookup, "nope", "no-list")))).Order());
+        Assert.Equal(["type"],
+            await ErrorsAsync(await client.PostAsJsonAsync(fields, new CreateCustomFieldRequest("Photo", null, FieldTypes.Image, "basic", null))));
+        Assert.Equal(["inList"],
+            await ErrorsAsync(await client.PutAsJsonAsync($"{fields}/warrantyMonths", new FieldSettingValues { InList = true })));
+
+        var off = await client.PutAsJsonAsync($"{fields}/warrantyMonths/status", new CustomFieldStatusRequest(false));
+        Assert.False((await off.Content.ReadFromJsonAsync<FieldConfigRow>())!.IsActive);
+        Assert.DoesNotContain("warrantyMonths", await ErpFieldKeysAsync(factory.DhakaId));
+
+        var editor = await client.GetFromJsonAsync<FeatureConfigEditor>(Path(accountId));
+        Assert.False(editor!.Fields.Single(f => f.Key == "warrantyMonths").IsActive);
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await client.PutAsJsonAsync($"{fields}/name/status", new CustomFieldStatusRequest(false))).StatusCode);
+    }
+
+    [Fact]
     public async Task Unknown_screens_fields_and_units_are_not_found()
     {
         var client = await PanelClientAsync();

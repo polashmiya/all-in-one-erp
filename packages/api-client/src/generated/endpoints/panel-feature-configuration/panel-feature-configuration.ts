@@ -22,6 +22,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CreateCustomFieldRequest,
+  CustomFieldStatusRequest,
   FeatureConfigEditor,
   FieldConfigRow,
   FieldSettingValues,
@@ -225,6 +227,240 @@ export function useGetFeatureConfiguration<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
+export const getCreateCustomFieldUrl = (id: string, code: string) => {
+  return `/api/panel/accounts/${id}/configuration/${code}/fields`;
+};
+
+/**
+ * @summary Add a custom field to a screen of the account; the key comes from the English label
+ */
+export const createCustomField = async (
+  id: string,
+  code: string,
+  createCustomFieldRequest: CreateCustomFieldRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<FieldConfigRow> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<FieldConfigRow>(getCreateCustomFieldUrl(id, code), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createCustomFieldRequest),
+  });
+};
+
+export const getCreateCustomFieldMutationKey = () => ['createCustomField'] as const;
+
+export const getCreateCustomFieldMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCustomField>>,
+    TError,
+    CreateCustomFieldMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCustomField>>,
+  TError,
+  CreateCustomFieldMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateCustomFieldMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCustomField>>,
+    CreateCustomFieldMutationVariables
+  > = (props) => {
+    const { id, code, data } = props ?? {};
+
+    return createCustomField(id, code, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCustomFieldMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCustomField>>
+>;
+export type CreateCustomFieldMutationBody = BodyType<CreateCustomFieldRequest>;
+export type CreateCustomFieldMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CreateCustomFieldMutationVariables = {
+  id: string;
+  code: string;
+  data: BodyType<CreateCustomFieldRequest>;
+};
+
+/**
+ * @summary Add a custom field to a screen of the account; the key comes from the English label
+ */
+export const useCreateCustomField = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createCustomField>>,
+      TError,
+      CreateCustomFieldMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createCustomField>>,
+  TError,
+  CreateCustomFieldMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateCustomFieldMutationOptions(options), queryClient);
+};
+export const getSetCustomFieldStatusUrl = (id: string, code: string, key: string) => {
+  return `/api/panel/accounts/${id}/configuration/${code}/fields/${key}/status`;
+};
+
+/**
+ * @summary Deactivate or activate a custom field; saved values are kept
+ */
+export const setCustomFieldStatus = async (
+  id: string,
+  code: string,
+  key: string,
+  customFieldStatusRequest: CustomFieldStatusRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<FieldConfigRow> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<FieldConfigRow>(getSetCustomFieldStatusUrl(id, code, key), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(customFieldStatusRequest),
+  });
+};
+
+export const getSetCustomFieldStatusMutationKey = () => ['setCustomFieldStatus'] as const;
+
+export const getSetCustomFieldStatusMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setCustomFieldStatus>>,
+    TError,
+    SetCustomFieldStatusMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setCustomFieldStatus>>,
+  TError,
+  SetCustomFieldStatusMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSetCustomFieldStatusMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setCustomFieldStatus>>,
+    SetCustomFieldStatusMutationVariables
+  > = (props) => {
+    const { id, code, key, data } = props ?? {};
+
+    return setCustomFieldStatus(id, code, key, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SetCustomFieldStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setCustomFieldStatus>>
+>;
+export type SetCustomFieldStatusMutationBody = BodyType<CustomFieldStatusRequest>;
+export type SetCustomFieldStatusMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type SetCustomFieldStatusMutationVariables = {
+  id: string;
+  code: string;
+  key: string;
+  data: BodyType<CustomFieldStatusRequest>;
+};
+
+/**
+ * @summary Deactivate or activate a custom field; saved values are kept
+ */
+export const useSetCustomFieldStatus = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof setCustomFieldStatus>>,
+      TError,
+      SetCustomFieldStatusMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof setCustomFieldStatus>>,
+  TError,
+  SetCustomFieldStatusMutationVariables,
+  TContext
+> => {
+  return useMutation(getSetCustomFieldStatusMutationOptions(options), queryClient);
+};
 export const getSaveFieldSettingUrl = (
   id: string,
   code: string,

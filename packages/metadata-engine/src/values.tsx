@@ -1,5 +1,6 @@
 import type { ConfigField } from '@erp/api-client';
 import {
+  useLanguageStore,
   formatDate,
   formatDateTime,
   formatMoney,
@@ -9,9 +10,8 @@ import {
 } from '@erp/ui';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { displayKey, type FieldValues } from './config';
-
-const valueOf = (field: ConfigField, record: object) => (record as FieldValues)[displayKey(field)];
+import { CUSTOM_DATA, displayKey, type FieldValues } from './config';
+import { localized, type LookupSources } from './lookups';
 
 function formatted(field: ConfigField, value: unknown, symbol: boolean): string {
   const number = value as number;
@@ -33,9 +33,19 @@ function formatted(field: ConfigField, value: unknown, symbol: boolean): string 
   }
 }
 
-export function useFieldValue() {
+export function useFieldValue(lookups: LookupSources = {}) {
   const { t } = useTranslation();
+  const language = useLanguageStore((s) => s.language);
   const yesNo = (on: boolean) => (on ? t('common.yes') : t('common.no'));
+
+  const valueOf = (field: ConfigField, record: object) => {
+    const values = record as FieldValues;
+    if (!field.custom) return values[displayKey(field)];
+    const value = (values[CUSTOM_DATA] as FieldValues | null | undefined)?.[field.key];
+    if (field.type !== 'lookup') return value;
+    return localized(lookups[field.lookup ?? ''], language)?.find((item) => item.id === value)
+      ?.name;
+  };
 
   const display = (field: ConfigField, record: object): ReactNode => {
     const value = valueOf(field, record);

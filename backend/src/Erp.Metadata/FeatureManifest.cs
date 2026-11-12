@@ -18,6 +18,8 @@ public static class FieldTypes
 
     public static readonly IReadOnlySet<string> All =
         new HashSet<string> { Text, TextArea, Number, Decimal, Money, Percent, Date, DateTime, Boolean, Lookup, Image };
+
+    public static readonly IReadOnlyList<string> Custom = [Text, TextArea, Number, Decimal, Money, Percent, Date, Boolean, Lookup];
 }
 
 public sealed record SectionDef(string Key, MenuText Label, int Order, string? Tab = null, int Columns = 4);

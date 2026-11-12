@@ -29,7 +29,8 @@ public sealed record ConfigField(
     decimal? Max,
     int? Precision,
     string? Lookup,
-    string? ParentField);
+    string? ParentField,
+    bool Custom = false);
 
 public sealed record ConfigColumn(string Key, bool Sortable);
 
@@ -132,7 +133,8 @@ public static class FeatureConfigBuilder
         Tighter(field.MaxValue, setting?.MaxValue, Math.Min),
         field.Precision,
         field.LookupSource,
-        field.ParentFieldKey);
+        field.ParentFieldKey,
+        field.AccountId is not null);
 
     private static LocalizedLabel? Text(string? en, string? bn) => en is null ? null : new(en, bn);
 

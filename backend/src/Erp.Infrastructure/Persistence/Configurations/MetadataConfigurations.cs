@@ -38,10 +38,11 @@ internal sealed class FeatureFieldConfiguration : IEntityTypeConfiguration<Featu
         builder.Property(f => f.DefaultValue).HasMaxLength(200);
         builder.Property(f => f.MinValue).HasPrecision(18, 4);
         builder.Property(f => f.MaxValue).HasPrecision(18, 4);
-        builder.HasIndex(f => new { f.FeatureId, f.Key }).IsUnique();
+        builder.HasIndex(f => new { f.FeatureId, f.AccountId, f.Key }).IsUnique().HasFilter(null);
 
         builder.HasOne(f => f.Feature).WithMany().HasForeignKey(f => f.FeatureId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(f => f.Section).WithMany().HasForeignKey(f => f.SectionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Account>().WithMany().HasForeignKey(f => f.AccountId).OnDelete(DeleteBehavior.Restrict);
     }
 }
 

@@ -9,6 +9,11 @@ namespace Erp.Api.Panel.Configuration;
 
 public sealed class FeatureConfigurationService(ErpDbContext db)
 {
+    private const int KeyLength = 50;
+    private const int SortStep = 10;
+    private const int CustomTextLength = 200;
+    private const int CustomTextAreaLength = 2000;
+
     private sealed record Scope(
         Guid AccountId,
         Guid? BusinessUnitId,
@@ -40,7 +45,65 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             .Select(f => Row(scope, f))
             .ToList();
 
-        return new FeatureConfigEditor(scope.Code, sections, fields);
+        return new FeatureConfigEditor(scope.Code, sections, fields, FieldTypes.Custom);
+    }
+
+    public async Task<(FieldConfigRow? Row, Dictionary<string, string[]> Errors)> CreateAsync(
+        Guid accountId, string code, CreateCustomFieldRequest request, CancellationToken ct)
+    {
+        if (await LoadAsync(accountId, null, code, ct) is not { } scope) return (null, []);
+
+        var errors = new Dictionary<string, string[]>();
+        var key = CustomKey(request.LabelEn);
+        var section = SectionOf(scope, request.SectionKey);
+        var list = request.Type == FieldTypes.Lookup ? request.Lookup : null;
+
+        if (key is null)
+            errors["labelEn"] = ["Start the English label with a letter."];
+        else if (await db.FeatureFields.AnyAsync(
+            f => f.FeatureId == scope.FeatureId && f.Key == key && (f.AccountId == null || f.AccountId == accountId), ct))
+            errors["labelEn"] = ["Another field of this screen already uses this name."];
+        if (section is null) errors["sectionKey"] = ["Choose a section of this screen."];
+        if (!FieldTypes.Custom.Contains(request.Type)) errors["type"] = ["Choose a field type."];
+        if (request.Type == FieldTypes.Lookup && !await db.LookupTypes.AnyAsync(t => t.Key == list && t.IsActive, ct))
+            errors["lookup"] = ["Choose a lookup list."];
+        if (errors.Count > 0) return (null, errors);
+
+        var field = new FeatureField
+        {
+            FeatureId = scope.FeatureId,
+            AccountId = accountId,
+            SectionId = section!.Id,
+            Key = key!,
+            DataType = request.Type,
+            LookupSource = list,
+            LabelEn = request.LabelEn.Trim(),
+            LabelBn = Trimmed(request.LabelBn),
+            SortOrder = scope.Fields.Where(f => f.SectionId == section.Id).Select(f => f.SortOrder).DefaultIfEmpty().Max() + SortStep,
+            MaxLength = request.Type switch
+            {
+                FieldTypes.Text => CustomTextLength,
+                FieldTypes.TextArea => CustomTextAreaLength,
+                _ => null,
+            },
+        };
+        db.FeatureFields.Add(field);
+        scope.Fields.Add(field);
+        await CommitAsync(scope, ct);
+
+        return (Row(scope, field), []);
+    }
+
+    public async Task<(FieldConfigRow? Row, Dictionary<string, string[]> Errors)> SetStatusAsync(
+        Guid accountId, string code, string key, bool isActive, CancellationToken ct)
+    {
+        if (await LoadAsync(accountId, null, code, ct) is not { } scope) return (null, []);
+        if (scope.Fields.Find(f => f.Key == key && f.AccountId is not null) is not { } field) return (null, []);
+
+        field.IsActive = isActive;
+        await CommitAsync(scope, ct);
+
+        return (Row(scope, field), []);
     }
 
     public async Task<(FieldConfigRow? Row, Dictionary<string, string[]> Errors)> SaveAsync(
@@ -73,12 +136,17 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             Apply(own, values, scope);
         }
 
-        await db.SaveChangesAsync(ct);
-        await db.AccountFeatures.AcrossTenants()
-            .Where(af => af.AccountId == accountId && af.FeatureId == scope.FeatureId)
-            .ExecuteUpdateAsync(s => s.SetProperty(af => af.ConfigVersion, af => af.ConfigVersion + 1), ct);
+        await CommitAsync(scope, ct);
 
         return (Row(scope, field), []);
+    }
+
+    private async Task CommitAsync(Scope scope, CancellationToken ct)
+    {
+        await db.SaveChangesAsync(ct);
+        await db.AccountFeatures.AcrossTenants()
+            .Where(af => af.AccountId == scope.AccountId && af.FeatureId == scope.FeatureId)
+            .ExecuteUpdateAsync(s => s.SetProperty(af => af.ConfigVersion, af => af.ConfigVersion + 1), ct);
     }
 
     private async Task<Scope?> LoadAsync(Guid accountId, Guid? businessUnitId, string code, CancellationToken ct)
@@ -94,7 +162,9 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             !await db.BusinessUnits.AcrossTenants().AnyAsync(b => b.Id == businessUnitId && b.AccountId == accountId, ct))
             return null;
 
-        var fields = await db.FeatureFields.Where(f => f.FeatureId == featureId && f.IsActive).ToListAsync(ct);
+        var fields = await db.FeatureFields
+            .Where(f => f.FeatureId == featureId && ((f.AccountId == null && f.IsActive) || f.AccountId == accountId))
+            .ToListAsync(ct);
         if (fields.Count == 0) return null;
 
         var sections = await db.FeatureSections.Where(s => s.FeatureId == featureId && s.IsActive).ToDictionaryAsync(s => s.Id, ct);
@@ -154,6 +224,8 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
         field.DataType,
         field.LookupSource,
         field.IsLocked,
+        field.AccountId is not null,
+        field.IsActive,
         field.ListOrder is not null,
         field.CanFilter,
         field.MaxLength,
@@ -250,6 +322,13 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
 
     private static FeatureSection? SectionOf(Scope scope, string key) =>
         scope.Sections.Values.FirstOrDefault(s => s.Key == key && s.ParentId is not null);
+
+    private static string? CustomKey(string label)
+    {
+        var words = label.Split(' ', '-', '_').Select(w => new string(w.Where(char.IsAsciiLetterOrDigit).ToArray())).Where(w => w.Length > 0);
+        var key = string.Concat(words.Select((w, i) => i == 0 ? w.ToLowerInvariant() : char.ToUpperInvariant(w[0]) + w[1..].ToLowerInvariant()));
+        return key.Length > 0 && char.IsAsciiLetter(key[0]) ? key[..Math.Min(key.Length, KeyLength)] : null;
+    }
 
     private static string? Trimmed(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

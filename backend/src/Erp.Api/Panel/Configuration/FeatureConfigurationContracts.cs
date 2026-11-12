@@ -33,6 +33,8 @@ public sealed record FieldConfigRow(
     string Type,
     string? Lookup,
     bool IsLocked,
+    bool IsCustom,
+    bool IsActive,
     bool CanList,
     bool CanFilter,
     int? MaxLengthLimit,
@@ -44,7 +46,21 @@ public sealed record FieldConfigRow(
 public sealed record FeatureConfigEditor(
     string Feature,
     IReadOnlyList<ConfigSectionOption> Sections,
-    IReadOnlyList<FieldConfigRow> Fields);
+    IReadOnlyList<FieldConfigRow> Fields,
+    IReadOnlyList<string> CustomTypes);
+
+public sealed record CreateCustomFieldRequest(string LabelEn, string? LabelBn, string Type, string SectionKey, string? Lookup);
+
+public sealed record CustomFieldStatusRequest(bool IsActive);
+
+internal sealed class CreateCustomFieldRequestValidator : AbstractValidator<CreateCustomFieldRequest>
+{
+    public CreateCustomFieldRequestValidator()
+    {
+        RuleFor(x => x.LabelEn).NotEmpty().WithMessage("Enter the English label.").MaximumLength(100);
+        RuleFor(x => x.LabelBn).MaximumLength(100);
+    }
+}
 
 internal sealed class FieldSettingValuesValidator : AbstractValidator<FieldSettingValues>
 {

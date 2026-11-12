@@ -30,13 +30,28 @@ public sealed class FeatureConfigService(ErpDbContext db, IMemoryCache cache)
     public async Task<(T Request, Dictionary<string, string[]> Errors)> ApplyRulesAsync<T>(
         Guid accountId, Guid businessUnitId, string featureCode, T request, object? existing, CancellationToken cancellationToken) =>
         await GetAsync(accountId, businessUnitId, featureCode, cancellationToken) is { } feature
-            ? FieldRules.Apply(request, feature.Rules, existing)
+            ? FieldRules.Apply(request, feature.Rules, existing, await CustomLookupValuesAsync(accountId, feature.Rules, cancellationToken))
             : (request, []);
+
+    private async Task<Dictionary<string, HashSet<int>>> CustomLookupValuesAsync(
+        Guid accountId, IReadOnlyList<FieldRule> rules, CancellationToken cancellationToken)
+    {
+        var lists = rules.Where(r => r.Field.Custom).Select(r => r.Field.Lookup).OfType<string>().Distinct().ToList();
+        if (lists.Count == 0) return [];
+
+        var values = await db.LookupValues.AcrossTenants().AsNoTracking()
+            .Where(v => v.AccountId == accountId && v.IsActive && lists.Contains(v.LookupType!.Key))
+            .Select(v => new { v.LookupType!.Key, v.Id })
+            .ToListAsync(cancellationToken);
+        return values.GroupBy(v => v.Key).ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToHashSet());
+    }
 
     private async Task<ResolvedFeature?> LoadAsync(
         Guid accountId, Guid? businessUnitId, Guid featureId, string code, int version, CancellationToken cancellationToken)
     {
-        var fields = await db.FeatureFields.AsNoTracking().Where(f => f.FeatureId == featureId).ToListAsync(cancellationToken);
+        var fields = await db.FeatureFields.AsNoTracking()
+            .Where(f => f.FeatureId == featureId && (f.AccountId == null || f.AccountId == accountId))
+            .ToListAsync(cancellationToken);
         if (fields.Count == 0) return null;
 
         var sections = await db.FeatureSections.AsNoTracking().Where(s => s.FeatureId == featureId).ToListAsync(cancellationToken);

@@ -3,6 +3,7 @@ import { DescriptionList, DetailSection, type CsvColumn, type DetailsTab } from 
 import type { TableColumnsType } from 'antd';
 import type { ReactNode } from 'react';
 import { columnsOf, fieldMap, isNumeric, useText } from './config';
+import type { LookupSources } from './lookups';
 import { useFieldValue } from './values';
 
 const VIEW_COLUMNS = 3;
@@ -11,9 +12,10 @@ export function useViewTabs<T extends object>(
   config: FeatureConfig,
   record: T,
   renderers: Record<string, (record: T) => ReactNode> = {},
+  lookups?: LookupSources,
 ): DetailsTab[] {
   const text = useText();
-  const value = useFieldValue();
+  const value = useFieldValue(lookups);
 
   return config.tabs
     .map((tab) => ({

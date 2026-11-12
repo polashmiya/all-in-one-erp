@@ -27,6 +27,7 @@ import {
 import { App } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
+import { useCustomLookups } from '@/common/hooks/useCustomLookups';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
@@ -70,22 +71,27 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
   const setStatus = useSetItemsStatus();
   const remove = useDeleteItem();
   const refresh = useRefreshItemManagement();
-  const tabs = useViewTabs(config, item, {
-    masterItemId: (r) =>
-      r.masterItemId ? (
-        <Link to={itemPaths.view(r.masterItemId)}>
-          {r.masterItemName} ({r.masterItemCode})
-        </Link>
-      ) : null,
-    altUomConversionQty: (r) =>
-      r.altUomName
-        ? t('item.v.conversion', {
-            alt: r.altUomName,
-            qty: formatNumber(r.altUomConversionQty, 2),
-            uom: r.uomName,
-          })
-        : null,
-  });
+  const tabs = useViewTabs(
+    config,
+    item,
+    {
+      masterItemId: (r) =>
+        r.masterItemId ? (
+          <Link to={itemPaths.view(r.masterItemId)}>
+            {r.masterItemName} ({r.masterItemCode})
+          </Link>
+        ) : null,
+      altUomConversionQty: (r) =>
+        r.altUomName
+          ? t('item.v.conversion', {
+              alt: r.altUomName,
+              qty: formatNumber(r.altUomConversionQty, 2),
+              uom: r.uomName,
+            })
+          : null,
+    },
+    useCustomLookups(config),
+  );
 
   const failed = (error: unknown) => void message.error(problemMessage(error, t('master.failed')));
 

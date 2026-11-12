@@ -72,6 +72,7 @@ export function toRequest(values: ItemFormValues): SaveItemRequest {
     isNegativeSales: !!values.isNegativeSales,
     isMultipleSalesPrice: !!values.isMultipleSalesPrice,
     imageSource: values.imageSource ?? null,
+    customData: values.customData ?? null,
     isActive: !!values.isActive,
   };
 }
