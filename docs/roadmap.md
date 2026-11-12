@@ -184,7 +184,28 @@ Candidates, in no fixed order:
 
 Ask the owner which one comes next before starting.
 
+## Where we are
+
+Last updated 2026-11-12. Phases 0 to 9 and account editing (account page, structure view, Screen configuration menu,
+ERP theme per account) are done. Nothing is half built. The next step is the owner's choice from "Next: owner to
+choose" above.
+
+Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
+`MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`.
+
 ## Working on another machine
+
+After `git pull` on the other machine:
+
+1. `pnpm install` (new packages since phase 6: `@dnd-kit/*` in the Panel, `@playwright/test` at the root).
+2. `dotnet tool restore` (only the first time).
+3. Stop any running API, then `pnpm dev:api`. It applies the new migrations to `myErp`, adds missing Panel menu items
+   (Accounts, Screen configuration) and seeds the demo data. Then `pnpm dev`.
+4. Optional check: `pnpm test:web`, `dotnet test backend/Erp.sln` and `pnpm test:e2e` (needs Chrome and LocalDB).
+5. Tell Claude: "read docs/roadmap.md and start <item> from Next" (or "continue where we stopped").
+
+The Claude memory of one machine does not travel with git; the rules that matter are in `.claude/CLAUDE.md` and in
+the "Decisions to keep" above.
 
 - Prerequisites and first run are in the README (.NET 10, Node 22, pnpm 10, SQL Server LocalDB). `pnpm install`,
   `dotnet tool restore`, then `pnpm dev:api` creates and migrates the `myErp` database and seeds the demo data;
@@ -196,4 +217,4 @@ Ask the owner which one comes next before starting.
   flow changes also `pnpm test:e2e` (needs Chrome and LocalDB; it starts its own API and apps).
 - Run Prettier on the files you changed only, not on whole folders.
 
-To continue, tell Claude which item of "Next: owner to choose" to start.
+To continue, tell Claude which item of "Next: owner to choose" to start. Demo sign-ins are in the README.

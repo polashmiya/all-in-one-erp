@@ -25,6 +25,16 @@
 ## Roadmap
 
 - Phase status, decisions and the next phase plan are in `docs/roadmap.md`. Read it before starting or continuing a phase, and update it when a phase is done.
+- When starting on a new machine or a new session, read the "Where we are" and "Working on another machine" sections of `docs/roadmap.md` first.
+
+## Working rules
+
+- Plain screen work stays in `apps/` and `packages/` and uses mock services when no API exists. Roadmap phases and configurable screens include the backend: code, migration, tests and `pnpm gen:api`.
+- Do not log work from this repository to DevOS, even if a global instruction asks for it.
+- If `pnpm dev:api` is already running, do not stop it. Build and test into another folder (`--artifacts-path <temp folder>`) and run a second API on another port for `pnpm gen:api` (`ERP_OPENAPI_URL`).
+- Run Prettier only on the files you changed. If it reformats a file you did not mean to touch, revert that file.
+- Check UI changes in a real browser with Playwright (`pnpm test:e2e`, or a temporary spec in `e2e/` that takes screenshots), then delete the temporary spec.
+- Ask the owner before building anything a roadmap item marks as "ask the owner".
 
 ## Comments
 
