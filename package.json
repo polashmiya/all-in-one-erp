@@ -20,10 +20,12 @@
     "gen:api": "pnpm --filter @erp/api-client gen",
     "test": "pnpm test:web && pnpm test:api",
     "test:web": "vitest run",
-    "test:api": "dotnet test backend/Erp.sln"
+    "test:api": "dotnet test backend/Erp.sln",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.0.0",

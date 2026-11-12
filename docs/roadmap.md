@@ -23,7 +23,7 @@ can be changed.
 | 6     | Custom fields per account (`CustomData` json), Panel **New custom field**                      | ✅ 2026-11-12 |
 | 7     | Panel layout builder: tabs and sections (rename, hide, order, columns), drag and drop, preview | ✅ 2026-11-12 |
 | 8     | Item master data screens (department → UOM) on the engine                                      | ✅ 2026-11-12 |
-| 9     | Hardening: E2E, audit log, docs                                                                | ⏳ next       |
+| 9     | Hardening: E2E, audit log (Panel History), docs                                                | ✅ 2026-11-12 |
 
 Not scheduled yet, on hold by the owner: ERP module › sub-module › feature permissions per role, and editing or
 deactivating an account after setup.
@@ -54,6 +54,10 @@ deactivating an account after setup.
 - **Every screen is built from its configuration, generically.** Forms and modals render `ConfigFields`: one tab
   shows its sections, two or more tabs show tabs. A screen that has one tab today gets tabs later by adding a tab to
   its manifest, with no screen code change (owner, 2026-11-12).
+- **Configuration history is append-only and shown in the Panel only** for now; the ERP may get a read-only view
+  later (owner, 2026-11-12). A save that changes nothing writes no history row.
+- **E2E runs on its own database** (`myErp_E2E`) and ports (API 5065, Panel 5193, ERP 5194) with the installed Chrome,
+  so it never touches the dev data and needs no browser download.
 - **Drag and drop uses dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`), in the Panel only (owner, 2026-11-12).
 - **A layout save stores only what differs from the level below.** Dragging a field back to its default place removes
   that override again, so an untouched screen keeps no rows.
@@ -125,29 +129,43 @@ What was built:
 
 Left open:
 
-- Checked by typecheck, lint, unit and API tests, not by hand in a browser. Try once: open each master data screen,
-  add, edit and filter; in the Panel hide a field and add a custom field on Department, then reopen the modal.
 - Code inputs no longer turn upper case while typing; the server and the request still upper-case department and
   category codes.
 - Custom field questions from phase 6 are still open (list column, filter, CSV).
 
-## Next: phase 9 — hardening
+## Done: phase 9 — hardening
 
-Goal: the configuration work is safe to hand over: real browser tests, a record of who changed what, and docs that
-match the code.
+What was built:
 
-Plan:
+- **History.** Table `ConfigurationChanges` (migration `ConfigurationHistory`): account, business unit, feature,
+  area (field, section, layout, custom-field, lookup-value), key, before and after json; who and when come from
+  `CreatedBy` / `CreatedAt`. `ConfigurationHistory.Record` is the one place that writes it, called from
+  `FeatureConfigurationService` and the lookup endpoints in the same save. API
+  `GET /api/panel/accounts/{id}/history?feature=&businessUnitId=&area=&page=&pageSize=`.
+- **Panel: History** (Screen settings → History, `/accounts/{id}/history`): filters by screen, business unit and
+  change type; a row opens a drawer with each changed setting, before and after (`history.ts`, unit tested).
+- **E2E.** `pnpm test:e2e` (Playwright, `e2e/`) starts its own API and both apps, then: Panel adds a custom field
+  to Item Department → History shows it → ERP creates a department with a value in it → reopening keeps the value.
+  This is also the first check of phases 6 to 8 in a real browser, and it passes.
+- **Docs.** The `erp-feature` skill now describes config-driven master data modals (pattern A) and how to add a new
+  configurable screen end to end (pattern E).
 
-1. **E2E.** Playwright against the dev API and both apps, with the demo sign-ins: Panel hides a field, adds a custom
-   field and drags it in Layout; ERP shows the change on Item Profile and on one master data modal; a save with the
-   custom value round-trips. Run with `pnpm test:e2e` (new script); keep it out of `pnpm test`.
-2. **Audit log.** One `ConfigurationAudit` table (account, business unit, feature, what: field / section / layout /
-   custom field / lookup value, key, before and after json, user, time). Write it from the Panel services in one
-   place (`FeatureConfigurationService`, lookup endpoints). Panel: an "History" view in Screen settings.
-3. **Docs.** README sections checked against the code; a short "add a configurable screen" guide (manifest → rules →
-   `ConfigFields` / `useMasterColumns`) in `.claude/skills/erp-feature/SKILL.md`.
+Left open:
 
-Ask the owner before building: should the audit history also be visible in the ERP, or only in the Panel?
+- E2E covers one flow. Layout drag and drop and Item Profile are not in E2E yet.
+- Custom field questions from phase 6 are still open (list column, filter, CSV).
+
+## Next: owner to choose
+
+Every planned phase is done. Candidates, in no fixed order:
+
+1. **ERP permissions per role** (module › sub-module › feature actions), on hold by the owner.
+2. **Edit or deactivate an account after setup**, on hold by the owner.
+3. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
+4. **Read-only history in the ERP** for account admins.
+5. **The next business module** (for example suppliers or VAT setup) built as a configurable screen (skill pattern E).
+
+Ask the owner which one comes next before starting.
 
 ## Working on another machine
 
@@ -157,7 +175,8 @@ Ask the owner before building: should the audit history also be visible in the E
 - After an API change, run the API and `pnpm gen:api` (or point `ERP_OPENAPI_URL` at a running API).
 - When a running API locks the build output, build and test into another folder:
   `dotnet test backend/Erp.sln --artifacts-path <temp folder>`.
-- Before finishing: `pnpm typecheck`, `pnpm lint`, `pnpm test:web` and `dotnet test backend/Erp.sln`.
+- Before finishing: `pnpm typecheck`, `pnpm lint`, `pnpm test:web` and `dotnet test backend/Erp.sln`; after UI
+  flow changes also `pnpm test:e2e` (needs Chrome and LocalDB; it starts its own API and apps).
 - Run Prettier on the files you changed only, not on whole folders.
 
-To continue, ask Claude to "start phase 9".
+To continue, tell Claude which item of "Next: owner to choose" to start.

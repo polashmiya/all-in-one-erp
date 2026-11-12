@@ -3,6 +3,7 @@ export const ACCOUNT_PATHS = {
   create: '/accounts/new',
   configuration: (id: string) => `/accounts/${id}/configuration`,
   layout: (id: string) => `/accounts/${id}/layout`,
+  history: (id: string) => `/accounts/${id}/history`,
   lookups: (id: string) => `/accounts/${id}/lookups`,
 };
 

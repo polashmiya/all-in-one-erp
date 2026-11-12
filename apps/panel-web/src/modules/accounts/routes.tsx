@@ -31,6 +31,13 @@ export const accountsRoutes: RouteObject[] = [
         }),
       },
       {
+        path: ':id/history',
+        lazy: async () => ({
+          Component: (await import('./account-history/pages/AccountHistoryPage'))
+            .AccountHistoryPage,
+        }),
+      },
+      {
         path: ':id/lookups',
         lazy: async () => ({
           Component: (await import('./account-lookups/pages/AccountLookupsPage'))

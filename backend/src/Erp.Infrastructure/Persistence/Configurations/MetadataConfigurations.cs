@@ -97,6 +97,21 @@ internal sealed class LookupTypeConfiguration : IEntityTypeConfiguration<LookupT
     }
 }
 
+internal sealed class ConfigurationChangeConfiguration : IEntityTypeConfiguration<ConfigurationChange>
+{
+    public void Configure(EntityTypeBuilder<ConfigurationChange> builder)
+    {
+        builder.ToTable("ConfigurationChanges");
+        builder.Property(c => c.Feature).HasMaxLength(100);
+        builder.Property(c => c.Area).HasMaxLength(20);
+        builder.Property(c => c.Key).HasMaxLength(100);
+        builder.HasIndex(c => new { c.AccountId, c.CreatedAt });
+
+        builder.HasOne<Account>().WithMany().HasForeignKey(c => c.AccountId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(c => c.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 internal sealed class LookupValueConfiguration : IEntityTypeConfiguration<LookupValue>
 {
     public void Configure(EntityTypeBuilder<LookupValue> builder)

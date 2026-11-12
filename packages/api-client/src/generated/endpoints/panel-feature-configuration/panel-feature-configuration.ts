@@ -23,6 +23,7 @@ import type {
 
 import type {
   ArrangeFeatureLayoutParams,
+  ConfigurationChangeList,
   CreateCustomFieldRequest,
   CustomFieldStatusRequest,
   FeatureConfig,
@@ -32,6 +33,7 @@ import type {
   GetFeatureConfigurationParams,
   HttpValidationProblemDetails,
   LayoutRequest,
+  ListConfigurationChangesParams,
   PreviewFeatureConfigurationParams,
   ProblemDetails,
   ResetFieldSettingParams,
@@ -65,6 +67,167 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getListConfigurationChangesUrl = (
+  id: string,
+  params?: ListConfigurationChangesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/panel/accounts/${id}/history?${stringifiedParams}`
+    : `/api/panel/accounts/${id}/history`;
+};
+
+/**
+ * @summary Who changed which screen settings, layouts, custom fields and lookup values of the account, newest first
+ */
+export const listConfigurationChanges = async (
+  id: string,
+  params?: ListConfigurationChangesParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ConfigurationChangeList> => {
+  return customFetch<ConfigurationChangeList>(getListConfigurationChangesUrl(id, params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getListConfigurationChangesQueryKey = (
+  id: string,
+  params?: ListConfigurationChangesParams,
+) => {
+  return [`/api/panel/accounts/${id}/history`, ...(params ? [params] : [])] as const;
+};
+
+export const getListConfigurationChangesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listConfigurationChanges>>,
+  TError = ErrorType<ProblemDetails | void>,
+>(
+  id: string,
+  params?: ListConfigurationChangesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listConfigurationChanges>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListConfigurationChangesQueryKey(id, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listConfigurationChanges>>> = ({
+    signal,
+  }) => listConfigurationChanges(id, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listConfigurationChanges>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type ListConfigurationChangesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listConfigurationChanges>>
+>;
+export type ListConfigurationChangesQueryError = ErrorType<ProblemDetails | void>;
+
+export function useListConfigurationChanges<
+  TData = Awaited<ReturnType<typeof listConfigurationChanges>>,
+  TError = ErrorType<ProblemDetails | void>,
+>(
+  id: string,
+  params: undefined | ListConfigurationChangesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listConfigurationChanges>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listConfigurationChanges>>,
+          TError,
+          Awaited<ReturnType<typeof listConfigurationChanges>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListConfigurationChanges<
+  TData = Awaited<ReturnType<typeof listConfigurationChanges>>,
+  TError = ErrorType<ProblemDetails | void>,
+>(
+  id: string,
+  params?: ListConfigurationChangesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listConfigurationChanges>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listConfigurationChanges>>,
+          TError,
+          Awaited<ReturnType<typeof listConfigurationChanges>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListConfigurationChanges<
+  TData = Awaited<ReturnType<typeof listConfigurationChanges>>,
+  TError = ErrorType<ProblemDetails | void>,
+>(
+  id: string,
+  params?: ListConfigurationChangesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listConfigurationChanges>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Who changed which screen settings, layouts, custom fields and lookup values of the account, newest first
+ */
+
+export function useListConfigurationChanges<
+  TData = Awaited<ReturnType<typeof listConfigurationChanges>>,
+  TError = ErrorType<ProblemDetails | void>,
+>(
+  id: string,
+  params?: ListConfigurationChangesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listConfigurationChanges>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListConfigurationChangesQueryOptions(id, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export const getGetFeatureConfigurationUrl = (
   id: string,

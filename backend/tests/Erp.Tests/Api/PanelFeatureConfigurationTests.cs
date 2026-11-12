@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Erp.Api.Panel.Configuration;
+using Erp.Core.Domain.Metadata;
 using Erp.Infrastructure.Persistence;
 using Erp.Metadata;
 using Erp.Modules.Inventory;
@@ -210,6 +211,38 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
 
         var unknown = new LayoutRequest([new LayoutTab(layout.Tabs[0].Key, [new LayoutSection(first.Key, ["nope"])])]);
         Assert.Equal(["tabs"], await ErrorsAsync(await client.PutAsJsonAsync($"{Path(accountId)}/layout", unknown)));
+    }
+
+    [Fact]
+    public async Task Every_change_is_kept_in_the_history_with_who_and_what()
+    {
+        var client = await PanelClientAsync();
+        var accountId = await DemoAccountIdAsync();
+        var history = $"/api/panel/accounts/{accountId}/history";
+        await using var cleanup = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+        await using var custom = await CustomFieldScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+        var label = $"Label {Guid.NewGuid():N}"[..20];
+
+        await client.PutAsJsonAsync($"{Path(accountId)}/fields/hsCode{Unit(factory.DhakaId)}", new FieldSettingValues { LabelEn = label });
+        await client.PutAsJsonAsync($"{Path(accountId)}/fields/hsCode{Unit(factory.DhakaId)}", new FieldSettingValues { LabelEn = label });
+        await client.PostAsJsonAsync($"{Path(accountId)}/fields", new CreateCustomFieldRequest("History check", null, FieldTypes.Text, "basic", null));
+        await client.PutAsJsonAsync($"{Path(accountId)}/fields/historyCheck/status", new CustomFieldStatusRequest(false));
+
+        var fields = (await client.GetFromJsonAsync<ConfigurationChangeList>(
+            $"{history}?feature={ItemManagementMenu.ItemProfile}&businessUnitId={factory.DhakaId}&area={ConfigurationAreas.Field}&pageSize=5"))!;
+        var change = fields.Items[0];
+        Assert.Equal(("hsCode", "Dhaka Depot"), (change.Key, change.BusinessUnitName));
+        Assert.NotNull(change.UserName);
+        Assert.Equal(label, change.After!.Value.GetProperty("labelEn").GetString());
+        Assert.NotEqual(label, fields.Items.Skip(1).FirstOrDefault()?.After?.GetProperty("labelEn").GetString());
+
+        var customChanges = (await client.GetFromJsonAsync<ConfigurationChangeList>(
+            $"{history}?area={ConfigurationAreas.CustomField}&pageSize=2"))!;
+        Assert.Equal(["historyCheck", "historyCheck"], customChanges.Items.Select(c => c.Key));
+        Assert.Null(customChanges.Items[1].Before);
+        Assert.False(customChanges.Items[0].After!.Value.GetProperty("isActive").GetBoolean());
+
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/panel/accounts/{Guid.NewGuid()}/history")).StatusCode);
     }
 
     [Fact]

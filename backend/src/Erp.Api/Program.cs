@@ -65,6 +65,7 @@ panel.MapAccountEndpoints();
 panel.MapPanelErpMenuEndpoints();
 panel.MapFeatureConfigurationEndpoints();
 panel.MapLookupListEndpoints();
+panel.MapConfigurationHistoryEndpoints();
 foreach (var endpoints in app.Services.GetServices<IPanelEndpoints>()) endpoints.Map(panel);
 
 var erp = app.MapErpApi();

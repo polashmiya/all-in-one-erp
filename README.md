@@ -133,6 +133,10 @@ configuration only shapes the screens.
   pencil renames, hides or resizes a tab or section (`PUT` / `DELETE …/sections/{key}`). **Preview** renders the
   form from `GET …/preview`. Tabs and sections come from the manifest; an account cannot add its own. Changes that
   would hide a locked field, or a required field without a default, are rejected.
+- **Panel: History** (Screen settings → History, `/accounts/{id}/history`). Every change to field settings, tabs and
+  sections, the layout, custom fields and lookup values is kept in `ConfigurationChanges` with who, when, the business
+  unit and the before and after values. Filter by screen, business unit and change type; a row shows each changed
+  setting. API: `GET /api/panel/accounts/{id}/history`.
 - **Custom fields per account.** In Screen settings, **New custom field** adds a field to a screen for one account:
   English and Bangla label, type (text, long text, number, decimal, money, percent, date, yes / no, dropdown), section
   and, for a dropdown, one of the account's lookup lists. The key is made from the English label (`Warranty months` →
@@ -188,14 +192,15 @@ configuration only shapes the screens.
 
 ## Scripts
 
-| Script                                         | What it does                                                                                             |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                     | Both frontends with HMR                                                                                  |
-| `pnpm dev:api`                                 | ASP.NET Core API (`http` launch profile, port 5000)                                                      |
-| `pnpm gen:api`                                 | Regenerates `packages/api-client` from `http://localhost:5000/openapi/v1.json` (**API must be running**) |
-| `pnpm test`                                    | Vitest (all packages) + `dotnet test`                                                                    |
-| `pnpm typecheck` / `pnpm lint` / `pnpm format` | Static checks                                                                                            |
-| `pnpm build`                                   | Production build of both apps                                                                            |
+| Script                                         | What it does                                                                                                     |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                     | Both frontends with HMR                                                                                          |
+| `pnpm dev:api`                                 | ASP.NET Core API (`http` launch profile, port 5000)                                                              |
+| `pnpm gen:api`                                 | Regenerates `packages/api-client` from `http://localhost:5000/openapi/v1.json` (**API must be running**)         |
+| `pnpm test`                                    | Vitest (all packages) + `dotnet test`                                                                            |
+| `pnpm test:e2e`                                | Playwright in the installed Chrome; starts its own API (5065, database `myErp_E2E`), Panel (5193) and ERP (5194) |
+| `pnpm typecheck` / `pnpm lint` / `pnpm format` | Static checks                                                                                                    |
+| `pnpm build`                                   | Production build of both apps                                                                                    |
 
 API integration tests boot the real API (migrations and seed included) against a throwaway **`myErp_Test`**
 LocalDB database. Tenant-filter tests use **`myErp_Test_Tenancy`**. Both are created and dropped by the tests,

@@ -1,5 +1,6 @@
 using Erp.Core.Domain.Metadata;
 using Erp.Core.Modules;
+using Erp.Api.Panel.Configuration;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Persistence;
 using FluentValidation;
@@ -105,6 +106,7 @@ public static class LookupListEndpoints
     private static async Task<Results<Ok<LookupValueRow>, NotFound, ValidationProblem>> SaveAsync(
         ErpDbContext db, LookupValue value, SaveLookupValueRequest request, CancellationToken ct)
     {
+        var before = value.Id > 0 ? Row(value) : null;
         value.Code = string.IsNullOrWhiteSpace(request.Code) ? null : request.Code.Trim();
         value.NameEn = request.NameEn.Trim();
         value.NameBn = string.IsNullOrWhiteSpace(request.NameBn) ? null : request.NameBn.Trim();
@@ -118,6 +120,9 @@ public static class LookupListEndpoints
                 .Where(v => v.AccountId == value.AccountId && v.LookupTypeId == value.LookupTypeId && v.Id != value.Id && v.IsDefault)
                 .ExecuteUpdateAsync(s => s.SetProperty(v => v.IsDefault, false), ct);
         }
+
+        var type = await db.LookupTypes.Where(t => t.Id == value.LookupTypeId).Select(t => t.Key).SingleAsync(ct);
+        ConfigurationHistory.Record(db, value.AccountId, null, null, ConfigurationAreas.LookupValue, type, before, Row(value));
 
         try
         {
@@ -135,7 +140,9 @@ public static class LookupListEndpoints
             .Where(af => af.AccountId == value.AccountId)
             .ExecuteUpdateAsync(s => s.SetProperty(af => af.ConfigVersion, af => af.ConfigVersion + 1), ct);
 
-        return TypedResults.Ok(new LookupValueRow(
-            value.Id, value.Code, value.NameEn, value.NameBn, value.SortOrder, value.IsDefault, value.IsActive));
+        return TypedResults.Ok(Row(value));
     }
+
+    private static LookupValueRow Row(LookupValue value) =>
+        new(value.Id, value.Code, value.NameEn, value.NameBn, value.SortOrder, value.IsDefault, value.IsActive);
 }

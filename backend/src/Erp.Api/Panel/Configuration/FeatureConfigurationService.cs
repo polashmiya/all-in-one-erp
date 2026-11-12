@@ -67,6 +67,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         if (values.TabKey is not null && (section.ParentId is null || tab is null))
             return (null, new() { ["tabKey"] = ["Choose a tab of this screen."] });
 
+        var before = OwnRow(scope, section) is { } old ? Values(old, scope) : null;
         var own = OwnRow(scope, section) ?? NewRow(scope, section);
         own.LabelEn = Trimmed(values.LabelEn);
         own.LabelBn = Trimmed(values.LabelBn);
@@ -77,6 +78,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         Keep(scope, own);
 
         if (HiddenProblem(scope) is { } problem) return (null, new() { ["isVisible"] = [problem] });
+        Record(scope, ConfigurationAreas.Section, key, before, OwnRow(scope, section) is { } now ? Values(now, scope) : null);
         await CommitAsync(scope, ct);
 
         return (Row(scope, section), []);
@@ -98,6 +100,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         if (!known || Repeats(tabKeys) || Repeats(sectionKeys) || Repeats(fieldKeys))
             return (null, new() { ["tabs"] = ["The layout has unknown or repeated tabs, sections or fields."] });
 
+        var before = LayoutOf(scope);
         foreach (var (tab, tabIndex) in layout.Tabs.Select((tab, index) => (tab, index)))
         {
             Place(scope, tabs[tab.Key], Order(tabIndex), null);
@@ -110,6 +113,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         }
 
         if (HiddenProblem(scope) is { } problem) return (null, new() { ["tabs"] = [problem] });
+        Record(scope, ConfigurationAreas.Layout, scope.Code, before, LayoutOf(scope));
         await CommitAsync(scope, ct);
 
         return (Editor(scope), []);
@@ -156,6 +160,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         };
         db.FeatureFields.Add(field);
         scope.Fields.Add(field);
+        Record(scope, ConfigurationAreas.CustomField, field.Key, null, request);
         await CommitAsync(scope, ct);
 
         return (Row(scope, field), []);
@@ -167,6 +172,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         if (await LoadAsync(accountId, null, code, ct) is not { } scope) return (null, []);
         if (scope.Fields.Find(f => f.Key == key && f.AccountId is not null) is not { } field) return (null, []);
 
+        Record(scope, ConfigurationAreas.CustomField, key, new { field.IsActive }, new { IsActive = isActive });
         field.IsActive = isActive;
         await CommitAsync(scope, ct);
 
@@ -182,11 +188,13 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         var errors = Validate(scope, field, values);
         if (errors.Count > 0) return (null, errors);
 
+        var before = OwnRow(scope, field) is { } old ? Values(old, scope) : null;
         var own = OwnRow(scope, field) ?? NewRow(scope, field);
         Apply(own, values, scope);
         Keep(scope, own);
 
         if (HiddenProblem(scope) is { } problem) return (null, new() { ["sectionKey"] = [problem] });
+        Record(scope, ConfigurationAreas.Field, key, before, OwnRow(scope, field) is { } now ? Values(now, scope) : null);
         await CommitAsync(scope, ct);
 
         return (Row(scope, field), []);
@@ -240,6 +248,24 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
             db.AccountSectionSettings.Add(row);
             scope.SectionSettings.Add(row);
         }
+    }
+
+    private void Record(Scope scope, string area, string key, object? before, object? after) =>
+        ConfigurationHistory.Record(db, scope.AccountId, scope.BusinessUnitId, scope.Code, area, key, before, after);
+
+    private static LayoutRequest LayoutOf(Scope scope)
+    {
+        var config = FeatureConfigBuilder.Build(
+            scope.Code,
+            0,
+            scope.Sections.Values,
+            scope.Fields,
+            FeatureSettings.ForUnit(scope.SectionSettings, scope.BusinessUnitId),
+            FeatureSettings.ForUnit(scope.Settings, scope.BusinessUnitId),
+            scope.LookupDefaults).Config;
+        return new LayoutRequest(config.Tabs
+            .Select(t => new LayoutTab(t.Key, t.Sections.Select(s => new LayoutSection(s.Key, s.Fields.Select(f => f.Key).ToList())).ToList()))
+            .ToList());
     }
 
     private async Task CommitAsync(Scope scope, CancellationToken ct)

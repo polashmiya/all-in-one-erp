@@ -1206,6 +1206,65 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("AccountSectionSettings", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Metadata.ConfigurationChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("After")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Before")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Feature")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessUnitId");
+
+                    b.HasIndex("AccountId", "CreatedAt");
+
+                    b.ToTable("ConfigurationChanges", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Metadata.FeatureField", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2395,6 +2454,20 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Metadata.ConfigurationChange", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Metadata.FeatureField", b =>

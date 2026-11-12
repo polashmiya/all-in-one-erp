@@ -70,6 +70,8 @@ public class ErpDbContext : DbContext
 
     public DbSet<AccountFieldSetting> AccountFieldSettings => Set<AccountFieldSetting>();
 
+    public DbSet<ConfigurationChange> ConfigurationChanges => Set<ConfigurationChange>();
+
     public DbSet<LookupType> LookupTypes => Set<LookupType>();
 
     public DbSet<LookupValue> LookupValues => Set<LookupValue>();

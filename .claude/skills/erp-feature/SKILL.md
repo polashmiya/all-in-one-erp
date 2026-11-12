@@ -11,7 +11,7 @@ Read `.claude/CLAUDE.md` first if it is not already in context. Its rules (simpl
 
 ## Scope
 
-- Work only in `apps/` and `packages/`. Do not edit or run the .NET backend (`backend/`), and do not start the API.
+- Work only in `apps/` and `packages/`. Do not edit or run the .NET backend (`backend/`), and do not start the API. The one exception is a roadmap phase (`docs/roadmap.md`) or a new configurable screen (pattern E), which includes the backend.
 - Never hand-edit `packages/api-client/src/generated/`. It is produced by orval from the API's OpenAPI spec (`pnpm gen:api`), so manual edits are lost.
 - If the screen needs an endpoint that does not exist in the generated client, build it on a mock service (pattern C below) so it can be swapped for the real hooks later.
 
@@ -32,11 +32,11 @@ Before writing any component, check `packages/ui/src/index.ts` and the folder's 
 
 Decide which existing feature the request looks like, then open that feature's files and mirror them.
 
-**A. Master-data setup (list + create/edit modal).** Simple records with code, name, active flag. Exemplar: `apps/erp-web/src/modules/system-setup/item-management/uom/`.
+**A. Master-data setup (list + create/edit modal).** Simple records with code, name, active flag. Exemplar: `apps/erp-web/src/modules/system-setup/item-management/uom/`. These screens are configuration-driven too.
 
-- The page renders `MasterListPage` with columns, CSV columns, filters, empty state, and the generated list, status and delete hooks.
-- The modal wraps `MasterFormModal` with `Field` / `FieldGrid` and ends with `ActiveField`.
-- The whole master-data kit is app-wide in `@/common/master-data`: `MasterListPage`, `MasterFormModal`, `ActiveField`, `ImageField`, `RecordNameCell`, `ImageSourceInput`, `listParams`, `useUnitKey`, `CODE_PATTERN`, `trimmed`, `toUpper`, `idParam`, `filterOptions`, `EXPORT_PAGE_SIZE`, `StatusView`. Shared texts are the `master.*` keys in `@/common/master-data/i18n.ts`.
+- The page loads `useFeatureConfig(FEATURE_KEY, access.view)`, builds columns with `useMasterColumns(config.data, { onOpen, renderers, extra })` and renders `MasterListPage`. `extra` holds only computed columns (child counts); field columns come from the manifest.
+- The modal passes `config` to `MasterFormModal`, plus `options` (`lookups`, `behaviors`, `widgets`), `initialValues` (the row, or parent defaults) and `onSave` (maps values to the request, including `customData`). `MasterFormModal` renders `ConfigFields`: sections, or tabs when the manifest has two or more. Never write `Field`s by hand in these modals.
+- The whole master-data kit is app-wide in `@/common/master-data`: `MasterListPage`, `MasterFormModal`, `useMasterColumns`, `RecordNameCell`, `ImageSourceInput`, `listParams`, `useUnitKey`, `CODE_PATTERN`, `trimmed`, `toUpper`, `idParam`, `filterOptions`, `EXPORT_PAGE_SIZE`, `StatusView`. Shared texts are the `master.*` keys in `@/common/master-data/i18n.ts`.
 - Things that belong to one area (its API prefix, feature keys, paths and refresh hook) live in one file per area, e.g. `item-management/item-management.ts`. A new area (suppliers, VAT, warehouses) gets its own file of the same shape.
 
 **B. Configuration-driven feature (list, full-page form, view page).** The fields of the screen come from the per-account feature configuration. Exemplar: `.../item-management/item-profile/`.
@@ -56,6 +56,13 @@ Decide which existing feature the request looks like, then open that feature's f
 - Pages only ever call `useX()`. Swapping to the real API later should then touch only the service file.
 
 **D. Panel screens.** Exemplar: `apps/panel-web/src/modules/accounts/`. Panel keeps most of its texts in `apps/panel-web/src/common/i18n/resources.ts` and its paths in a module `constants.ts`. Follow what the Panel already does instead of the ERP layout.
+
+**E. A new configurable screen, end to end.** Use when a screen must be configurable in the Panel (fields, labels, required, layout, custom fields). Exemplars: `ItemMasterDataManifest.cs` and `ItemProfileManifest.cs`.
+
+1. **Manifest.** An `IFeatureManifestProvider` declares tabs, sections and fields (key = the camelCase request property). Lock fields the server always needs. Set `ListOrder` / `Sort` / `Filter` for list columns. Register it in the module's `InventoryModule.cs`-style setup.
+2. **Server.** Add a `CustomData` string column (migration) and `customData` to the row and save request. Every create and update calls the configuration rules first (`MasterData.ConfiguredAsync`, or `FeatureConfigService.ApplyRulesAsync`), then its own checks, then saves `CustomFieldData.ToJson(request.CustomData)`.
+3. **Client.** Run the API and `pnpm gen:api`. Build the screen with pattern A or B. Tabs appear by themselves when the manifest has more than one.
+4. **Tests.** An API test that a hidden field keeps its value, a required one is enforced and a custom value round-trips. Extend `e2e/` when the flow is important.
 
 ## Wiring checklist (ERP)
 

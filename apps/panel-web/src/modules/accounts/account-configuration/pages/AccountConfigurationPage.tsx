@@ -1,6 +1,7 @@
 import {
   CheckCircleOutlined,
   EditOutlined,
+  HistoryOutlined,
   LayoutOutlined,
   PlusOutlined,
   StopOutlined,
@@ -182,6 +183,12 @@ export function AccountConfigurationPage() {
         title={t('config.title', { account: account.data?.name ?? '' })}
         subtitle={t('config.subtitle')}
         actions={[
+          {
+            key: 'history',
+            label: t('history.action'),
+            icon: <HistoryOutlined />,
+            onClick: () => navigate(ACCOUNT_PATHS.history(accountId)),
+          },
           {
             key: 'layout',
             label: t('layout.action'),
