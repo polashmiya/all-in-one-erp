@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Erp.Metadata;
+using Erp.Modules.Inventory;
 using Erp.Modules.Inventory.ItemManagement;
 using Erp.Modules.Inventory.ItemManagement.Categories;
 using Erp.Modules.Inventory.ItemManagement.Departments;
@@ -82,6 +85,40 @@ public sealed class ItemManagementTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.OK, (await client.DeleteAsync($"{Base}/departments/{created.Id}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"{Base}/departments/{created.Id}")).StatusCode);
     }
+
+    [Fact]
+    public async Task Master_data_screens_follow_the_configuration_and_keep_custom_fields()
+    {
+        var client = await AdminAsync();
+        var existing = await CreateDepartmentAsync(client);
+        await using var settings = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemDepartment,
+            ("serial", s => s.IsVisible = false));
+        await using var fields = await CustomFieldScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemDepartment,
+            ("headName", FieldTypes.Text, null));
+        await using var uomSettings = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.Uom,
+            ("description", s => s.IsRequired = true));
+
+        var created = await ReadAsync<ItemDepartmentRow>(await client.PostAsJsonAsync($"{Base}/departments",
+            new SaveItemDepartmentRequest(Unique(), $"Dept {Unique()}", 1, null, true, Data("""{"headName":"Rahim"}"""))),
+            HttpStatusCode.Created);
+        Assert.NotEqual(1, created.Serial);
+        Assert.Equal("Rahim", created.CustomData!["headName"].GetString());
+
+        var wrongType = await ReadAsync<ValidationProblemDetails>(await client.PutAsJsonAsync($"{Base}/departments/{existing.Id}",
+            new SaveItemDepartmentRequest(existing.Code, existing.Name, 999, null, true, Data("""{"headName":5}"""))),
+            HttpStatusCode.BadRequest);
+        Assert.Equal(["customData.headName"], wrongType.Errors.Keys);
+
+        var kept = await ReadAsync<ItemDepartmentRow>(await client.PutAsJsonAsync($"{Base}/departments/{existing.Id}",
+            new SaveItemDepartmentRequest(existing.Code, existing.Name, 999, null, true)));
+        Assert.Equal(existing.Serial, kept.Serial);
+
+        var uom = await client.PostAsJsonAsync($"{Base}/uoms", new SaveUomRequest(Unique(5), $"Unit {Unique()}", null, false, null, true));
+        Assert.Equal(HttpStatusCode.BadRequest, uom.StatusCode);
+    }
+
+    private static Dictionary<string, JsonElement> Data(string json) =>
+        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json)!;
 
     [Fact]
     public async Task Demo_account_starts_with_item_master_data()

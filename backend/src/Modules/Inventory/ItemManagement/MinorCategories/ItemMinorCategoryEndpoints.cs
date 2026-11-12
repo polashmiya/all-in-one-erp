@@ -2,7 +2,9 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
+using Erp.Metadata;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -81,7 +83,8 @@ internal static class ItemMinorCategoryEndpoints
             m.ImageSource,
             m.IsActive,
             m.CreatedAt,
-            m.ModifiedAt));
+            m.ModifiedAt,
+            CustomFieldData.Parse(m.CustomData)));
 
     private static async Task<ItemMinorCategoryList> List(
         string? search,
@@ -104,7 +107,7 @@ internal static class ItemMinorCategoryEndpoints
         var counts = await query.CountByStatusAsync(ct);
         query = query.WithStatus(status);
 
-        var sorted = sort switch
+        var sorted = MasterData.SortKey(sort) switch
         {
             "name" => query.OrderBy(m => m.Name),
             "-name" => query.OrderByDescending(m => m.Name),
@@ -133,8 +136,12 @@ internal static class ItemMinorCategoryEndpoints
             : TypedResults.NotFound();
 
     private static async Task<Results<Created<ItemMinorCategoryRow>, ValidationProblem, ProblemHttpResult>> Create(
-        SaveItemMinorCategoryRequest request, ErpDbContext db, ICurrentContext current, CancellationToken ct)
+        SaveItemMinorCategoryRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
+        var (configured, rejected) = await MasterData.ConfiguredAsync(configs, current, Feature, request, null, ct);
+        if (rejected is not null) return rejected;
+        request = configured;
+
         var name = request.Name.Trim();
         var subCategory = await FindSubCategoryAsync(db, request.SubCategoryId, null, ct);
         if (subCategory.Problem is { } badSubCategory) return badSubCategory;
@@ -150,6 +157,7 @@ internal static class ItemMinorCategoryEndpoints
             Name = name,
             ImageSource = MasterData.CleanImage(request.ImageSource),
             IsActive = request.IsActive,
+            CustomData = CustomFieldData.ToJson(request.CustomData),
         };
         db.ItemMinorCategories.Add(minorCategory);
 
@@ -167,10 +175,15 @@ internal static class ItemMinorCategoryEndpoints
     }
 
     private static async Task<Results<Ok<ItemMinorCategoryRow>, NotFound, ValidationProblem, ProblemHttpResult>> Update(
-        int id, SaveItemMinorCategoryRequest request, ErpDbContext db, CancellationToken ct)
+        int id, SaveItemMinorCategoryRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
         var minorCategory = await db.ItemMinorCategories.SingleOrDefaultAsync(m => m.Id == id, ct);
         if (minorCategory is null) return TypedResults.NotFound();
+
+        var existing = await Rows(db.ItemMinorCategories.AsNoTracking().Where(m => m.Id == id)).SingleAsync(ct);
+        var (configured, rejected) = await MasterData.ConfiguredAsync(configs, current, Feature, request, existing, ct);
+        if (rejected is not null) return rejected;
+        request = configured;
 
         var name = request.Name.Trim();
         var subCategory = await FindSubCategoryAsync(db, request.SubCategoryId, minorCategory.SubCategoryId, ct);
@@ -183,6 +196,7 @@ internal static class ItemMinorCategoryEndpoints
         minorCategory.Name = name;
         minorCategory.ImageSource = MasterData.CleanImage(request.ImageSource);
         minorCategory.IsActive = request.IsActive;
+        minorCategory.CustomData = CustomFieldData.ToJson(request.CustomData);
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         try

@@ -70,6 +70,7 @@ internal sealed class ItemDepartmentConfiguration : IEntityTypeConfiguration<Ite
             nameof(ItemDepartment.Id), nameof(ItemDepartment.Name), nameof(ItemDepartment.Code), nameof(ItemDepartment.Serial),
             nameof(ItemDepartment.ImageSource), nameof(ItemDepartment.AccountId), nameof(ItemDepartment.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
+            "CustomData",
         ]);
     }
 }
@@ -91,6 +92,7 @@ internal sealed class ItemCategoryConfiguration : IEntityTypeConfiguration<ItemC
             nameof(ItemCategory.Id), nameof(ItemCategory.Code), nameof(ItemCategory.Name), nameof(ItemCategory.DepartmentId),
             nameof(ItemCategory.AccountId), nameof(ItemCategory.BusinessUnitId), nameof(ItemCategory.ImageSource),
             .. MasterRecordMapping.AuditColumns,
+            "CustomData",
         ]);
     }
 }
@@ -113,6 +115,7 @@ internal sealed class ItemSubCategoryConfiguration : IEntityTypeConfiguration<It
             nameof(ItemSubCategory.CategoryId), nameof(ItemSubCategory.AccountId), nameof(ItemSubCategory.BusinessUnitId),
             nameof(ItemSubCategory.ImageSource),
             .. MasterRecordMapping.AuditColumns,
+            "CustomData",
         ]);
     }
 }
@@ -135,6 +138,7 @@ internal sealed class ItemMinorCategoryConfiguration : IEntityTypeConfiguration<
             nameof(ItemMinorCategory.SubCategoryId), nameof(ItemMinorCategory.AccountId),
             nameof(ItemMinorCategory.BusinessUnitId), nameof(ItemMinorCategory.ImageSource),
             .. MasterRecordMapping.AuditColumns,
+            "CustomData",
         ]);
     }
 }
@@ -160,6 +164,7 @@ internal sealed class UnitOfMeasureConfiguration : IEntityTypeConfiguration<Unit
             nameof(UnitOfMeasure.RoundingLength), nameof(UnitOfMeasure.IsDecimalAllowed), nameof(UnitOfMeasure.AccountId),
             nameof(UnitOfMeasure.BranchId),
             .. MasterRecordMapping.AuditColumns,
+            "CustomData",
         ]);
     }
 }

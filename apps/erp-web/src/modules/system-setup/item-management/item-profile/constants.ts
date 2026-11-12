@@ -15,13 +15,3 @@ export const itemPaths = {
 };
 
 export const ITEM_ASIDE_SECTIONS = ['usage', 'classification', 'barcode'];
-
-export const ITEM_LOOKUPS = {
-  department: 'item-department',
-  category: 'item-category',
-  subCategory: 'item-sub-category',
-  minorCategory: 'item-minor-category',
-  uom: 'uom',
-  itemType: 'item-type',
-  supplyType: 'vat-supply-type',
-} as const;

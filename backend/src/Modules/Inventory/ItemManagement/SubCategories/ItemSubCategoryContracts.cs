@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 
 namespace Erp.Modules.Inventory.ItemManagement.SubCategories;
@@ -13,11 +14,13 @@ public sealed record ItemSubCategoryRow(
     bool IsActive,
     int MinorCategories,
     DateTime? CreatedAt,
-    DateTime? ModifiedAt);
+    DateTime? ModifiedAt,
+    Dictionary<string, JsonElement>? CustomData);
 
 public sealed record ItemSubCategoryList(IReadOnlyList<ItemSubCategoryRow> Items, int Total, StatusCounts Counts);
 
-public sealed record SaveItemSubCategoryRequest(int CategoryId, string Name, string? ImageSource, bool IsActive);
+public sealed record SaveItemSubCategoryRequest(int CategoryId, string Name, string? ImageSource, bool IsActive,
+    Dictionary<string, JsonElement>? CustomData = null);
 
 internal sealed class SaveItemSubCategoryRequestValidator : AbstractValidator<SaveItemSubCategoryRequest>
 {

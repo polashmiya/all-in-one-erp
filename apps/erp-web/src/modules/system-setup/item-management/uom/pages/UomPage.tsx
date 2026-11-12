@@ -6,16 +6,16 @@ import {
   useSetUomsStatus,
   type UomRow,
 } from '@erp/api-client';
-import { SoftTag, useDisclosure, useListState, type CsvColumn } from '@erp/ui';
+import { SoftTag, useDisclosure, useListState } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
-import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
+import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useAuthStore } from '@/common/store/auth-store';
 import {
   MasterListPage,
-  RecordNameCell,
+  useMasterColumns,
   EXPORT_PAGE_SIZE,
   listParams,
   useUnitKey,
@@ -36,6 +36,7 @@ export function UomPage() {
   const { t } = useTranslation();
   const accountName = useAuthStore((s) => s.user?.accountName ?? '');
   const access = useFeatureAccess(itemManagementFeatures.uom);
+  const config = useFeatureConfig(itemManagementFeatures.uom, access.view);
   const modal = useDisclosure<UomRow>();
   const refresh = useRefreshItemManagement();
   const list = useListState<Filters, StatusView>({
@@ -61,41 +62,16 @@ export function UomPage() {
 
   const edit = access.edit ? (row: UomRow) => modal.onOpen(row) : undefined;
 
-  const columns: TableColumnsType<UomRow> = [
-    {
-      key: 'name',
-      title: t('uom.col.unit'),
-      sorter: true,
-      render: (_, row, index) => (
-        <RecordNameCell name={row.name} index={index} onOpen={edit && (() => edit(row))} />
-      ),
+  const { columns, csvColumns } = useMasterColumns<UomRow>(config.data, {
+    onOpen: edit,
+    renderers: {
+      code: { render: (row) => <SoftTag>{row.code}</SoftTag> },
+      isDecimalAllowed: {
+        render: (row) => quantityLabel(t, row),
+        csv: (row) => quantityLabel(t, row),
+      },
     },
-    {
-      key: 'code',
-      title: t('uom.col.code'),
-      dataIndex: 'code',
-      sorter: true,
-      render: (code: string) => <SoftTag>{code}</SoftTag>,
-    },
-    {
-      key: 'quantity',
-      title: t('uom.col.quantity'),
-      render: (_, row) => quantityLabel(t, row),
-    },
-    {
-      key: 'description',
-      title: t('uom.col.description'),
-      ellipsis: true,
-      render: (_, row) => row.description ?? '—',
-    },
-  ];
-
-  const csvColumns: CsvColumn<UomRow>[] = [
-    { header: t('uom.col.code'), value: (r) => r.code },
-    { header: t('uom.col.unit'), value: (r) => r.name },
-    { header: t('uom.col.quantity'), value: (r) => quantityLabel(t, r) },
-    { header: t('uom.col.description'), value: (r) => r.description },
-  ];
+  });
 
   return (
     <MasterListPage<UomRow, Filters>
@@ -116,7 +92,7 @@ export function UomPage() {
         },
       ]}
       data={query.data}
-      loading={query.isFetching}
+      loading={query.isFetching || !config.data}
       onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
@@ -132,13 +108,16 @@ export function UomPage() {
       }
       onDelete={(ids) => remove.mutateAsync({ data: { ids } }).then(refresh)}
     >
-      <UomFormModal
-        open={modal.open}
-        uom={modal.data}
-        accountName={accountName}
-        onClose={modal.onClose}
-        onSaved={refresh}
-      />
+      {config.data && (
+        <UomFormModal
+          config={config.data}
+          open={modal.open}
+          uom={modal.data}
+          accountName={accountName}
+          onClose={modal.onClose}
+          onSaved={refresh}
+        />
+      )}
     </MasterListPage>
   );
 }

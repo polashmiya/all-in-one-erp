@@ -77,7 +77,7 @@ public sealed class FeatureConfigEndpointTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Users_need_the_view_permission_and_features_need_a_manifest()
+    public async Task Users_need_the_view_permission_and_every_item_screen_has_a_manifest()
     {
         var viewer = await ClientAsync(ApiFactory.ViewerEmail, ApiFactory.TestPassword, factory.DhakaId);
         var newUser = await ClientAsync(ApiFactory.NewUserEmail, ApiFactory.TestPassword, factory.DhakaId);
@@ -87,7 +87,9 @@ public sealed class FeatureConfigEndpointTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync(ItemProfileConfig)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await newUser.GetAsync(ItemProfileConfig)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await otherAdmin.GetAsync(ItemProfileConfig)).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync($"/api/erp/features/{ItemManagementMenu.Uom}/config")).StatusCode);
+        foreach (var feature in new[] { ItemManagementMenu.ItemDepartment, ItemManagementMenu.ItemCategory, ItemManagementMenu.ItemSubCategory,
+                     ItemManagementMenu.ItemMinorCategory, ItemManagementMenu.Uom })
+            Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync($"/api/erp/features/{feature}/config")).StatusCode);
     }
 
     [Fact]

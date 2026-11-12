@@ -218,7 +218,7 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
         var client = await PanelClientAsync();
         var accountId = await DemoAccountIdAsync();
 
-        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(Path(accountId, ItemManagementMenu.Uom))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(Path(accountId, $"{ItemManagementMenu.Module}.nope"))).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(Path(Guid.NewGuid()))).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"{Path(accountId)}{Unit(factory.OtherAccountUnitId)}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound,

@@ -12,6 +12,16 @@ export const itemManagementFeatures = {
   uom: 'system-setup.uom',
 } as const;
 
+export const ITEM_LOOKUPS = {
+  department: 'item-department',
+  category: 'item-category',
+  subCategory: 'item-sub-category',
+  minorCategory: 'item-minor-category',
+  uom: 'uom',
+  itemType: 'item-type',
+  supplyType: 'vat-supply-type',
+} as const;
+
 export const itemManagementPaths = {
   department: featurePath('system-setup', 'item-department'),
   category: featurePath('system-setup', 'item-category'),

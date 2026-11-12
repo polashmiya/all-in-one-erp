@@ -1,7 +1,10 @@
-import { Field, FormModal } from '@erp/ui';
-import { App, Switch, type FormInstance } from 'antd';
-import type { ReactNode } from 'react';
+import type { FeatureConfig } from '@erp/api-client';
+import { ConfigFields, defaultValues, type FormOptions } from '@erp/metadata-engine';
+import { FormModal } from '@erp/ui';
+import { App, type FormInstance } from 'antd';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useCustomLookups } from '@/common/hooks/useCustomLookups';
 import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
 import { ImageSourceInput } from './ImageSourceInput';
 
@@ -11,27 +14,34 @@ export function MasterFormModal<V extends object>({
   title,
   subtitle,
   form,
+  config,
+  options,
   initialValues,
   editing,
   onSave,
-  children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   subtitle?: ReactNode;
   form: FormInstance<V>;
+  config: FeatureConfig;
+  options?: FormOptions;
   initialValues: Partial<V>;
   editing: boolean;
   onSave: (values: V) => Promise<{ name: string }>;
-  children: ReactNode;
 }) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const customLookups = useCustomLookups(config);
+  const values = useMemo(
+    () => ({ ...defaultValues(config), ...initialValues }) as Partial<V>,
+    [config, initialValues],
+  );
 
-  const submit = async (values: V) => {
+  const submit = async (data: V) => {
     try {
-      const saved = await onSave(values);
+      const saved = await onSave(data);
       void message.success(t(editing ? 'master.updated' : 'master.created', { name: saved.name }));
     } catch (error) {
       void message.error(
@@ -50,35 +60,17 @@ export function MasterFormModal<V extends object>({
       title={title}
       subtitle={subtitle}
       form={form}
-      initialValues={initialValues}
+      initialValues={values}
       submitText={editing ? t('master.save') : t('master.create')}
       addAnotherText={editing ? undefined : t('master.createAnother')}
       onSubmit={submit}
     >
-      {children}
+      <ConfigFields
+        config={config}
+        {...options}
+        lookups={{ ...customLookups, ...options?.lookups }}
+        widgets={{ imageSource: () => <ImageSourceInput />, ...options?.widgets }}
+      />
     </FormModal>
-  );
-}
-
-export function ImageField() {
-  const { t } = useTranslation();
-  return (
-    <Field name="imageSource" label={t('master.f.image')}>
-      <ImageSourceInput />
-    </Field>
-  );
-}
-
-export function ActiveField() {
-  const { t } = useTranslation();
-  return (
-    <Field
-      name="isActive"
-      label={t('master.f.active')}
-      valuePropName="checked"
-      extra={t('master.f.activeHint')}
-    >
-      <Switch />
-    </Field>
   );
 }

@@ -13,6 +13,7 @@ public static class InventoryModule
     {
         services.AddSingleton<IErpMenuProvider, ItemManagementMenu>();
         services.AddSingleton<IFeatureManifestProvider, ItemProfileManifest>();
+        services.AddSingleton<IFeatureManifestProvider, ItemMasterDataManifest>();
         services.AddSingleton<ILookupProvider, ItemLookups>();
         services.AddSingleton<IErpEndpoints, ItemManagementEndpoints>();
         services.AddValidatorsFromAssemblyContaining<ItemManagementEndpoints>(includeInternalTypes: true);

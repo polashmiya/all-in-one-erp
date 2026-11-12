@@ -624,6 +624,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("CreatedByID")
                         .HasColumnOrder(10);
 
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(13);
+
                     b.Property<int>("DepartmentId")
                         .HasColumnType("int")
                         .HasColumnName("ItemDepartmentID")
@@ -707,6 +711,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("CreatedByID")
                         .HasColumnOrder(10);
 
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(13);
+
                     b.Property<string>("ImageSource")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnOrder(4);
@@ -786,6 +794,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("CreatedByID")
                         .HasColumnOrder(10);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(13);
 
                     b.Property<string>("ImageSource")
                         .HasColumnType("nvarchar(max)")
@@ -868,6 +880,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("CreatedByID")
                         .HasColumnOrder(10);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(13);
 
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int")
@@ -952,6 +968,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("CreatedByID")
                         .HasColumnOrder(11);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(14);
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)

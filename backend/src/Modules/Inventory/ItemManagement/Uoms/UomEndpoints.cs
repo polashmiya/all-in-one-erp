@@ -2,7 +2,9 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
+using Erp.Metadata;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -69,7 +71,9 @@ internal static class UomEndpoints
 
     private static IQueryable<UomRow> Rows(IQueryable<UnitOfMeasure> query) =>
         query.Select(u => new UomRow(
-            u.Id, u.Code, u.Name, u.Description, u.IsDecimalAllowed, u.RoundingLength, u.IsActive, u.CreatedAt, u.ModifiedAt));
+            u.Id, u.Code, u.Name, u.Description, u.IsDecimalAllowed, u.RoundingLength, u.IsActive, u.CreatedAt,
+            u.ModifiedAt,
+            CustomFieldData.Parse(u.CustomData)));
 
     private static async Task<UomList> List(
         string? search, string? status, string? sort, int? page, int? pageSize, bool? decimalAllowed, ErpDbContext db, CancellationToken ct)
@@ -108,8 +112,12 @@ internal static class UomEndpoints
             : TypedResults.NotFound();
 
     private static async Task<Results<Created<UomRow>, ValidationProblem, ProblemHttpResult>> Create(
-        SaveUomRequest request, ErpDbContext db, ICurrentContext current, CancellationToken ct)
+        SaveUomRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
+        var (configured, rejected) = await MasterData.ConfiguredAsync(configs, current, Feature, request, null, ct);
+        if (rejected is not null) return rejected;
+        request = configured;
+
         var (code, name) = Normalize(request);
         if (await DuplicatesAsync(db, null, code, name, ct) is { } invalid) return invalid;
 
@@ -136,10 +144,15 @@ internal static class UomEndpoints
     }
 
     private static async Task<Results<Ok<UomRow>, NotFound, ValidationProblem, ProblemHttpResult>> Update(
-        int id, SaveUomRequest request, ErpDbContext db, CancellationToken ct)
+        int id, SaveUomRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
         var uom = await db.UnitsOfMeasure.SingleOrDefaultAsync(u => u.Id == id, ct);
         if (uom is null) return TypedResults.NotFound();
+
+        var existing = await Rows(db.UnitsOfMeasure.AsNoTracking().Where(u => u.Id == id)).SingleAsync(ct);
+        var (configured, rejected) = await MasterData.ConfiguredAsync(configs, current, Feature, request, existing, ct);
+        if (rejected is not null) return rejected;
+        request = configured;
 
         var (code, name) = Normalize(request);
         if (await DuplicatesAsync(db, id, code, name, ct) is { } invalid) return invalid;
@@ -193,6 +206,7 @@ internal static class UomEndpoints
         uom.IsDecimalAllowed = request.IsDecimalAllowed;
         uom.RoundingLength = request.IsDecimalAllowed ? request.RoundingLength : 0;
         uom.IsActive = request.IsActive;
+        uom.CustomData = CustomFieldData.ToJson(request.CustomData);
     }
 
     private static async Task<ValidationProblem?> DuplicatesAsync(

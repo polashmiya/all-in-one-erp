@@ -6,17 +6,17 @@ import {
   useSetItemDepartmentsStatus,
   type ItemDepartmentRow,
 } from '@erp/api-client';
-import { formatNumber, useDisclosure, useListState, type CsvColumn } from '@erp/ui';
+import { formatNumber, useDisclosure, useListState } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
-import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
+import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import {
   MasterListPage,
-  RecordNameCell,
+  useMasterColumns,
   EXPORT_PAGE_SIZE,
   listParams,
   useUnitKey,
@@ -35,6 +35,7 @@ export function ItemDepartmentPage() {
   const { t } = useTranslation();
   const unit = useAuthStore(selectCurrentUnit);
   const access = useFeatureAccess(itemManagementFeatures.department);
+  const config = useFeatureConfig(itemManagementFeatures.department, access.view);
   const canOpenCategories = useFeatureAccess(itemManagementFeatures.category).view;
   const modal = useDisclosure<ItemDepartmentRow>();
   const refresh = useRefreshItemManagement();
@@ -57,56 +58,30 @@ export function ItemDepartmentPage() {
 
   const edit = access.edit ? (row: ItemDepartmentRow) => modal.onOpen(row) : undefined;
 
-  const columns: TableColumnsType<ItemDepartmentRow> = [
-    {
-      key: 'name',
-      title: t('dept.col.department'),
-      sorter: true,
-      render: (_, row, index) => (
-        <RecordNameCell
-          name={row.name}
-          image={row.imageSource}
-          index={index}
-          onOpen={edit && (() => edit(row))}
-        />
-      ),
+  const { columns, csvColumns } = useMasterColumns<ItemDepartmentRow>(config.data, {
+    onOpen: edit,
+    renderers: {
+      code: { render: (row) => <span className="erp-text-sm">{row.code}</span> },
     },
-    {
-      key: 'code',
-      title: t('dept.col.code'),
-      dataIndex: 'code',
-      sorter: true,
-      render: (code: string) => <span className="erp-text-sm">{code}</span>,
-    },
-    {
-      key: 'serial',
-      title: t('dept.col.serial'),
-      dataIndex: 'serial',
-      sorter: true,
-      align: 'end',
-      render: (serial: number | null) => serial ?? '—',
-    },
-    {
-      key: 'categories',
-      title: t('dept.col.categories'),
-      align: 'end',
-      render: (_, row) =>
-        canOpenCategories && row.categories > 0 ? (
-          <Link to={`${itemManagementPaths.category}?departmentId=${row.id}`}>
-            {formatNumber(row.categories)}
-          </Link>
-        ) : (
-          formatNumber(row.categories)
-        ),
-    },
-  ];
-
-  const csvColumns: CsvColumn<ItemDepartmentRow>[] = [
-    { header: t('dept.col.code'), value: (r) => r.code },
-    { header: t('dept.col.department'), value: (r) => r.name },
-    { header: t('dept.col.serial'), value: (r) => r.serial },
-    { header: t('dept.col.categories'), value: (r) => r.categories },
-  ];
+    extra: [
+      {
+        column: {
+          key: 'categories',
+          title: t('dept.col.categories'),
+          align: 'end',
+          render: (_, row) =>
+            canOpenCategories && row.categories > 0 ? (
+              <Link to={`${itemManagementPaths.category}?departmentId=${row.id}`}>
+                {formatNumber(row.categories)}
+              </Link>
+            ) : (
+              formatNumber(row.categories)
+            ),
+        },
+        csv: { header: t('dept.col.categories'), value: (r) => r.categories },
+      },
+    ],
+  });
 
   return (
     <MasterListPage<ItemDepartmentRow, Filters>
@@ -117,7 +92,7 @@ export function ItemDepartmentPage() {
       search={{ label: t('dept.searchLabel'), placeholder: t('dept.search') }}
       list={list}
       data={query.data}
-      loading={query.isFetching}
+      loading={query.isFetching || !config.data}
       onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
@@ -133,13 +108,16 @@ export function ItemDepartmentPage() {
       }
       onDelete={(ids) => remove.mutateAsync({ data: { ids } }).then(refresh)}
     >
-      <DepartmentFormModal
-        open={modal.open}
-        department={modal.data}
-        unitName={unit?.name ?? ''}
-        onClose={modal.onClose}
-        onSaved={refresh}
-      />
+      {config.data && (
+        <DepartmentFormModal
+          config={config.data}
+          open={modal.open}
+          department={modal.data}
+          unitName={unit?.name ?? ''}
+          onClose={modal.onClose}
+          onSaved={refresh}
+        />
+      )}
     </MasterListPage>
   );
 }

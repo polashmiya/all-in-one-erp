@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Erp.Core.Domain;
 using Erp.Core.Tenancy;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +22,16 @@ internal static partial class MasterData
         current is { AccountId: { } account, BusinessUnitId: { } unit }
             ? (account, unit)
             : throw new InvalidOperationException("Item master data needs an account and a business unit.");
+
+    public static async Task<(T Request, ValidationProblem? Rejected)> ConfiguredAsync<T>(
+        FeatureConfigService configs, ICurrentContext current, string feature, T request, object? existing, CancellationToken ct)
+    {
+        var (accountId, businessUnitId) = current.Scope();
+        var (configured, errors) = await configs.ApplyRulesAsync(accountId, businessUnitId, feature, request, existing, ct);
+        return (configured, Invalid(errors));
+    }
+
+    public static string? SortKey(string? sort) => sort?.EndsWith("Id", StringComparison.Ordinal) == true ? sort[..^2] : sort;
 
     public static IQueryable<T> WithStatus<T>(this IQueryable<T> query, string? status) where T : MasterRecord =>
         status?.ToLowerInvariant() switch

@@ -38,10 +38,6 @@ export const masterDataResources: AppResources = {
     'master.f.image': 'Image',
     'master.f.imageHint': 'PNG, JPG or WebP · resized to 320 px',
     'master.f.imageFailed': 'This image could not be read. Try a PNG or JPG file.',
-    'master.f.active': 'Active',
-    'master.f.activeHint': 'Inactive records stay in history but cannot be picked for new entries.',
-    'master.f.codeInvalid': 'Use letters, digits, dot, dash or underscore',
-    'master.f.maxLength': 'Use at most {{count}} characters',
   },
   bn: {
     'master.export': 'এক্সপোর্ট',
@@ -80,10 +76,5 @@ export const masterDataResources: AppResources = {
     'master.f.image': 'ছবি',
     'master.f.imageHint': 'PNG, JPG বা WebP · ৩২০ পিক্সেলে ছোট করা হবে',
     'master.f.imageFailed': 'ছবিটি পড়া যায়নি। PNG বা JPG ফাইল দিয়ে চেষ্টা করুন।',
-    'master.f.active': 'সক্রিয়',
-    'master.f.activeHint':
-      'নিষ্ক্রিয় রেকর্ড ইতিহাসে থাকে, কিন্তু নতুন এন্ট্রিতে বেছে নেওয়া যায় না।',
-    'master.f.codeInvalid': 'অক্ষর, সংখ্যা, ডট, ড্যাশ বা আন্ডারস্কোর ব্যবহার করুন',
-    'master.f.maxLength': 'সর্বোচ্চ {{count}}টি অক্ষর ব্যবহার করুন',
   },
 };

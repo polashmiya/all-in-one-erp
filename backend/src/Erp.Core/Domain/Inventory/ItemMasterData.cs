@@ -7,6 +7,8 @@ public abstract class ItemClassification : MasterRecord, IBusinessUnitOwned
     public required string Name { get; set; }
 
     public string? ImageSource { get; set; }
+
+    public string? CustomData { get; set; }
 }
 
 public class ItemDepartment : ItemClassification
@@ -60,4 +62,6 @@ public class UnitOfMeasure : MasterRecord
     public bool IsDecimalAllowed { get; set; }
 
     public Guid? BranchId { get; set; }
+
+    public string? CustomData { get; set; }
 }

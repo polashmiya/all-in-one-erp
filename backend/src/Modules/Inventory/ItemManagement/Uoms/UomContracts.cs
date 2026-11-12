@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 
 namespace Erp.Modules.Inventory.ItemManagement.Uoms;
@@ -11,7 +12,8 @@ public sealed record UomRow(
     int? RoundingLength,
     bool IsActive,
     DateTime? CreatedAt,
-    DateTime? ModifiedAt);
+    DateTime? ModifiedAt,
+    Dictionary<string, JsonElement>? CustomData);
 
 public sealed record UomList(IReadOnlyList<UomRow> Items, int Total, StatusCounts Counts);
 
@@ -21,7 +23,8 @@ public sealed record SaveUomRequest(
     string? Description,
     bool IsDecimalAllowed,
     int? RoundingLength,
-    bool IsActive);
+    bool IsActive,
+    Dictionary<string, JsonElement>? CustomData = null);
 
 internal sealed class SaveUomRequestValidator : AbstractValidator<SaveUomRequest>
 {

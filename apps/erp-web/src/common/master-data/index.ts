@@ -1,5 +1,6 @@
 export { ImageSourceInput } from './components/ImageSourceInput';
-export { ActiveField, ImageField, MasterFormModal } from './components/MasterFormModal';
+export { MasterFormModal } from './components/MasterFormModal';
+export { useMasterColumns, type ExtraColumn } from './components/useMasterColumns';
 export { MasterListPage, type MasterListPageProps } from './components/MasterListPage';
 export { RecordNameCell } from './components/RecordNameCell';
 export { masterDataResources } from './i18n';

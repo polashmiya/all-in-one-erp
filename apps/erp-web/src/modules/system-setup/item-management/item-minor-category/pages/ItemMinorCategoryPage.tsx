@@ -12,17 +12,17 @@ import {
   useSetItemMinorCategoriesStatus,
   type ItemMinorCategoryRow,
 } from '@erp/api-client';
-import { SoftTag, useDisclosure, useListState, type CsvColumn } from '@erp/ui';
+import { SoftTag, useDisclosure, useListState } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
-import type { TableColumnsType } from 'antd';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
+import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import {
   MasterListPage,
-  RecordNameCell,
+  useMasterColumns,
   EXPORT_PAGE_SIZE,
   filterOptions,
   idParam,
@@ -44,6 +44,7 @@ export function ItemMinorCategoryPage() {
   const { t } = useTranslation();
   const unit = useAuthStore(selectCurrentUnit);
   const access = useFeatureAccess(itemManagementFeatures.minorCategory);
+  const config = useFeatureConfig(itemManagementFeatures.minorCategory, access.view);
   const modal = useDisclosure<ItemMinorCategoryRow>();
   const refresh = useRefreshItemManagement();
   const list = useListState<Filters, StatusView>({
@@ -105,45 +106,12 @@ export function ItemMinorCategoryPage() {
       : departmentId == null || visibleCategories?.some((c) => c.id === s.parentId),
   );
 
-  const columns: TableColumnsType<ItemMinorCategoryRow> = [
-    {
-      key: 'name',
-      title: t('minor.col.minorCategory'),
-      sorter: true,
-      render: (_, row, index) => (
-        <RecordNameCell
-          name={row.name}
-          image={row.imageSource}
-          index={index}
-          onOpen={edit && (() => edit(row))}
-        />
-      ),
+  const { columns, csvColumns } = useMasterColumns<ItemMinorCategoryRow>(config.data, {
+    onOpen: edit,
+    renderers: {
+      subCategoryId: { render: (row) => <SoftTag>{row.subCategoryName}</SoftTag> },
     },
-    {
-      key: 'subCategory',
-      title: t('minor.col.subCategory'),
-      sorter: true,
-      render: (_, row) => <SoftTag>{row.subCategoryName}</SoftTag>,
-    },
-    {
-      key: 'category',
-      title: t('minor.col.category'),
-      sorter: true,
-      render: (_, row) => row.categoryName,
-    },
-    {
-      key: 'department',
-      title: t('minor.col.department'),
-      render: (_, row) => row.departmentName ?? '—',
-    },
-  ];
-
-  const csvColumns: CsvColumn<ItemMinorCategoryRow>[] = [
-    { header: t('minor.col.minorCategory'), value: (r) => r.name },
-    { header: t('minor.col.subCategory'), value: (r) => r.subCategoryName },
-    { header: t('minor.col.category'), value: (r) => r.categoryName },
-    { header: t('minor.col.department'), value: (r) => r.departmentName },
-  ];
+  });
 
   return (
     <MasterListPage<ItemMinorCategoryRow, Filters>
@@ -171,7 +139,7 @@ export function ItemMinorCategoryPage() {
         },
       ]}
       data={query.data}
-      loading={query.isFetching}
+      loading={query.isFetching || !config.data}
       onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
@@ -189,17 +157,20 @@ export function ItemMinorCategoryPage() {
       }
       onDelete={(ids) => remove.mutateAsync({ data: { ids } }).then(refresh)}
     >
-      <MinorCategoryFormModal
-        open={modal.open}
-        minorCategory={modal.data}
-        defaults={{ departmentId, categoryId, subCategoryId }}
-        departments={departments.data}
-        categories={categories.data}
-        subCategories={subCategories.data}
-        unitName={unit?.name ?? ''}
-        onClose={modal.onClose}
-        onSaved={refresh}
-      />
+      {config.data && (
+        <MinorCategoryFormModal
+          config={config.data}
+          open={modal.open}
+          minorCategory={modal.data}
+          defaults={{ departmentId, categoryId, subCategoryId }}
+          departments={departments.data}
+          categories={categories.data}
+          subCategories={subCategories.data}
+          unitName={unit?.name ?? ''}
+          onClose={modal.onClose}
+          onSaved={refresh}
+        />
+      )}
     </MasterListPage>
   );
 }

@@ -14,7 +14,7 @@ import {
 } from '@erp/api-client';
 import type { LookupSources } from '@erp/metadata-engine';
 import { useUnitKey } from '@/common/master-data';
-import { ITEM_LOOKUPS } from './constants';
+import { ITEM_LOOKUPS } from '../item-management';
 
 export function useItemLookups(enabled = true) {
   const departments = useGetItemDepartmentOptions({

@@ -73,6 +73,10 @@ dotnet ef database update      --project backend/src/Erp.Infrastructure --startu
   hierarchy Department → Category → Sub Category → Minor Category belongs to a business unit; units of measure belong
   to the account. Each has list (status counts), options for dropdowns, create, update, bulk status and delete.
   Records that still have children cannot be deleted; deactivate them instead.
+- **Master data screens are configurable too** (`ItemMasterDataManifest.cs`): fields can be shown, hidden,
+  relabelled, made required, moved and get custom fields per account and business unit, like Item Profile. The modal
+  renders `ConfigFields` through `MasterFormModal`, and the list takes its columns from `useMasterColumns`. Values
+  of custom fields are stored in each table's `CustomData` column.
 - **Item Profile** (`/api/erp/item-management/items`, table `Item`): landing list with filters and export, a create /
   edit page and a view page. The item stores all four hierarchy IDs, but the user only picks the **minor category**;
   the rest are filled in from it. Moving a category or minor category, or renaming a UOM, updates its items.
@@ -158,6 +162,8 @@ configuration only shapes the screens.
     `useConfigColumns(config, renderers)` the list columns and CSV export. A lookup field shows the record's
     `…Name` property (`itemTypeId` → `itemTypeName`).
   - `useFeatureConfig(code)` in the ERP app loads the configuration, keyed by the `configVersion` from navigation.
+  - `ConfigFields` renders a configuration inside any antd `Form` (for example a modal): its sections, or tabs when
+    the configuration has two or more. Adding a tab to a manifest is enough to get tabs on that screen.
   - A custom field (`field.custom`) is bound to `['customData', key]`. `useCustomLookups(config)` loads the lookup
     lists that custom dropdowns use; pass its result to `useFormSections` and `useViewTabs`.
 

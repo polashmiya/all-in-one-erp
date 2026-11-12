@@ -22,8 +22,8 @@ can be changed.
 | 5     | Lookup lists per account (`LookupTypes`/`LookupValues`), lookup API, Panel **Lookup lists**    | ✅ 2026-11-12 |
 | 6     | Custom fields per account (`CustomData` json), Panel **New custom field**                      | ✅ 2026-11-12 |
 | 7     | Panel layout builder: tabs and sections (rename, hide, order, columns), drag and drop, preview | ✅ 2026-11-12 |
-| 8     | Item master data screens (department → UOM) on the engine                                      | ⏳ next       |
-| 9     | Hardening: E2E, audit log, docs                                                                | ⏳            |
+| 8     | Item master data screens (department → UOM) on the engine                                      | ✅ 2026-11-12 |
+| 9     | Hardening: E2E, audit log, docs                                                                | ⏳ next       |
 
 Not scheduled yet, on hold by the owner: ERP module › sub-module › feature permissions per role, and editing or
 deactivating an account after setup.
@@ -51,6 +51,9 @@ deactivating an account after setup.
   They show on the form and the view page only.
 - **Tabs and sections come only from the manifest.** An account can rename, hide, reorder and resize them and move a
   section to another tab, but never add its own tab or section (owner, 2026-11-12).
+- **Every screen is built from its configuration, generically.** Forms and modals render `ConfigFields`: one tab
+  shows its sections, two or more tabs show tabs. A screen that has one tab today gets tabs later by adding a tab to
+  its manifest, with no screen code change (owner, 2026-11-12).
 - **Drag and drop uses dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`), in the Panel only (owner, 2026-11-12).
 - **A layout save stores only what differs from the level below.** Dragging a field back to its default place removes
   that override again, so an untouched screen keeps no rows.
@@ -102,22 +105,49 @@ Left open:
   then open the item form in the ERP.
 - Custom field questions from phase 6 are still open (list column, filter, CSV).
 
-## Next: phase 8 — Item master data screens on the engine
+## Done: phase 8 — item master data screens on the engine
 
-Goal: Department, Category, Sub Category, Minor Category and UOM use the same configuration as Item Profile, so their
-fields can be shown, hidden, relabelled, made required and get custom fields per account.
+What was built:
+
+- `ItemMasterDataManifest.cs` declares Department, Category, Sub Category, Minor Category and UOM: one tab
+  (`general`) and one section (`details`) each. Code, name and the saved parent are locked; the parent filters
+  (department on sub and minor category, category on minor category) are optional lookups with `ParentField`.
+- Migration `MasterDataCustomFields`: `CustomData` on the five tables. Rows and save requests carry `customData`.
+- Every create and update calls `MasterData.ConfiguredAsync` (configuration rules) before its own checks, so hidden
+  fields keep their value and required ones are enforced, exactly like Item Profile.
+- List sorting accepts field keys (`departmentId` sorts by department) through `MasterData.SortKey`.
+- ERP: `ConfigFields` (metadata engine) renders any configuration inside a form: sections, or tabs when there are
+  two or more. `MasterFormModal` now takes `config` and renders `ConfigFields` with the image widget and custom
+  field lookups built in. `useMasterColumns` builds list columns and CSV from the configuration (name cell with
+  image included); a page adds only its computed columns (child counts).
+- The five modals shrank to "initial values + request mapping"; the cascading parent dropdowns now come from the
+  engine. `ITEM_LOOKUPS` moved to `item-management.ts`. Unused i18n keys were removed.
+
+Left open:
+
+- Checked by typecheck, lint, unit and API tests, not by hand in a browser. Try once: open each master data screen,
+  add, edit and filter; in the Panel hide a field and add a custom field on Department, then reopen the modal.
+- Code inputs no longer turn upper case while typing; the server and the request still upper-case department and
+  category codes.
+- Custom field questions from phase 6 are still open (list column, filter, CSV).
+
+## Next: phase 9 — hardening
+
+Goal: the configuration work is safe to hand over: real browser tests, a record of who changed what, and docs that
+match the code.
 
 Plan:
 
-1. **Manifests.** One `IFeatureManifestProvider` per screen next to its endpoints (like `ItemProfileManifest.cs`),
-   with the fields the table really has. Code and name stay locked.
-2. **Server.** Each save endpoint calls `FeatureConfigService.ApplyRulesAsync` before its own checks, like
-   `ItemEndpoints`. Add `CustomData` to each table and contract (one migration).
-3. **ERP.** The form modals (`*FormModal.tsx`) build their fields with `useFormSections` inside `FormModal`; the list
-   pages take columns from `useConfigColumns`. Keep the master-data kit for the page itself.
-4. **Tests.** API tests that a hidden field keeps its value and a required one is enforced, per screen.
+1. **E2E.** Playwright against the dev API and both apps, with the demo sign-ins: Panel hides a field, adds a custom
+   field and drags it in Layout; ERP shows the change on Item Profile and on one master data modal; a save with the
+   custom value round-trips. Run with `pnpm test:e2e` (new script); keep it out of `pnpm test`.
+2. **Audit log.** One `ConfigurationAudit` table (account, business unit, feature, what: field / section / layout /
+   custom field / lookup value, key, before and after json, user, time). Write it from the Panel services in one
+   place (`FeatureConfigurationService`, lookup endpoints). Panel: an "History" view in Screen settings.
+3. **Docs.** README sections checked against the code; a short "add a configurable screen" guide (manifest → rules →
+   `ConfigFields` / `useMasterColumns`) in `.claude/skills/erp-feature/SKILL.md`.
 
-Ask the owner before building: do the master data modals need tabs, or is one section per screen enough?
+Ask the owner before building: should the audit history also be visible in the ERP, or only in the Panel?
 
 ## Working on another machine
 
@@ -130,4 +160,4 @@ Ask the owner before building: do the master data modals need tabs, or is one se
 - Before finishing: `pnpm typecheck`, `pnpm lint`, `pnpm test:web` and `dotnet test backend/Erp.sln`.
 - Run Prettier on the files you changed only, not on whole folders.
 
-To continue, ask Claude to "start phase 8".
+To continue, ask Claude to "start phase 9".

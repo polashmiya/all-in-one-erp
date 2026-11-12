@@ -1,36 +1,23 @@
 import {
   useCreateItemSubCategory,
   useUpdateItemSubCategory,
+  type FeatureConfig,
   type ItemLookup,
   type ItemSubCategoryRow,
   type SaveItemSubCategoryRequest,
 } from '@erp/api-client';
-import { Field } from '@erp/ui';
-import { Form, Input, Select } from 'antd';
+import { Form } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActiveField,
-  ImageField,
-  MasterFormModal,
-  childSelectOptions,
-  parentOf,
-  selectOptions,
-} from '@/common/master-data';
+import { MasterFormModal, trimmed } from '@/common/master-data';
+import { ITEM_LOOKUPS } from '../../item-management';
 
-interface SubCategoryFormValues {
-  departmentId?: number | null;
-  categoryId?: number;
-  name: string;
-  imageSource?: string | null;
-  isActive: boolean;
-}
-
-const NAME_MAX = 100;
+type SubCategoryFormValues = SaveItemSubCategoryRequest & { departmentId?: number | null };
 
 export function SubCategoryFormModal({
   open,
   subCategory,
+  config,
   defaults,
   departments,
   categories,
@@ -40,6 +27,7 @@ export function SubCategoryFormModal({
 }: {
   open: boolean;
   subCategory?: ItemSubCategoryRow;
+  config: FeatureConfig;
   defaults: { departmentId?: number; categoryId?: number };
   departments?: ItemLookup[];
   categories?: ItemLookup[];
@@ -49,42 +37,26 @@ export function SubCategoryFormModal({
 }) {
   const { t } = useTranslation();
   const [form] = Form.useForm<SubCategoryFormValues>();
-  const departmentId = Form.useWatch('departmentId', form);
   const create = useCreateItemSubCategory();
   const update = useUpdateItemSubCategory();
-
   const initialValues = useMemo<Partial<SubCategoryFormValues>>(
-    () =>
-      subCategory
-        ? {
-            departmentId: subCategory.departmentId,
-            categoryId: subCategory.categoryId,
-            name: subCategory.name,
-            imageSource: subCategory.imageSource,
-            isActive: subCategory.isActive,
-          }
-        : { departmentId: defaults.departmentId, categoryId: defaults.categoryId, isActive: true },
+    () => subCategory ?? { departmentId: defaults.departmentId, categoryId: defaults.categoryId },
     [subCategory, defaults.departmentId, defaults.categoryId],
   );
 
   const save = async (values: SubCategoryFormValues) => {
     const data: SaveItemSubCategoryRequest = {
-      categoryId: values.categoryId!,
+      categoryId: values.categoryId,
       name: values.name.trim(),
-      imageSource: values.imageSource ?? null,
-      isActive: values.isActive,
+      imageSource: trimmed(values.imageSource),
+      isActive: values.isActive ?? true,
+      customData: values.customData ?? null,
     };
     const saved = subCategory
       ? await update.mutateAsync({ id: subCategory.id, data })
       : await create.mutateAsync({ data });
     await onSaved();
     return saved;
-  };
-
-  const onDepartmentChange = (next?: number | null) => {
-    const categoryId = form.getFieldValue('categoryId') as number | undefined;
-    if (next != null && parentOf(categories, categoryId) !== next)
-      form.setFieldValue('categoryId', undefined);
   };
 
   return (
@@ -94,59 +66,16 @@ export function SubCategoryFormModal({
       title={subCategory ? t('subcat.form.editTitle') : t('subcat.form.newTitle')}
       subtitle={t('subcat.form.subtitle', { unit: unitName })}
       form={form}
+      config={config}
+      options={{
+        lookups: {
+          [ITEM_LOOKUPS.department]: departments,
+          [ITEM_LOOKUPS.category]: categories,
+        },
+      }}
       initialValues={initialValues}
       editing={!!subCategory}
       onSave={save}
-    >
-      <Field
-        name="departmentId"
-        label={t('subcat.f.department')}
-        extra={t('subcat.f.departmentHint')}
-      >
-        <Select<number>
-          allowClear
-          showSearch
-          optionFilterProp="label"
-          placeholder={t('subcat.f.departmentPlaceholder')}
-          options={selectOptions(departments, subCategory?.departmentId)}
-          onChange={onDepartmentChange}
-        />
-      </Field>
-      <Field
-        name="categoryId"
-        label={t('subcat.f.category')}
-        extra={
-          subCategory && subCategory.minorCategories > 0
-            ? t('subcat.f.categoryMoveHint')
-            : undefined
-        }
-        rules={[{ required: true, message: t('subcat.f.categoryRequired') }]}
-      >
-        <Select<number>
-          showSearch
-          optionFilterProp="label"
-          placeholder={t('subcat.f.categoryPlaceholder')}
-          options={childSelectOptions(
-            categories,
-            departments,
-            departmentId,
-            subCategory?.categoryId,
-          )}
-          onChange={(id) => form.setFieldValue('departmentId', parentOf(categories, id))}
-        />
-      </Field>
-      <Field
-        name="name"
-        label={t('subcat.f.name')}
-        rules={[
-          { required: true, whitespace: true, message: t('subcat.f.nameRequired') },
-          { max: NAME_MAX, message: t('master.f.maxLength', { count: NAME_MAX }) },
-        ]}
-      >
-        <Input maxLength={NAME_MAX} placeholder={t('subcat.f.namePlaceholder')} />
-      </Field>
-      <ImageField />
-      <ActiveField />
-    </MasterFormModal>
+    />
   );
 }

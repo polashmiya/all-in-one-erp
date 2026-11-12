@@ -18,11 +18,11 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
 import { useUnitKey } from '@/common/master-data';
-import { useRefreshItemManagement } from '../../item-management';
 import { ConversionInput } from '../components/ConversionInput';
 import { ImageAttach } from '../components/ImageAttach';
 import { MasterItemSelect } from '../components/MasterItemSelect';
-import { ITEM_ASIDE_SECTIONS, ITEM_LOOKUPS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
+import { ITEM_LOOKUPS, useRefreshItemManagement } from '../../item-management';
+import { ITEM_ASIDE_SECTIONS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 import { copyOf, itemBehaviors, toRequest, type ItemFormValues } from '../item-form';
 import { useItemLookups } from '../item-lookups';
 

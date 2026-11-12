@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 
 namespace Erp.Modules.Inventory.ItemManagement.Departments;
@@ -11,11 +12,13 @@ public sealed record ItemDepartmentRow(
     bool IsActive,
     int Categories,
     DateTime? CreatedAt,
-    DateTime? ModifiedAt);
+    DateTime? ModifiedAt,
+    Dictionary<string, JsonElement>? CustomData);
 
 public sealed record ItemDepartmentList(IReadOnlyList<ItemDepartmentRow> Items, int Total, StatusCounts Counts);
 
-public sealed record SaveItemDepartmentRequest(string Code, string Name, int? Serial, string? ImageSource, bool IsActive);
+public sealed record SaveItemDepartmentRequest(string Code, string Name, int? Serial, string? ImageSource, bool IsActive,
+    Dictionary<string, JsonElement>? CustomData = null);
 
 internal sealed class SaveItemDepartmentRequestValidator : AbstractValidator<SaveItemDepartmentRequest>
 {

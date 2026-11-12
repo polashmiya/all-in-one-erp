@@ -27,8 +27,8 @@ import {
   useUnitKey,
   type StatusView,
 } from '@/common/master-data';
-import { useRefreshItemManagement } from '../../item-management';
-import { ITEM_LOOKUPS, ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
+import { ITEM_LOOKUPS, useRefreshItemManagement } from '../../item-management';
+import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';
 import { useItemLookups } from '../item-lookups';
 
 type Filters = {

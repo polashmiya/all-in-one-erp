@@ -2,7 +2,9 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
+using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
+using Erp.Metadata;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -80,7 +82,8 @@ internal static class ItemDepartmentEndpoints
             d.IsActive,
             db.ItemCategories.Count(c => c.DepartmentId == d.Id),
             d.CreatedAt,
-            d.ModifiedAt));
+            d.ModifiedAt,
+            CustomFieldData.Parse(d.CustomData)));
 
     private static async Task<ItemDepartmentList> List(
         string? search, string? status, string? sort, int? page, int? pageSize, ErpDbContext db, CancellationToken ct)
@@ -119,8 +122,12 @@ internal static class ItemDepartmentEndpoints
             : TypedResults.NotFound();
 
     private static async Task<Results<Created<ItemDepartmentRow>, ValidationProblem, ProblemHttpResult>> Create(
-        SaveItemDepartmentRequest request, ErpDbContext db, ICurrentContext current, CancellationToken ct)
+        SaveItemDepartmentRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
+        var (configured, rejected) = await MasterData.ConfiguredAsync(configs, current, Feature, request, null, ct);
+        if (rejected is not null) return rejected;
+        request = configured;
+
         var (code, name) = Normalize(request);
         if (await DuplicatesAsync(db, null, code, name, ct) is { } invalid) return invalid;
 
@@ -134,6 +141,7 @@ internal static class ItemDepartmentEndpoints
             Serial = request.Serial ?? await NextSerialAsync(db, ct),
             ImageSource = MasterData.CleanImage(request.ImageSource),
             IsActive = request.IsActive,
+            CustomData = CustomFieldData.ToJson(request.CustomData),
         };
         db.ItemDepartments.Add(department);
 
@@ -151,10 +159,15 @@ internal static class ItemDepartmentEndpoints
     }
 
     private static async Task<Results<Ok<ItemDepartmentRow>, NotFound, ValidationProblem, ProblemHttpResult>> Update(
-        int id, SaveItemDepartmentRequest request, ErpDbContext db, CancellationToken ct)
+        int id, SaveItemDepartmentRequest request, ErpDbContext db, ICurrentContext current, FeatureConfigService configs, CancellationToken ct)
     {
         var department = await db.ItemDepartments.SingleOrDefaultAsync(d => d.Id == id, ct);
         if (department is null) return TypedResults.NotFound();
+
+        var existing = await Rows(db.ItemDepartments.AsNoTracking().Where(d => d.Id == id), db).SingleAsync(ct);
+        var (configured, rejected) = await MasterData.ConfiguredAsync(configs, current, Feature, request, existing, ct);
+        if (rejected is not null) return rejected;
+        request = configured;
 
         var (code, name) = Normalize(request);
         if (await DuplicatesAsync(db, id, code, name, ct) is { } invalid) return invalid;
@@ -164,6 +177,7 @@ internal static class ItemDepartmentEndpoints
         department.Serial = request.Serial;
         department.ImageSource = MasterData.CleanImage(request.ImageSource);
         department.IsActive = request.IsActive;
+        department.CustomData = CustomFieldData.ToJson(request.CustomData);
 
         try
         {
