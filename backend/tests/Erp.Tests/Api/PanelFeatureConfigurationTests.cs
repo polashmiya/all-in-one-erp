@@ -139,6 +139,80 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Sections_are_renamed_resized_hidden_and_reset()
+    {
+        var client = await PanelClientAsync();
+        var accountId = await DemoAccountIdAsync();
+        var sections = $"{Path(accountId)}/sections";
+        await using var cleanup = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+
+        var editor = (await client.GetFromJsonAsync<FeatureConfigEditor>(Path(accountId)))!;
+        var optional = editor.Layout.First(s => !s.IsTab &&
+            editor.Fields.Where(f => f.Base.SectionKey == s.Key).All(f => !f.IsLocked && f.Base.IsRequired != true));
+
+        var saved = await client.PutAsJsonAsync($"{sections}/{optional.Key}{Unit(factory.DhakaId)}",
+            new SectionSettingValues { LabelEn = " Extra ", Columns = 2, IsVisible = false });
+        var row = (await saved.Content.ReadFromJsonAsync<SectionConfigRow>())!;
+        Assert.Equal(("Extra", 2, false, true), (row.Override!.LabelEn, row.Override.Columns, row.Override.IsVisible, row.Base.IsVisible));
+
+        var dhaka = (await client.GetFromJsonAsync<FeatureConfig>($"{Path(accountId)}/preview{Unit(factory.DhakaId)}"))!;
+        var chattogram = (await client.GetFromJsonAsync<FeatureConfig>($"{Path(accountId)}/preview{Unit(factory.ChattogramId)}"))!;
+        Assert.DoesNotContain(optional.Key, dhaka.Tabs.SelectMany(t => t.Sections).Select(s => s.Key));
+        Assert.Contains(optional.Key, chattogram.Tabs.SelectMany(t => t.Sections).Select(s => s.Key));
+
+        Assert.Equal(["isVisible"],
+            await ErrorsAsync(await client.PutAsJsonAsync($"{sections}/basic", new SectionSettingValues { IsVisible = false })));
+        Assert.Equal(["tabKey"],
+            await ErrorsAsync(await client.PutAsJsonAsync($"{sections}/basic", new SectionSettingValues { TabKey = "nope" })));
+        Assert.Equal(["columns"],
+            await ErrorsAsync(await client.PutAsJsonAsync($"{sections}/basic", new SectionSettingValues { Columns = 5 })));
+
+        var reset = await client.DeleteAsync($"{sections}/{optional.Key}{Unit(factory.DhakaId)}");
+        Assert.Null((await reset.Content.ReadFromJsonAsync<SectionConfigRow>())!.Override);
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await client.PutAsJsonAsync($"{sections}/nope", new SectionSettingValues { Columns = 2 })).StatusCode);
+    }
+
+    [Fact]
+    public async Task Layout_arranges_tabs_sections_and_fields_and_stores_only_what_changed()
+    {
+        var client = await PanelClientAsync();
+        var accountId = await DemoAccountIdAsync();
+        await using var cleanup = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+
+        var before = (await client.GetFromJsonAsync<FeatureConfig>($"{Path(accountId)}/preview"))!;
+        LayoutRequest Layout(FeatureConfig config) => new(config.Tabs
+            .Select(t => new LayoutTab(t.Key, t.Sections.Select(s => new LayoutSection(s.Key, s.Fields.Select(f => f.Key).ToList())).ToList()))
+            .ToList());
+
+        var same = await client.PutAsJsonAsync($"{Path(accountId)}/layout", Layout(before));
+        var unchanged = (await same.Content.ReadFromJsonAsync<FeatureConfigEditor>())!;
+        Assert.All(unchanged.Fields, f => Assert.Null(f.Override));
+        Assert.All(unchanged.Layout, s => Assert.Null(s.Override));
+
+        var layout = Layout(before);
+        var first = layout.Tabs[0].Sections[0];
+        var second = layout.Tabs[0].Sections[1];
+        var moved = second.Fields[0];
+        var arranged = new LayoutRequest([
+            new LayoutTab(layout.Tabs[0].Key, [
+                new LayoutSection(second.Key, second.Fields.Skip(1).ToList()),
+                new LayoutSection(first.Key, [moved, .. first.Fields]),
+                .. layout.Tabs[0].Sections.Skip(2),
+            ]),
+            .. layout.Tabs.Skip(1),
+        ]);
+
+        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync($"{Path(accountId)}/layout", arranged)).StatusCode);
+        var after = (await client.GetFromJsonAsync<FeatureConfig>($"{Path(accountId)}/preview"))!;
+        Assert.Equal([second.Key, first.Key], after.Tabs[0].Sections.Take(2).Select(s => s.Key));
+        Assert.Equal(moved, after.Tabs[0].Sections[1].Fields[0].Key);
+
+        var unknown = new LayoutRequest([new LayoutTab(layout.Tabs[0].Key, [new LayoutSection(first.Key, ["nope"])])]);
+        Assert.Equal(["tabs"], await ErrorsAsync(await client.PutAsJsonAsync($"{Path(accountId)}/layout", unknown)));
+    }
+
+    [Fact]
     public async Task Unknown_screens_fields_and_units_are_not_found()
     {
         var client = await PanelClientAsync();

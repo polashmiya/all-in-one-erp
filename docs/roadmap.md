@@ -21,8 +21,8 @@ can be changed.
 | 4     | Business unit overrides; Panel **Screen settings** (show/hide, required, labels, order, list)  | ✅ 2026-11-11 |
 | 5     | Lookup lists per account (`LookupTypes`/`LookupValues`), lookup API, Panel **Lookup lists**    | ✅ 2026-11-12 |
 | 6     | Custom fields per account (`CustomData` json), Panel **New custom field**                      | ✅ 2026-11-12 |
-| 7     | Panel layout builder: tabs and sections (rename, hide, order, columns), drag and drop, preview | ⏳ next       |
-| 8     | Item master data screens (department → UOM) on the engine                                      | ⏳            |
+| 7     | Panel layout builder: tabs and sections (rename, hide, order, columns), drag and drop, preview | ✅ 2026-11-12 |
+| 8     | Item master data screens (department → UOM) on the engine                                      | ⏳ next       |
 | 9     | Hardening: E2E, audit log, docs                                                                | ⏳            |
 
 Not scheduled yet, on hold by the owner: ERP module › sub-module › feature permissions per role, and editing or
@@ -49,6 +49,11 @@ deactivating an account after setup.
   stay in `CustomData` and come back when the field is activated again.
 - **Custom fields are not list columns or filters** (owner has not decided yet, so "list columns are fixed" wins).
   They show on the form and the view page only.
+- **Tabs and sections come only from the manifest.** An account can rename, hide, reorder and resize them and move a
+  section to another tab, but never add its own tab or section (owner, 2026-11-12).
+- **Drag and drop uses dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`), in the Panel only (owner, 2026-11-12).
+- **A layout save stores only what differs from the level below.** Dragging a field back to its default place removes
+  that override again, so an untouched screen keeps no rows.
 - **Conditional rules** ("show X when Y") stay in code as `behaviors`; configuration can only narrow them.
 - The `erp-feature` skill covers screens only. The configuration phases also change the backend, so they include
   backend work, tests and `pnpm gen:api`.
@@ -76,29 +81,43 @@ Left open:
 - Ask the owner: should custom fields appear in the list (column, filter, CSV export)?
 - There is no Panel component test for the new modal; the API tests cover the rules.
 
-## Next: phase 7 — Panel layout builder
+## Done: phase 7 — Panel layout builder
 
-Goal: the internal team arranges a screen in the Panel: rename, hide and reorder tabs and sections, set a section's
-columns, drag fields between sections, and see a preview before users do.
+What was built (details are in the README, "Panel: Layout"):
 
-What already exists: `AccountSectionSettings` (label, order, columns, visible, parent tab) with account and business
-unit rows, and `FeatureConfigBuilder` already applies them. Only the Panel API and the screen are missing.
+- Panel API on `/api/panel/accounts/{id}/configuration/{code}`: the editor now also returns `layout` (tabs and
+  sections with base and own values); `PUT` / `DELETE /sections/{key}` renames, hides, resizes or resets a tab or
+  section; `PUT /layout` saves the whole order of tabs → sections → fields in one call; `GET /preview` returns the
+  screen as the ERP gets it. All take `?businessUnitId=`.
+- The server rejects a change that would hide a locked field, or a required field without a default, whether by
+  hiding a tab or section or by moving the field into a hidden one.
+- Panel: Screen settings → **Layout** (`/accounts/{id}/layout?feature=&unit=`). Drag tabs, sections and fields
+  (keyboard works too); each drop saves at once. The pencil opens the tab or section modal; **Preview** shows the form
+  in a drawer. The drag logic is plain functions in `layout-model.ts` with unit tests.
+
+Left open:
+
+- Checked by typecheck, lint, unit and API tests only, not by hand in a browser (the browser extension was not
+  connected). Try once: drag a field to another section, move a section to another tab, hide a section, open Preview,
+  then open the item form in the ERP.
+- Custom field questions from phase 6 are still open (list column, filter, CSV).
+
+## Next: phase 8 — Item master data screens on the engine
+
+Goal: Department, Category, Sub Category, Minor Category and UOM use the same configuration as Item Profile, so their
+fields can be shown, hidden, relabelled, made required and get custom fields per account.
 
 Plan:
 
-1. **API.** The editor (`GET …/configuration/{code}`) returns tabs and sections with their base and own values, like
-   fields do. Add `PUT` / `DELETE …/sections/{key}?businessUnitId=` (label EN/বাংলা, order, columns 1 to 4, visible,
-   tab for a section). Reject hiding a tab or section that holds a locked field, or a required field without a
-   default. Bump `ConfigVersion`.
-2. **Preview.** A Panel endpoint that returns the resolved `FeatureConfig` for an account and optional business unit
-   (reuse `FeatureConfigService.GetAsync`). The Panel renders it with `useFormSections`, inputs disabled.
-3. **Panel.** A "Layout" view in Screen settings: tabs → sections → fields. Drag to reorder tabs, sections and fields
-   and to move a field to another section (saves `sortOrder` and `sectionKey` through the existing field endpoint).
-   Rename, hide and set columns in a small modal. Reset per tab or section.
-4. **Tests.** Unit tests for section rules, API tests for save, reset and business unit override.
+1. **Manifests.** One `IFeatureManifestProvider` per screen next to its endpoints (like `ItemProfileManifest.cs`),
+   with the fields the table really has. Code and name stay locked.
+2. **Server.** Each save endpoint calls `FeatureConfigService.ApplyRulesAsync` before its own checks, like
+   `ItemEndpoints`. Add `CustomData` to each table and contract (one migration).
+3. **ERP.** The form modals (`*FormModal.tsx`) build their fields with `useFormSections` inside `FormModal`; the list
+   pages take columns from `useConfigColumns`. Keep the master-data kit for the page itself.
+4. **Tests.** API tests that a hidden field keeps its value and a required one is enforced, per screen.
 
-Ask the owner before building: may an account add its own tabs and sections, or only rearrange the ones the manifest
-declares? And which drag and drop library to add (none is installed yet).
+Ask the owner before building: do the master data modals need tabs, or is one section per screen enough?
 
 ## Working on another machine
 
@@ -111,4 +130,4 @@ declares? And which drag and drop library to add (none is installed yet).
 - Before finishing: `pnpm typecheck`, `pnpm lint`, `pnpm test:web` and `dotnet test backend/Erp.sln`.
 - Run Prettier on the files you changed only, not on whole folders.
 
-To continue, ask Claude to "start phase 7".
+To continue, ask Claude to "start phase 8".

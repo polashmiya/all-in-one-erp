@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Erp.Api.Panel.Configuration;
 
-public sealed class FeatureConfigurationService(ErpDbContext db)
+public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigService configs)
 {
     private const int KeyLength = 50;
     private const int SortStep = 10;
@@ -22,13 +22,20 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
         Dictionary<Guid, FeatureSection> Sections,
         List<FeatureField> Fields,
         List<AccountFieldSetting> Settings,
+        List<AccountSectionSetting> SectionSettings,
         Dictionary<string, List<int>> ListValues,
         Dictionary<string, string> LookupDefaults);
 
-    public async Task<FeatureConfigEditor?> GetAsync(Guid accountId, Guid? businessUnitId, string code, CancellationToken ct)
-    {
-        if (await LoadAsync(accountId, businessUnitId, code, ct) is not { } scope) return null;
+    public async Task<FeatureConfigEditor?> GetAsync(Guid accountId, Guid? businessUnitId, string code, CancellationToken ct) =>
+        await LoadAsync(accountId, businessUnitId, code, ct) is { } scope ? Editor(scope) : null;
 
+    public async Task<FeatureConfig?> PreviewAsync(Guid accountId, Guid? businessUnitId, string code, CancellationToken ct) =>
+        await LoadAsync(accountId, businessUnitId, code, ct) is null
+            ? null
+            : (await configs.GetAsync(accountId, businessUnitId, code, ct))?.Config;
+
+    private static FeatureConfigEditor Editor(Scope scope)
+    {
         var sections = scope.Sections.Values
             .Where(s => s.ParentId is { } tab && scope.Sections.ContainsKey(tab))
             .OrderBy(s => scope.Sections[s.ParentId!.Value].SortOrder).ThenBy(s => s.SortOrder)
@@ -45,7 +52,67 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             .Select(f => Row(scope, f))
             .ToList();
 
-        return new FeatureConfigEditor(scope.Code, sections, fields, FieldTypes.Custom);
+        var layout = scope.Sections.Values.OrderBy(s => s.SortOrder).ThenBy(s => s.Key).Select(s => Row(scope, s)).ToList();
+
+        return new FeatureConfigEditor(scope.Code, sections, fields, FieldTypes.Custom, layout);
+    }
+
+    public async Task<(SectionConfigRow? Row, Dictionary<string, string[]> Errors)> SaveSectionAsync(
+        Guid accountId, Guid? businessUnitId, string code, string key, SectionSettingValues values, CancellationToken ct)
+    {
+        if (await LoadAsync(accountId, businessUnitId, code, ct) is not { } scope) return (null, []);
+        if (scope.Sections.Values.FirstOrDefault(s => s.Key == key) is not { } section) return (null, []);
+
+        var tab = values.TabKey is null ? null : TabOf(scope, values.TabKey);
+        if (values.TabKey is not null && (section.ParentId is null || tab is null))
+            return (null, new() { ["tabKey"] = ["Choose a tab of this screen."] });
+
+        var own = OwnRow(scope, section) ?? NewRow(scope, section);
+        own.LabelEn = Trimmed(values.LabelEn);
+        own.LabelBn = Trimmed(values.LabelBn);
+        own.SortOrder = values.SortOrder;
+        own.Columns = values.Columns;
+        own.IsVisible = values.IsVisible;
+        own.ParentId = tab?.Id;
+        Keep(scope, own);
+
+        if (HiddenProblem(scope) is { } problem) return (null, new() { ["isVisible"] = [problem] });
+        await CommitAsync(scope, ct);
+
+        return (Row(scope, section), []);
+    }
+
+    public async Task<(FeatureConfigEditor? Editor, Dictionary<string, string[]> Errors)> ArrangeAsync(
+        Guid accountId, Guid? businessUnitId, string code, LayoutRequest layout, CancellationToken ct)
+    {
+        if (await LoadAsync(accountId, businessUnitId, code, ct) is not { } scope) return (null, []);
+
+        var tabs = scope.Sections.Values.Where(s => s.ParentId is null).ToDictionary(s => s.Key);
+        var sections = scope.Sections.Values.Where(s => s.ParentId is not null).ToDictionary(s => s.Key);
+        var fields = scope.Fields.ToDictionary(f => f.Key);
+        var tabKeys = layout.Tabs.Select(t => t.Key).ToList();
+        var sectionKeys = layout.Tabs.SelectMany(t => t.Sections).Select(s => s.Key).ToList();
+        var fieldKeys = layout.Tabs.SelectMany(t => t.Sections).SelectMany(s => s.Fields).ToList();
+
+        var known = tabKeys.All(tabs.ContainsKey) && sectionKeys.All(sections.ContainsKey) && fieldKeys.All(fields.ContainsKey);
+        if (!known || Repeats(tabKeys) || Repeats(sectionKeys) || Repeats(fieldKeys))
+            return (null, new() { ["tabs"] = ["The layout has unknown or repeated tabs, sections or fields."] });
+
+        foreach (var (tab, tabIndex) in layout.Tabs.Select((tab, index) => (tab, index)))
+        {
+            Place(scope, tabs[tab.Key], Order(tabIndex), null);
+            foreach (var (section, sectionIndex) in tab.Sections.Select((section, index) => (section, index)))
+            {
+                Place(scope, sections[section.Key], Order(sectionIndex), tabs[tab.Key].Id);
+                foreach (var (field, fieldIndex) in section.Fields.Select((field, index) => (field, index)))
+                    Place(scope, fields[field], Order(fieldIndex), sections[section.Key].Id);
+            }
+        }
+
+        if (HiddenProblem(scope) is { } problem) return (null, new() { ["tabs"] = [problem] });
+        await CommitAsync(scope, ct);
+
+        return (Editor(scope), []);
     }
 
     public async Task<(FieldConfigRow? Row, Dictionary<string, string[]> Errors)> CreateAsync(
@@ -115,30 +182,64 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
         var errors = Validate(scope, field, values);
         if (errors.Count > 0) return (null, errors);
 
-        var own = OwnRow(scope, field);
-        if (values == new FieldSettingValues())
-        {
-            if (own is not null)
-            {
-                db.AccountFieldSettings.Remove(own);
-                scope.Settings.Remove(own);
-            }
-        }
-        else
-        {
-            if (own is null)
-            {
-                own = new AccountFieldSetting { AccountId = accountId, BusinessUnitId = businessUnitId, FieldId = field.Id };
-                db.AccountFieldSettings.Add(own);
-                scope.Settings.Add(own);
-            }
+        var own = OwnRow(scope, field) ?? NewRow(scope, field);
+        Apply(own, values, scope);
+        Keep(scope, own);
 
-            Apply(own, values, scope);
-        }
-
+        if (HiddenProblem(scope) is { } problem) return (null, new() { ["sectionKey"] = [problem] });
         await CommitAsync(scope, ct);
 
         return (Row(scope, field), []);
+    }
+
+    private void Place(Scope scope, FeatureSection section, int order, Guid? tabId)
+    {
+        var basis = BaseRow(scope, section);
+        var own = OwnRow(scope, section) ?? NewRow(scope, section);
+        own.SortOrder = order == basis.SortOrder ? null : order;
+        own.ParentId = tabId == basis.ParentId ? null : tabId;
+        Keep(scope, own);
+    }
+
+    private void Place(Scope scope, FeatureField field, int order, Guid sectionId)
+    {
+        var basis = BaseRow(scope, field);
+        var own = OwnRow(scope, field) ?? NewRow(scope, field);
+        own.SortOrder = order == basis.SortOrder ? null : order;
+        own.SectionId = sectionId == basis.SectionId ? null : sectionId;
+        Keep(scope, own);
+    }
+
+    private void Keep(Scope scope, AccountFieldSetting row)
+    {
+        var isNew = !scope.Settings.Contains(row);
+        var isEmpty = Values(row, scope) == new FieldSettingValues();
+        if (isEmpty && !isNew)
+        {
+            db.AccountFieldSettings.Remove(row);
+            scope.Settings.Remove(row);
+        }
+        else if (!isEmpty && isNew)
+        {
+            db.AccountFieldSettings.Add(row);
+            scope.Settings.Add(row);
+        }
+    }
+
+    private void Keep(Scope scope, AccountSectionSetting row)
+    {
+        var isNew = !scope.SectionSettings.Contains(row);
+        var isEmpty = Values(row, scope) == new SectionSettingValues();
+        if (isEmpty && !isNew)
+        {
+            db.AccountSectionSettings.Remove(row);
+            scope.SectionSettings.Remove(row);
+        }
+        else if (!isEmpty && isNew)
+        {
+            db.AccountSectionSettings.Add(row);
+            scope.SectionSettings.Add(row);
+        }
     }
 
     private async Task CommitAsync(Scope scope, CancellationToken ct)
@@ -172,6 +273,10 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             .Where(s => s.AccountId == accountId && s.Field!.FeatureId == featureId)
             .Where(s => s.BusinessUnitId == null || s.BusinessUnitId == businessUnitId)
             .ToListAsync(ct);
+        var sectionSettings = await db.AccountSectionSettings.AcrossTenants()
+            .Where(s => s.AccountId == accountId && s.Section!.FeatureId == featureId)
+            .Where(s => s.BusinessUnitId == null || s.BusinessUnitId == businessUnitId)
+            .ToListAsync(ct);
 
         var sources = fields.Select(f => f.LookupSource).OfType<string>().Distinct().ToList();
         var listValues = (await db.LookupValues.AcrossTenants()
@@ -182,8 +287,82 @@ public sealed class FeatureConfigurationService(ErpDbContext db)
             .ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToList());
         var lookupDefaults = await FeatureConfigService.LookupDefaultsAsync(db, accountId, ct);
 
-        return new Scope(accountId, businessUnitId, featureId.Value, featureCode, sections, fields, settings, listValues, lookupDefaults);
+        return new Scope(
+            accountId, businessUnitId, featureId.Value, featureCode, sections, fields, settings, sectionSettings, listValues, lookupDefaults);
     }
+
+    private static AccountFieldSetting NewRow(Scope scope, FeatureField field) =>
+        new() { AccountId = scope.AccountId, BusinessUnitId = scope.BusinessUnitId, FieldId = field.Id };
+
+    private static AccountSectionSetting NewRow(Scope scope, FeatureSection section) =>
+        new() { AccountId = scope.AccountId, BusinessUnitId = scope.BusinessUnitId, SectionId = section.Id };
+
+    private static AccountSectionSetting? OwnRow(Scope scope, FeatureSection section) =>
+        scope.SectionSettings.Find(s => s.SectionId == section.Id && s.BusinessUnitId == scope.BusinessUnitId);
+
+    private static AccountSectionSetting BaseRow(Scope scope, FeatureSection section)
+    {
+        var defaults = new AccountSectionSetting
+        {
+            SectionId = section.Id,
+            ParentId = section.ParentId,
+            LabelEn = section.LabelEn,
+            LabelBn = section.LabelBn,
+            SortOrder = section.SortOrder,
+            Columns = section.Columns,
+            IsVisible = true,
+        };
+        if (scope.BusinessUnitId is null) return defaults;
+
+        var account = scope.SectionSettings.Find(s => s.SectionId == section.Id && s.BusinessUnitId is null);
+        return FeatureSettings.Merge(defaults, account)!;
+    }
+
+    private static SectionConfigRow Row(Scope scope, FeatureSection section) => new(
+        section.Key,
+        section.ParentId is null,
+        Values(BaseRow(scope, section), scope),
+        OwnRow(scope, section) is { } own ? Values(own, scope) : null);
+
+    private static SectionSettingValues Values(AccountSectionSetting row, Scope scope) => new()
+    {
+        LabelEn = row.LabelEn,
+        LabelBn = row.LabelBn,
+        SortOrder = row.SortOrder,
+        Columns = row.Columns,
+        IsVisible = row.IsVisible,
+        TabKey = row.ParentId is { } id && scope.Sections.TryGetValue(id, out var tab) ? tab.Key : null,
+    };
+
+    private static string? HiddenProblem(Scope scope)
+    {
+        var hidden = scope.Fields.Where(f => f.IsActive).Where(field =>
+        {
+            var setting = FeatureSettings.Merge(BaseRow(scope, field), OwnRow(scope, field))!;
+            if (!scope.Sections.TryGetValue(setting.SectionId ?? field.SectionId, out var section)) return false;
+
+            var placed = FeatureSettings.Merge(BaseRow(scope, section), OwnRow(scope, section))!;
+            var tabHidden = placed.ParentId is { } tabId && scope.Sections.TryGetValue(tabId, out var tab) &&
+                FeatureSettings.Merge(BaseRow(scope, tab), OwnRow(scope, tab))!.IsVisible == false;
+            if (placed.IsVisible != false && !tabHidden) return false;
+
+            var hasDefault = setting.DefaultValue is not null ||
+                (field.LookupSource is { } source && scope.LookupDefaults.ContainsKey(source));
+            return field.IsLocked ||
+                (setting.IsVisible != false && setting.IsRequired == true && !hasDefault && field.DataType != FieldTypes.Boolean);
+        }).Select(f => f.LabelEn).ToList();
+
+        return hidden.Count == 0
+            ? null
+            : $"These fields must stay visible: {string.Join(", ", hidden)}. Move them or make them optional first.";
+    }
+
+    private static FeatureSection? TabOf(Scope scope, string key) =>
+        scope.Sections.Values.FirstOrDefault(s => s.Key == key && s.ParentId is null);
+
+    private static bool Repeats(List<string> keys) => keys.Distinct().Count() != keys.Count;
+
+    private static int Order(int index) => (index + 1) * SortStep;
 
     private static AccountFieldSetting? OwnRow(Scope scope, FeatureField field) =>
         scope.Settings.Find(s => s.FieldId == field.Id && s.BusinessUnitId == scope.BusinessUnitId);

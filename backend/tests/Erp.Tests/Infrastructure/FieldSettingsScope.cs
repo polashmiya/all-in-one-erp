@@ -31,6 +31,9 @@ public sealed class FieldSettingsScope(Guid accountId, Guid featureId) : IAsyncD
         await db.AccountFieldSettings.AcrossTenants()
             .Where(s => s.AccountId == accountId && s.Field!.FeatureId == featureId)
             .ExecuteDeleteAsync();
+        await db.AccountSectionSettings.AcrossTenants()
+            .Where(s => s.AccountId == accountId && s.Section!.FeatureId == featureId)
+            .ExecuteDeleteAsync();
         await BumpAsync(db, accountId, featureId);
     }
 

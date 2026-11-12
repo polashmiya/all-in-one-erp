@@ -7,10 +7,12 @@
  */
 import type { ConfigSectionOption } from './configSectionOption.ts';
 import type { FieldConfigRow } from './fieldConfigRow.ts';
+import type { SectionConfigRow } from './sectionConfigRow.ts';
 
 export interface FeatureConfigEditor {
   feature: string;
   sections: ConfigSectionOption[];
   fields: FieldConfigRow[];
   customTypes: string[];
+  layout: SectionConfigRow[];
 }

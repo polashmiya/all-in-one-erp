@@ -22,16 +22,24 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ArrangeFeatureLayoutParams,
   CreateCustomFieldRequest,
   CustomFieldStatusRequest,
+  FeatureConfig,
   FeatureConfigEditor,
   FieldConfigRow,
   FieldSettingValues,
   GetFeatureConfigurationParams,
   HttpValidationProblemDetails,
+  LayoutRequest,
+  PreviewFeatureConfigurationParams,
   ProblemDetails,
   ResetFieldSettingParams,
+  ResetSectionSettingParams,
   SaveFieldSettingParams,
+  SaveSectionSettingParams,
+  SectionConfigRow,
+  SectionSettingValues,
 } from '../../model';
 
 import { customFetch } from '../../../http/client.ts';
@@ -711,4 +719,562 @@ export const useResetFieldSetting = <
   TContext
 > => {
   return useMutation(getResetFieldSettingMutationOptions(options), queryClient);
+};
+export const getPreviewFeatureConfigurationUrl = (
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/panel/accounts/${id}/configuration/${code}/preview?${stringifiedParams}`
+    : `/api/panel/accounts/${id}/configuration/${code}/preview`;
+};
+
+/**
+ * @summary The screen as the ERP gets it for the account, or for one business unit
+ */
+export const previewFeatureConfiguration = async (
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<FeatureConfig> => {
+  return customFetch<FeatureConfig>(getPreviewFeatureConfigurationUrl(id, code, params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getPreviewFeatureConfigurationQueryKey = (
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+) => {
+  return [
+    `/api/panel/accounts/${id}/configuration/${code}/preview`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getPreviewFeatureConfigurationQueryOptions = <
+  TData = Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewFeatureConfiguration>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getPreviewFeatureConfigurationQueryKey(id, code, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof previewFeatureConfiguration>>> = ({
+    signal,
+  }) => previewFeatureConfiguration(id, code, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined && code !== null && code !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof previewFeatureConfiguration>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type PreviewFeatureConfigurationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof previewFeatureConfiguration>>
+>;
+export type PreviewFeatureConfigurationQueryError = ErrorType<ProblemDetails>;
+
+export function usePreviewFeatureConfiguration<
+  TData = Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  code: string,
+  params: undefined | PreviewFeatureConfigurationParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewFeatureConfiguration>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+          TError,
+          Awaited<ReturnType<typeof previewFeatureConfiguration>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function usePreviewFeatureConfiguration<
+  TData = Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewFeatureConfiguration>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+          TError,
+          Awaited<ReturnType<typeof previewFeatureConfiguration>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function usePreviewFeatureConfiguration<
+  TData = Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewFeatureConfiguration>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary The screen as the ERP gets it for the account, or for one business unit
+ */
+
+export function usePreviewFeatureConfiguration<
+  TData = Awaited<ReturnType<typeof previewFeatureConfiguration>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  code: string,
+  params?: PreviewFeatureConfigurationParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof previewFeatureConfiguration>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getPreviewFeatureConfigurationQueryOptions(id, code, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getArrangeFeatureLayoutUrl = (
+  id: string,
+  code: string,
+  params?: ArrangeFeatureLayoutParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/panel/accounts/${id}/configuration/${code}/layout?${stringifiedParams}`
+    : `/api/panel/accounts/${id}/configuration/${code}/layout`;
+};
+
+/**
+ * @summary Save the order of tabs, sections and fields and where each one sits
+ */
+export const arrangeFeatureLayout = async (
+  id: string,
+  code: string,
+  layoutRequest: LayoutRequest,
+  params?: ArrangeFeatureLayoutParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<FeatureConfigEditor> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<FeatureConfigEditor>(getArrangeFeatureLayoutUrl(id, code, params), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(layoutRequest),
+  });
+};
+
+export const getArrangeFeatureLayoutMutationKey = () => ['arrangeFeatureLayout'] as const;
+
+export const getArrangeFeatureLayoutMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof arrangeFeatureLayout>>,
+    TError,
+    ArrangeFeatureLayoutMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof arrangeFeatureLayout>>,
+  TError,
+  ArrangeFeatureLayoutMutationVariables,
+  TContext
+> => {
+  const mutationKey = getArrangeFeatureLayoutMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof arrangeFeatureLayout>>,
+    ArrangeFeatureLayoutMutationVariables
+  > = (props) => {
+    const { id, code, data, params } = props ?? {};
+
+    return arrangeFeatureLayout(id, code, data, params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ArrangeFeatureLayoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof arrangeFeatureLayout>>
+>;
+export type ArrangeFeatureLayoutMutationBody = BodyType<LayoutRequest>;
+export type ArrangeFeatureLayoutMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type ArrangeFeatureLayoutMutationVariables = {
+  id: string;
+  code: string;
+  data: BodyType<LayoutRequest>;
+  params?: ArrangeFeatureLayoutParams;
+};
+
+/**
+ * @summary Save the order of tabs, sections and fields and where each one sits
+ */
+export const useArrangeFeatureLayout = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof arrangeFeatureLayout>>,
+      TError,
+      ArrangeFeatureLayoutMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof arrangeFeatureLayout>>,
+  TError,
+  ArrangeFeatureLayoutMutationVariables,
+  TContext
+> => {
+  return useMutation(getArrangeFeatureLayoutMutationOptions(options), queryClient);
+};
+export const getSaveSectionSettingUrl = (
+  id: string,
+  code: string,
+  key: string,
+  params?: SaveSectionSettingParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/panel/accounts/${id}/configuration/${code}/sections/${key}?${stringifiedParams}`
+    : `/api/panel/accounts/${id}/configuration/${code}/sections/${key}`;
+};
+
+/**
+ * @summary Rename, hide or resize a tab or section for the account, or for one business unit
+ */
+export const saveSectionSetting = async (
+  id: string,
+  code: string,
+  key: string,
+  sectionSettingValues: SectionSettingValues,
+  params?: SaveSectionSettingParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<SectionConfigRow> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<SectionConfigRow>(getSaveSectionSettingUrl(id, code, key, params), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sectionSettingValues),
+  });
+};
+
+export const getSaveSectionSettingMutationKey = () => ['saveSectionSetting'] as const;
+
+export const getSaveSectionSettingMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveSectionSetting>>,
+    TError,
+    SaveSectionSettingMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof saveSectionSetting>>,
+  TError,
+  SaveSectionSettingMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSaveSectionSettingMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof saveSectionSetting>>,
+    SaveSectionSettingMutationVariables
+  > = (props) => {
+    const { id, code, key, data, params } = props ?? {};
+
+    return saveSectionSetting(id, code, key, data, params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SaveSectionSettingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof saveSectionSetting>>
+>;
+export type SaveSectionSettingMutationBody = BodyType<SectionSettingValues>;
+export type SaveSectionSettingMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type SaveSectionSettingMutationVariables = {
+  id: string;
+  code: string;
+  key: string;
+  data: BodyType<SectionSettingValues>;
+  params?: SaveSectionSettingParams;
+};
+
+/**
+ * @summary Rename, hide or resize a tab or section for the account, or for one business unit
+ */
+export const useSaveSectionSetting = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof saveSectionSetting>>,
+      TError,
+      SaveSectionSettingMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof saveSectionSetting>>,
+  TError,
+  SaveSectionSettingMutationVariables,
+  TContext
+> => {
+  return useMutation(getSaveSectionSettingMutationOptions(options), queryClient);
+};
+export const getResetSectionSettingUrl = (
+  id: string,
+  code: string,
+  key: string,
+  params?: ResetSectionSettingParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/panel/accounts/${id}/configuration/${code}/sections/${key}?${stringifiedParams}`
+    : `/api/panel/accounts/${id}/configuration/${code}/sections/${key}`;
+};
+
+/**
+ * @summary Remove the account's (or business unit's) changes to one tab or section
+ */
+export const resetSectionSetting = async (
+  id: string,
+  code: string,
+  key: string,
+  params?: ResetSectionSettingParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<SectionConfigRow> => {
+  return customFetch<SectionConfigRow>(getResetSectionSettingUrl(id, code, key, params), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getResetSectionSettingMutationKey = () => ['resetSectionSetting'] as const;
+
+export const getResetSectionSettingMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetSectionSetting>>,
+    TError,
+    ResetSectionSettingMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetSectionSetting>>,
+  TError,
+  ResetSectionSettingMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResetSectionSettingMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetSectionSetting>>,
+    ResetSectionSettingMutationVariables
+  > = (props) => {
+    const { id, code, key, params } = props ?? {};
+
+    return resetSectionSetting(id, code, key, params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetSectionSettingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetSectionSetting>>
+>;
+
+export type ResetSectionSettingMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type ResetSectionSettingMutationVariables = {
+  id: string;
+  code: string;
+  key: string;
+  params?: ResetSectionSettingParams;
+};
+
+/**
+ * @summary Remove the account's (or business unit's) changes to one tab or section
+ */
+export const useResetSectionSetting = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetSectionSetting>>,
+      TError,
+      ResetSectionSettingMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetSectionSetting>>,
+  TError,
+  ResetSectionSettingMutationVariables,
+  TContext
+> => {
+  return useMutation(getResetSectionSettingMutationOptions(options), queryClient);
 };

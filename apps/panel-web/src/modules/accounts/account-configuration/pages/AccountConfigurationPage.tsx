@@ -1,13 +1,13 @@
 import {
   CheckCircleOutlined,
   EditOutlined,
+  LayoutOutlined,
   PlusOutlined,
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
 import {
   getGetFeatureConfigurationQueryKey,
-  useGetAccount,
   useGetFeatureConfiguration,
   useResetFieldSetting,
   useSetCustomFieldStatus,
@@ -19,9 +19,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { App, type TableColumnsType } from 'antd';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
-import { useFeatureCatalog } from '../../components/feature-catalog';
+import { useAccountScreens } from '../../components/account-screens';
+import { ACCOUNT_PATHS, SCREEN_PARAMS } from '../../constants';
 import { CustomFieldModal } from '../components/CustomFieldModal';
 import { FieldSettingsModal } from '../components/FieldSettingsModal';
 import { effective } from '../field-settings';
@@ -34,8 +35,8 @@ export function AccountConfigurationPage() {
   const { message } = App.useApp();
   const accountId = useParams().id ?? '';
   const queryClient = useQueryClient();
-  const account = useGetAccount(accountId);
-  const { modules } = useFeatureCatalog();
+  const navigate = useNavigate();
+  const { account, features, units } = useAccountScreens(accountId);
   const reset = useResetFieldSetting();
   const setStatus = useSetCustomFieldStatus();
   const showUndo = useUndoMessage();
@@ -45,22 +46,6 @@ export function AccountConfigurationPage() {
     filters: { feature: null, unit: null },
     pageSize: appConfig.defaultPageSize,
   });
-
-  const granted = account.data?.featureCodes ?? [];
-  const features = modules.flatMap((module) =>
-    module.subModules.flatMap((subModule) =>
-      subModule.features
-        .filter((feature) => granted.includes(feature.code))
-        .map((feature) => ({
-          value: feature.code,
-          label: `${text(subModule.label)} › ${text(feature.label)}`,
-        })),
-    ),
-  );
-  const units = (account.data?.businessUnits ?? []).map((unit) => ({
-    value: unit.id,
-    label: unit.name,
-  }));
 
   const firstFeature = features[0]?.value;
   const { setFilter } = list;
@@ -76,6 +61,10 @@ export function AccountConfigurationPage() {
     query: { enabled: !!feature, retry: false },
   });
   const refresh = () => queryClient.invalidateQueries({ queryKey });
+  const layoutQuery = new URLSearchParams({
+    [SCREEN_PARAMS.feature]: feature,
+    ...(unitId ? { [SCREEN_PARAMS.unit]: unitId } : {}),
+  });
 
   const scope = unitId
     ? t('config.scopeUnit', { unit: units.find((u) => u.value === unitId)?.label ?? '' })
@@ -193,6 +182,13 @@ export function AccountConfigurationPage() {
         title={t('config.title', { account: account.data?.name ?? '' })}
         subtitle={t('config.subtitle')}
         actions={[
+          {
+            key: 'layout',
+            label: t('layout.action'),
+            icon: <LayoutOutlined />,
+            disabled: !feature,
+            onClick: () => navigate(`${ACCOUNT_PATHS.layout(accountId)}?${layoutQuery}`),
+          },
           {
             key: 'new',
             label: t('config.custom.new'),

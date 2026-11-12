@@ -123,6 +123,12 @@ configuration only shapes the screens.
     `GET /api/panel/lookup-types`, `GET` / `POST /api/panel/accounts/{id}/lookups/{type}` and `PUT …/{valueId}`.
     Saving bumps the account's `ConfigVersion`. In Screen settings, the default of a list-lookup field is chosen from
     the list.
+- **Panel: Layout** (Screen settings → Layout, `/accounts/{id}/layout?feature=&unit=`). Shows the screen as tabs →
+  sections → fields. Drag a tab, a section (also into another tab) or a field (also into another section); each drop
+  saves at once through `PUT …/configuration/{code}/layout`, which stores only what differs from the default. The
+  pencil renames, hides or resizes a tab or section (`PUT` / `DELETE …/sections/{key}`). **Preview** renders the
+  form from `GET …/preview`. Tabs and sections come from the manifest; an account cannot add its own. Changes that
+  would hide a locked field, or a required field without a default, are rejected.
 - **Custom fields per account.** In Screen settings, **New custom field** adds a field to a screen for one account:
   English and Bangla label, type (text, long text, number, decimal, money, percent, date, yes / no, dropdown), section
   and, for a dropdown, one of the account's lookup lists. The key is made from the English label (`Warranty months` →

@@ -47,7 +47,37 @@ public sealed record FeatureConfigEditor(
     string Feature,
     IReadOnlyList<ConfigSectionOption> Sections,
     IReadOnlyList<FieldConfigRow> Fields,
-    IReadOnlyList<string> CustomTypes);
+    IReadOnlyList<string> CustomTypes,
+    IReadOnlyList<SectionConfigRow> Layout);
+
+public sealed record SectionSettingValues
+{
+    public string? LabelEn { get; init; }
+    public string? LabelBn { get; init; }
+    public int? SortOrder { get; init; }
+    public int? Columns { get; init; }
+    public bool? IsVisible { get; init; }
+    public string? TabKey { get; init; }
+}
+
+public sealed record SectionConfigRow(string Key, bool IsTab, SectionSettingValues Base, SectionSettingValues? Override);
+
+public sealed record LayoutSection(string Key, IReadOnlyList<string> Fields);
+
+public sealed record LayoutTab(string Key, IReadOnlyList<LayoutSection> Sections);
+
+public sealed record LayoutRequest(IReadOnlyList<LayoutTab> Tabs);
+
+internal sealed class SectionSettingValuesValidator : AbstractValidator<SectionSettingValues>
+{
+    public SectionSettingValuesValidator()
+    {
+        RuleFor(x => x.LabelEn).MaximumLength(100);
+        RuleFor(x => x.LabelBn).MaximumLength(100);
+        RuleFor(x => x.SortOrder).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Columns).InclusiveBetween(1, 4);
+    }
+}
 
 public sealed record CreateCustomFieldRequest(string LabelEn, string? LabelBn, string Type, string SectionKey, string? Lookup);
 

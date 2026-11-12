@@ -1,4 +1,5 @@
 using Erp.Core.Validation;
+using Erp.Metadata;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Erp.Api.Panel.Configuration;
@@ -36,8 +37,46 @@ public static class FeatureConfigurationEndpoints
             .WithSummary("Remove the account's (or business unit's) changes to one field")
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        configuration.MapGet("/preview", Preview)
+            .WithName("PreviewFeatureConfiguration")
+            .WithSummary("The screen as the ERP gets it for the account, or for one business unit")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        configuration.MapPut("/layout", Arrange)
+            .WithName("ArrangeFeatureLayout")
+            .WithSummary("Save the order of tabs, sections and fields and where each one sits")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        configuration.MapPut("/sections/{key}", SaveSection)
+            .WithName("SaveSectionSetting")
+            .WithSummary("Rename, hide or resize a tab or section for the account, or for one business unit")
+            .Validate<SectionSettingValues>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        configuration.MapDelete("/sections/{key}", ResetSection)
+            .WithName("ResetSectionSetting")
+            .WithSummary("Remove the account's (or business unit's) changes to one tab or section")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         return panel;
     }
+
+    private static async Task<Results<Ok<FeatureConfig>, NotFound>> Preview(
+        Guid id, string code, Guid? businessUnitId, FeatureConfigurationService service, CancellationToken ct) =>
+        await service.PreviewAsync(id, businessUnitId, code, ct) is { } config ? TypedResults.Ok(config) : TypedResults.NotFound();
+
+    private static Task<Results<Ok<FeatureConfigEditor>, NotFound, ValidationProblem>> Arrange(
+        Guid id, string code, Guid? businessUnitId, LayoutRequest layout, FeatureConfigurationService service, CancellationToken ct) =>
+        Respond(service.ArrangeAsync(id, businessUnitId, code, layout, ct));
+
+    private static Task<Results<Ok<SectionConfigRow>, NotFound, ValidationProblem>> SaveSection(
+        Guid id, string code, string key, Guid? businessUnitId, SectionSettingValues values,
+        FeatureConfigurationService service, CancellationToken ct) =>
+        Respond(service.SaveSectionAsync(id, businessUnitId, code, key, values, ct));
+
+    private static Task<Results<Ok<SectionConfigRow>, NotFound, ValidationProblem>> ResetSection(
+        Guid id, string code, string key, Guid? businessUnitId, FeatureConfigurationService service, CancellationToken ct) =>
+        Respond(service.SaveSectionAsync(id, businessUnitId, code, key, new SectionSettingValues(), ct));
 
     private static async Task<Results<Ok<FeatureConfigEditor>, NotFound>> Get(
         Guid id, string code, Guid? businessUnitId, FeatureConfigurationService service, CancellationToken ct) =>
@@ -60,8 +99,8 @@ public static class FeatureConfigurationEndpoints
         Guid id, string code, string key, Guid? businessUnitId, FeatureConfigurationService service, CancellationToken ct) =>
         Respond(service.SaveAsync(id, businessUnitId, code, key, new FieldSettingValues(), ct));
 
-    private static async Task<Results<Ok<FieldConfigRow>, NotFound, ValidationProblem>> Respond(
-        Task<(FieldConfigRow? Row, Dictionary<string, string[]> Errors)> saving)
+    private static async Task<Results<Ok<T>, NotFound, ValidationProblem>> Respond<T>(
+        Task<(T? Row, Dictionary<string, string[]> Errors)> saving) where T : class
     {
         var (row, errors) = await saving;
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
