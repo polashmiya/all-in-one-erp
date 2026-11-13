@@ -24,7 +24,8 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         List<AccountFieldSetting> Settings,
         List<AccountSectionSetting> SectionSettings,
         Dictionary<string, List<int>> ListValues,
-        Dictionary<string, string> LookupDefaults);
+        Dictionary<string, string> LookupDefaults,
+        List<Guid> LayoutUnits);
 
     public async Task<FeatureConfigEditor?> GetAsync(Guid accountId, Guid? businessUnitId, string code, CancellationToken ct) =>
         await LoadAsync(accountId, businessUnitId, code, ct) is { } scope ? Editor(scope) : null;
@@ -53,8 +54,74 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
             .ToList();
 
         var layout = scope.Sections.Values.OrderBy(s => s.SortOrder).ThenBy(s => s.Key).Select(s => Row(scope, s)).ToList();
+        var units = scope.LayoutUnits.Where(u => u != scope.BusinessUnitId).ToList();
+        if (OwnsLayout(scope)) units.Add(scope.BusinessUnitId!.Value);
+        var own = scope.BusinessUnitId is null
+            ? scope.SectionSettings.Any(s => s.BusinessUnitId is null) ||
+              scope.Settings.Any(s => s.BusinessUnitId is null && (s.SortOrder is not null || s.SectionId is not null))
+            : OwnsLayout(scope);
 
-        return new FeatureConfigEditor(scope.Code, sections, fields, FieldTypes.Custom, layout);
+        return new FeatureConfigEditor(scope.Code, sections, fields, FieldTypes.Custom, layout, own, units);
+    }
+
+    /// <summary>
+    /// A business unit has its own layout once it stores any tab or section row. Its layout is then a full copy:
+    /// every tab, section and field keeps its own place, so later changes to the account's layout don't reach it.
+    /// </summary>
+    private static bool OwnsLayout(Scope scope) =>
+        scope.BusinessUnitId is { } unit && scope.SectionSettings.Any(s => s.BusinessUnitId == unit);
+
+    /// <summary>Copies the layout the business unit sees now into its own rows, so it stops following the account.</summary>
+    private void Adopt(Scope scope)
+    {
+        if (scope.BusinessUnitId is null) return;
+
+        foreach (var section in scope.Sections.Values)
+        {
+            var own = OwnRow(scope, section) ?? NewRow(scope, section);
+            var current = FeatureSettings.Merge(BaseRow(scope, section), own)!;
+            own.SortOrder ??= current.SortOrder;
+            own.ParentId ??= current.ParentId;
+            own.LabelEn ??= current.LabelEn;
+            own.LabelBn ??= current.LabelBn;
+            own.Columns ??= current.Columns;
+            own.IsVisible ??= current.IsVisible;
+            Keep(scope, own);
+        }
+
+        foreach (var field in scope.Fields)
+        {
+            var own = OwnRow(scope, field) ?? NewRow(scope, field);
+            var current = FeatureSettings.Merge(BaseRow(scope, field), own)!;
+            own.SortOrder ??= current.SortOrder;
+            own.SectionId ??= current.SectionId;
+            Keep(scope, own);
+        }
+    }
+
+    public async Task<(FeatureConfigEditor? Editor, Dictionary<string, string[]> Errors)> ResetLayoutAsync(
+        Guid accountId, Guid? businessUnitId, string code, CancellationToken ct)
+    {
+        if (await LoadAsync(accountId, businessUnitId, code, ct) is not { } scope) return (null, []);
+
+        var before = LayoutOf(scope);
+        foreach (var row in scope.SectionSettings.Where(s => s.BusinessUnitId == scope.BusinessUnitId).ToList())
+        {
+            db.AccountSectionSettings.Remove(row);
+            scope.SectionSettings.Remove(row);
+        }
+        foreach (var row in scope.Settings.Where(s => s.BusinessUnitId == scope.BusinessUnitId).ToList())
+        {
+            row.SortOrder = null;
+            row.SectionId = null;
+            Keep(scope, row);
+        }
+
+        if (HiddenProblem(scope) is { } problem) return (null, new() { ["tabs"] = [problem] });
+        Record(scope, ConfigurationAreas.Layout, scope.Code, before, LayoutOf(scope));
+        await CommitAsync(scope, ct);
+
+        return (Editor(scope), []);
     }
 
     public async Task<(SectionConfigRow? Row, Dictionary<string, string[]> Errors)> SaveSectionAsync(
@@ -68,13 +135,27 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
             return (null, new() { ["tabKey"] = ["Choose a tab of this screen."] });
 
         var before = OwnRow(scope, section) is { } old ? Values(old, scope) : null;
+        Adopt(scope);
         var own = OwnRow(scope, section) ?? NewRow(scope, section);
-        own.LabelEn = Trimmed(values.LabelEn);
-        own.LabelBn = Trimmed(values.LabelBn);
-        own.SortOrder = values.SortOrder;
-        own.Columns = values.Columns;
-        own.IsVisible = values.IsVisible;
-        own.ParentId = tab?.Id;
+        if (scope.BusinessUnitId is null)
+        {
+            own.LabelEn = Trimmed(values.LabelEn);
+            own.LabelBn = Trimmed(values.LabelBn);
+            own.SortOrder = values.SortOrder;
+            own.Columns = values.Columns;
+            own.IsVisible = values.IsVisible;
+            own.ParentId = tab?.Id;
+        }
+        else
+        {
+            var basis = BaseRow(scope, section);
+            own.LabelEn = Trimmed(values.LabelEn) ?? basis.LabelEn;
+            own.LabelBn = Trimmed(values.LabelBn) ?? basis.LabelBn;
+            own.Columns = values.Columns ?? basis.Columns;
+            own.IsVisible = values.IsVisible ?? basis.IsVisible;
+            own.SortOrder = values.SortOrder ?? own.SortOrder;
+            own.ParentId = tab?.Id ?? own.ParentId;
+        }
         Keep(scope, own);
 
         if (HiddenProblem(scope) is { } problem) return (null, new() { ["isVisible"] = [problem] });
@@ -101,6 +182,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
             return (null, new() { ["tabs"] = ["The layout has unknown or repeated tabs, sections or fields."] });
 
         var before = LayoutOf(scope);
+        Adopt(scope);
         foreach (var (tab, tabIndex) in layout.Tabs.Select((tab, index) => (tab, index)))
         {
             Place(scope, tabs[tab.Key], Order(tabIndex), null);
@@ -189,8 +271,15 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         if (errors.Count > 0) return (null, errors);
 
         var before = OwnRow(scope, field) is { } old ? Values(old, scope) : null;
+        if (values.SectionKey is not null || values.SortOrder is not null) Adopt(scope);
         var own = OwnRow(scope, field) ?? NewRow(scope, field);
+        var (sortOrder, sectionId) = (own.SortOrder, own.SectionId);
         Apply(own, values, scope);
+        if (OwnsLayout(scope))
+        {
+            own.SortOrder ??= sortOrder;
+            own.SectionId ??= sectionId;
+        }
         Keep(scope, own);
 
         if (HiddenProblem(scope) is { } problem) return (null, new() { ["sectionKey"] = [problem] });
@@ -200,12 +289,14 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         return (Row(scope, field), []);
     }
 
+    // The account stores only what differs from the standard layout; a business unit with its own layout stores every place.
     private void Place(Scope scope, FeatureSection section, int order, Guid? tabId)
     {
         var basis = BaseRow(scope, section);
         var own = OwnRow(scope, section) ?? NewRow(scope, section);
-        own.SortOrder = order == basis.SortOrder ? null : order;
-        own.ParentId = tabId == basis.ParentId ? null : tabId;
+        var full = scope.BusinessUnitId is not null;
+        own.SortOrder = !full && order == basis.SortOrder ? null : order;
+        own.ParentId = !full && tabId == basis.ParentId ? null : tabId;
         Keep(scope, own);
     }
 
@@ -213,8 +304,9 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
     {
         var basis = BaseRow(scope, field);
         var own = OwnRow(scope, field) ?? NewRow(scope, field);
-        own.SortOrder = order == basis.SortOrder ? null : order;
-        own.SectionId = sectionId == basis.SectionId ? null : sectionId;
+        var full = scope.BusinessUnitId is not null;
+        own.SortOrder = !full && order == basis.SortOrder ? null : order;
+        own.SectionId = !full && sectionId == basis.SectionId ? null : sectionId;
         Keep(scope, own);
     }
 
@@ -312,9 +404,15 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
             .GroupBy(v => v.Key)
             .ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToList());
         var lookupDefaults = await FeatureConfigService.LookupDefaultsAsync(db, accountId, ct);
+        var layoutUnits = await db.AccountSectionSettings.AcrossTenants()
+            .Where(s => s.AccountId == accountId && s.Section!.FeatureId == featureId && s.BusinessUnitId != null)
+            .Select(s => s.BusinessUnitId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
 
         return new Scope(
-            accountId, businessUnitId, featureId.Value, featureCode, sections, fields, settings, sectionSettings, listValues, lookupDefaults);
+            accountId, businessUnitId, featureId.Value, featureCode, sections, fields, settings, sectionSettings, listValues,
+            lookupDefaults, layoutUnits);
     }
 
     private static AccountFieldSetting NewRow(Scope scope, FeatureField field) =>

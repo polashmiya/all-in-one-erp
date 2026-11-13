@@ -169,7 +169,12 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
             await ErrorsAsync(await client.PutAsJsonAsync($"{sections}/basic", new SectionSettingValues { Columns = 5 })));
 
         var reset = await client.DeleteAsync($"{sections}/{optional.Key}{Unit(factory.DhakaId)}");
-        Assert.Null((await reset.Content.ReadFromJsonAsync<SectionConfigRow>())!.Override);
+        var back = (await reset.Content.ReadFromJsonAsync<SectionConfigRow>())!;
+        Assert.Equal((back.Base.LabelEn, back.Base.Columns, back.Base.IsVisible), (back.Override!.LabelEn, back.Override.Columns, back.Override.IsVisible));
+
+        await client.DeleteAsync($"{Path(accountId)}/layout{Unit(factory.DhakaId)}");
+        var unit = (await client.GetFromJsonAsync<FeatureConfigEditor>($"{Path(accountId)}{Unit(factory.DhakaId)}"))!;
+        Assert.All(unit.Layout, s => Assert.Null(s.Override));
         Assert.Equal(HttpStatusCode.NotFound,
             (await client.PutAsJsonAsync($"{sections}/nope", new SectionSettingValues { Columns = 2 })).StatusCode);
     }
@@ -211,6 +216,58 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
 
         var unknown = new LayoutRequest([new LayoutTab(layout.Tabs[0].Key, [new LayoutSection(first.Key, ["nope"])])]);
         Assert.Equal(["tabs"], await ErrorsAsync(await client.PutAsJsonAsync($"{Path(accountId)}/layout", unknown)));
+    }
+
+    [Fact]
+    public async Task A_business_unit_layout_is_its_own_until_it_goes_back_to_the_account_layout()
+    {
+        var client = await PanelClientAsync();
+        var accountId = await DemoAccountIdAsync();
+        await using var cleanup = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+        async Task<FeatureConfig> PreviewAsync(Guid? unit) =>
+            (await client.GetFromJsonAsync<FeatureConfig>($"{Path(accountId)}/preview{Unit(unit)}"))!;
+        async Task<FeatureConfigEditor> EditorAsync(Guid? unit) =>
+            (await client.GetFromJsonAsync<FeatureConfigEditor>($"{Path(accountId)}{Unit(unit)}"))!;
+        static List<string> Sections(FeatureConfig config) => config.Tabs[0].Sections.Select(s => s.Key).ToList();
+        static List<string> Fields(FeatureConfig config) => config.Tabs[0].Sections[0].Fields.Select(f => f.Key).ToList();
+        static LayoutRequest Layout(FeatureConfig config, Func<List<LayoutSection>, List<LayoutSection>> arrange) => new(config.Tabs
+            .Select((t, i) =>
+            {
+                var sections = t.Sections.Select(s => new LayoutSection(s.Key, s.Fields.Select(f => f.Key).ToList())).ToList();
+                return new LayoutTab(t.Key, i == 0 ? arrange(sections) : sections);
+            })
+            .ToList());
+
+        var standard = await PreviewAsync(null);
+        Assert.False((await EditorAsync(factory.DhakaId)).OwnLayout);
+
+        var swapped = Layout(standard, s => [s[1], s[0], .. s.Skip(2)]);
+        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync($"{Path(accountId)}/layout{Unit(factory.DhakaId)}", swapped)).StatusCode);
+        var dhaka = await PreviewAsync(factory.DhakaId);
+        Assert.Equal([Sections(standard)[1], Sections(standard)[0]], Sections(dhaka).Take(2));
+        Assert.Equal(Sections(standard), Sections(await PreviewAsync(factory.ChattogramId)));
+        Assert.Equal(Sections(standard), Sections(await PreviewAsync(null)));
+
+        var account = await EditorAsync(null);
+        Assert.Equal([factory.DhakaId], account.LayoutUnitIds);
+        Assert.False(account.OwnLayout);
+        Assert.True((await EditorAsync(factory.DhakaId)).OwnLayout);
+
+        var reversed = Layout(standard, s => [s[0] with { Fields = s[0].Fields.Reverse().ToList() }, .. s.Skip(1)]);
+        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync($"{Path(accountId)}/layout", reversed)).StatusCode);
+        Assert.True((await EditorAsync(null)).OwnLayout);
+        Assert.Equal(Fields(standard).AsEnumerable().Reverse(), Fields(await PreviewAsync(factory.ChattogramId)));
+        Assert.Equal(Fields(dhaka), Fields(await PreviewAsync(factory.DhakaId)));
+
+        var reset = await client.DeleteAsync($"{Path(accountId)}/layout{Unit(factory.DhakaId)}");
+        var editor = (await reset.Content.ReadFromJsonAsync<FeatureConfigEditor>())!;
+        Assert.Equal((false, 0), (editor.OwnLayout, editor.LayoutUnitIds.Count));
+        Assert.Equal(Fields(await PreviewAsync(null)), Fields(await PreviewAsync(factory.DhakaId)));
+        Assert.Equal(Sections(standard), Sections(await PreviewAsync(factory.DhakaId)));
+
+        await client.DeleteAsync($"{Path(accountId)}/layout");
+        Assert.False((await EditorAsync(null)).OwnLayout);
+        Assert.Equal(Fields(standard), Fields(await PreviewAsync(factory.ChattogramId)));
     }
 
     [Fact]

@@ -15,4 +15,6 @@ export interface FeatureConfigEditor {
   fields: FieldConfigRow[];
   customTypes: string[];
   layout: SectionConfigRow[];
+  ownLayout: boolean;
+  layoutUnitIds: string[];
 }

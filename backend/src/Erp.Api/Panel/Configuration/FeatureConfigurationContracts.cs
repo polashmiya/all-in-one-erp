@@ -48,7 +48,9 @@ public sealed record FeatureConfigEditor(
     IReadOnlyList<ConfigSectionOption> Sections,
     IReadOnlyList<FieldConfigRow> Fields,
     IReadOnlyList<string> CustomTypes,
-    IReadOnlyList<SectionConfigRow> Layout);
+    IReadOnlyList<SectionConfigRow> Layout,
+    bool OwnLayout,
+    IReadOnlyList<Guid> LayoutUnitIds);
 
 public sealed record SectionSettingValues
 {

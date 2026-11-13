@@ -21,6 +21,8 @@ const editor = {
   feature: 'x.y',
   sections: [],
   customTypes: [],
+  ownLayout: false,
+  layoutUnitIds: [],
   layout: [
     section('prices', 20, 'general'),
     section('general', 10, null),

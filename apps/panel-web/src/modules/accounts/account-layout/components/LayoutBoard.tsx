@@ -68,6 +68,8 @@ function useNode(kind: NodeKind, key: string) {
 }
 
 interface BoardActions {
+  /** Mark tabs and sections changed from the standard layout and offer to reset each one. */
+  showChanges: boolean;
   onEdit: (row: SectionConfigRow) => void;
   onReset: (row: SectionConfigRow) => void;
 }
@@ -84,11 +86,13 @@ function Head({
   row,
   kind,
   handle,
+  showChanges,
   onEdit,
   onReset,
 }: { row: SectionConfigRow; kind: 'tab' | 'section'; handle: object } & BoardActions) {
   const { t } = useTranslation();
   const label = useLabel();
+  const changed = showChanges && !!row.override;
 
   return (
     <header className="acc-layout__head">
@@ -100,7 +104,7 @@ function Head({
       {effective(row).isVisible === false && (
         <StatusTag tone="warning">{t('layout.hidden')}</StatusTag>
       )}
-      {row.override && <StatusTag tone="violet">{t('config.changed')}</StatusTag>}
+      {changed && <StatusTag tone="violet">{t('config.changed')}</StatusTag>}
       <ActionGroup
         size="small"
         className="acc-layout__actions"
@@ -119,7 +123,7 @@ function Head({
             icon: <UndoOutlined />,
             variant: 'text',
             iconOnly: true,
-            hidden: !row.override,
+            hidden: !changed,
             onClick: () => onReset(row),
           },
         ]}

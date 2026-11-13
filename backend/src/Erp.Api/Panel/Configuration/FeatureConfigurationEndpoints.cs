@@ -47,6 +47,11 @@ public static class FeatureConfigurationEndpoints
             .WithSummary("Save the order of tabs, sections and fields and where each one sits")
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        configuration.MapDelete("/layout", ResetLayout)
+            .WithName("ResetFeatureLayout")
+            .WithSummary("Drop a business unit's own layout so it follows the account again, or put the account's layout back to the standard one")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         configuration.MapPut("/sections/{key}", SaveSection)
             .WithName("SaveSectionSetting")
             .WithSummary("Rename, hide or resize a tab or section for the account, or for one business unit")
@@ -68,6 +73,10 @@ public static class FeatureConfigurationEndpoints
     private static Task<Results<Ok<FeatureConfigEditor>, NotFound, ValidationProblem>> Arrange(
         Guid id, string code, Guid? businessUnitId, LayoutRequest layout, FeatureConfigurationService service, CancellationToken ct) =>
         Respond(service.ArrangeAsync(id, businessUnitId, code, layout, ct));
+
+    private static Task<Results<Ok<FeatureConfigEditor>, NotFound, ValidationProblem>> ResetLayout(
+        Guid id, string code, Guid? businessUnitId, FeatureConfigurationService service, CancellationToken ct) =>
+        Respond(service.ResetLayoutAsync(id, businessUnitId, code, ct));
 
     private static Task<Results<Ok<SectionConfigRow>, NotFound, ValidationProblem>> SaveSection(
         Guid id, string code, string key, Guid? businessUnitId, SectionSettingValues values,

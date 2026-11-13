@@ -26,7 +26,7 @@ import { useAccountScreens } from '../../components/account-screens';
 import { ACCOUNT_PATHS, SCREEN_PARAMS } from '../../constants';
 import { CustomFieldModal } from '../components/CustomFieldModal';
 import { FieldSettingsModal } from '../components/FieldSettingsModal';
-import { effective } from '../field-settings';
+import { effective, isChanged, PLACEMENT_KEYS } from '../field-settings';
 
 type Filters = { feature: string | null; unit: string | null };
 
@@ -75,6 +75,9 @@ export function AccountConfigurationPage() {
     const section = sections.find((s) => s.key === key);
     return section ? `${text(section.tabLabel)} › ${text(section.label)}` : '—';
   };
+  // A business unit with its own layout keeps every field's place; that is not a change to the field itself.
+  const ignored = unitId && editor.data?.ownLayout ? PLACEMENT_KEYS : [];
+  const changed = (row: FieldConfigRow) => isChanged(row, ignored);
   const labelOf = (row: FieldConfigRow) => {
     const values = effective(row);
     return text({ en: values.labelEn ?? row.key, bn: values.labelBn ?? null }) ?? row.key;
@@ -169,7 +172,7 @@ export function AccountConfigurationPage() {
       render: (_, row) =>
         !row.isActive ? (
           <StatusTag tone="neutral">{t('accounts.status.inactive')}</StatusTag>
-        ) : row.override ? (
+        ) : changed(row) ? (
           <StatusTag tone="violet">{t('config.changed')}</StatusTag>
         ) : (
           <StatusTag>{t('config.default')}</StatusTag>
@@ -230,7 +233,7 @@ export function AccountConfigurationPage() {
             label: t('config.reset'),
             icon: <UndoOutlined />,
             inMenu: true,
-            hidden: !row.override,
+            hidden: !changed(row),
             confirm: {
               title: t('config.resetConfirm', { field: labelOf(row) }),
               description: t('config.resetHint'),

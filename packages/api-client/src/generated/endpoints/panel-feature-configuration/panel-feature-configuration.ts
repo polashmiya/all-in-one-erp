@@ -36,6 +36,7 @@ import type {
   ListConfigurationChangesParams,
   PreviewFeatureConfigurationParams,
   ProblemDetails,
+  ResetFeatureLayoutParams,
   ResetFieldSettingParams,
   ResetSectionSettingParams,
   SaveFieldSettingParams,
@@ -1189,6 +1190,117 @@ export const useArrangeFeatureLayout = <
   TContext
 > => {
   return useMutation(getArrangeFeatureLayoutMutationOptions(options), queryClient);
+};
+export const getResetFeatureLayoutUrl = (
+  id: string,
+  code: string,
+  params?: ResetFeatureLayoutParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/panel/accounts/${id}/configuration/${code}/layout?${stringifiedParams}`
+    : `/api/panel/accounts/${id}/configuration/${code}/layout`;
+};
+
+/**
+ * @summary Drop a business unit's own layout so it follows the account again, or put the account's layout back to the standard one
+ */
+export const resetFeatureLayout = async (
+  id: string,
+  code: string,
+  params?: ResetFeatureLayoutParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<FeatureConfigEditor> => {
+  return customFetch<FeatureConfigEditor>(getResetFeatureLayoutUrl(id, code, params), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getResetFeatureLayoutMutationKey = () => ['resetFeatureLayout'] as const;
+
+export const getResetFeatureLayoutMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetFeatureLayout>>,
+    TError,
+    ResetFeatureLayoutMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetFeatureLayout>>,
+  TError,
+  ResetFeatureLayoutMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResetFeatureLayoutMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetFeatureLayout>>,
+    ResetFeatureLayoutMutationVariables
+  > = (props) => {
+    const { id, code, params } = props ?? {};
+
+    return resetFeatureLayout(id, code, params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetFeatureLayoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetFeatureLayout>>
+>;
+
+export type ResetFeatureLayoutMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type ResetFeatureLayoutMutationVariables = {
+  id: string;
+  code: string;
+  params?: ResetFeatureLayoutParams;
+};
+
+/**
+ * @summary Drop a business unit's own layout so it follows the account again, or put the account's layout back to the standard one
+ */
+export const useResetFeatureLayout = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetFeatureLayout>>,
+      TError,
+      ResetFeatureLayoutMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetFeatureLayout>>,
+  TError,
+  ResetFeatureLayoutMutationVariables,
+  TContext
+> => {
+  return useMutation(getResetFeatureLayoutMutationOptions(options), queryClient);
 };
 export const getSaveSectionSettingUrl = (
   id: string,

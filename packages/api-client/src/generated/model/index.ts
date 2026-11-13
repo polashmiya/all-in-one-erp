@@ -98,6 +98,7 @@ export * from './previewFeatureConfigurationParams.ts';
 export * from './problemDetails.ts';
 export * from './recordIdsRequest.ts';
 export * from './recordStatusRequest.ts';
+export * from './resetFeatureLayoutParams.ts';
 export * from './resetFieldSettingParams.ts';
 export * from './resetSectionSettingParams.ts';
 export * from './saveFieldSettingParams.ts';

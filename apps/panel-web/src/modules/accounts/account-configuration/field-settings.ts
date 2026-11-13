@@ -13,6 +13,19 @@ export function effective<T extends object>(row: { base: T; override?: T | null 
   return { ...row.base, ...Object.fromEntries(own) };
 }
 
+/** Where a field sits on the screen; owned by the layout page. */
+export const PLACEMENT_KEYS = ['sectionKey', 'sortOrder'];
+
+/** Whether the scope's own values differ from what it would otherwise get, leaving out `ignore`. */
+export function isChanged<T extends object>(
+  row: { base: T; override?: T | null },
+  ignore: string[] = [],
+): boolean {
+  return Object.entries(row.override ?? {}).some(
+    ([key, value]) => value != null && !ignore.includes(key) && value !== row.base[key as keyof T],
+  );
+}
+
 const clean = (value: unknown) =>
   typeof value === 'string' ? value.trim() || null : (value ?? null);
 
