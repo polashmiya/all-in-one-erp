@@ -782,6 +782,10 @@ html[data-content-width='boxed'] .erp-page {
   overflow-wrap: anywhere;
 }
 
+.erp-record__meta li > span:only-child {
+  grid-column: 1 / -1;
+}
+
 .erp-record__meta .anticon {
   margin-top: 3px;
   color: var(--erp-text-muted);
