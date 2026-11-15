@@ -179,7 +179,9 @@ html[data-content-width='boxed'] .erp-page {
 
 .erp-split-menu
   .ant-dropdown-menu
-  .ant-dropdown-menu-item.ant-dropdown-menu-item-danger:not(.ant-dropdown-menu-item-disabled):hover {
+  .ant-dropdown-menu-item.ant-dropdown-menu-item-danger:not(
+    .ant-dropdown-menu-item-disabled
+  ):hover {
   background: var(--erp-row-hover-overlay);
   color: var(--erp-tone-danger-fg);
 }
