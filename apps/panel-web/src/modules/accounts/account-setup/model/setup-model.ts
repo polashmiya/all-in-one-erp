@@ -41,6 +41,7 @@ export interface AccountForm {
 }
 
 export interface AdminForm {
+  username?: string;
   fullName?: string;
   email?: string;
   passwordMode?: 'generate' | 'manual';
@@ -57,7 +58,14 @@ export interface SetupFormValues {
 
 export type FieldPath = (string | number)[];
 
-export const STEP_KEYS = ['account', 'businessUnits', 'offices', 'warehouses', 'menus', 'review'] as const;
+export const STEP_KEYS = [
+  'account',
+  'businessUnits',
+  'offices',
+  'warehouses',
+  'menus',
+  'review',
+] as const;
 
 export const UNIT_LEVEL = '';
 
@@ -73,7 +81,19 @@ export const initialValues: SetupFormValues = {
   admin: { passwordMode: 'generate' },
 };
 
-const COMPANY_SUFFIXES = new Set(['LTD', 'LIMITED', 'PLC', 'INC', 'CO', 'COMPANY', 'PVT', 'PRIVATE', 'LLC', 'CORP', 'THE']);
+const COMPANY_SUFFIXES = new Set([
+  'LTD',
+  'LIMITED',
+  'PLC',
+  'INC',
+  'CO',
+  'COMPANY',
+  'PVT',
+  'PRIVATE',
+  'LLC',
+  'CORP',
+  'THE',
+]);
 
 export function suggestCode(name: string | undefined, maxLength = 20): string {
   const words = (name ?? '')
@@ -94,7 +114,8 @@ export function suggestCode(name: string | undefined, maxLength = 20): string {
   return code;
 }
 
-export const normalizeCode = (value: string | undefined) => value?.toUpperCase().replace(/\s+/g, '-') ?? '';
+export const normalizeCode = (value: string | undefined) =>
+  value?.toUpperCase().replace(/\s+/g, '-') ?? '';
 
 const text = (value: string | undefined) => value?.trim() ?? '';
 const optional = (value: string | undefined) => {
@@ -145,6 +166,7 @@ export function toSetupRequest(values: SetupFormValues): AccountSetupRequest {
     featureCodes: values.featureCodes ?? [],
     admin: {
       fullName: text(admin.fullName),
+      username: text(admin.username).toLowerCase(),
       email: text(admin.email).toLowerCase(),
       password: admin.passwordMode === 'manual' ? (admin.password ?? null) : null,
     },

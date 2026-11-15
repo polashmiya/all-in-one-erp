@@ -17,6 +17,7 @@ public static class AuthSetup
             .Bind(configuration.GetSection(JwtOptions.Section))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.Section));
 
         services.AddAuthentication()
             .AddJwtBearer(AuthSurfaces.Panel)
@@ -36,6 +37,9 @@ public static class AuthSetup
                 .RequireClaim(ErpClaimTypes.AccountId));
 
         services.AddSingleton<TokenService>();
+        services.AddSingleton<SessionCheck>();
+        services.AddScoped<SignInService>();
+        services.AddScoped<PasswordResetService>();
         return services;
     }
 
@@ -54,6 +58,11 @@ public static class AuthSetup
             ClockSkew = TimeSpan.FromSeconds(30),
             NameClaimType = ErpClaimTypes.Name,
             RoleClaimType = ErpClaimTypes.Role,
+        };
+        bearer.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+                context.HttpContext.RequestServices.GetRequiredService<SessionCheck>().ValidateAsync(context, audience),
         };
     }
 }

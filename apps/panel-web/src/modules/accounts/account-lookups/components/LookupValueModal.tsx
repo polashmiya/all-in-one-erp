@@ -9,6 +9,8 @@ import { Field, FieldGrid, FormModal, YesNoSwitch } from '@erp/ui';
 import { App, Form, Input, InputNumber } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useModalDraft } from '@/common/hooks/useDrafts';
+import { ACCOUNT_DRAFTS } from '../../constants';
 
 const CODE_MAX = 50;
 const NAME_MAX = 200;
@@ -22,6 +24,8 @@ export function LookupValueModal({
   value,
   nextOrder,
   onClose,
+  draftId,
+  onDraftChange,
   onSaved,
 }: {
   accountId: string;
@@ -31,6 +35,8 @@ export function LookupValueModal({
   value?: LookupValueRow;
   nextOrder: number;
   onClose: () => void;
+  draftId: string | null;
+  onDraftChange: (id: string | null) => void;
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
@@ -38,6 +44,13 @@ export function LookupValueModal({
   const [form] = Form.useForm<SaveLookupValueRequest>();
   const create = useCreateLookupValue();
   const update = useUpdateLookupValue();
+  const saved = useModalDraft<SaveLookupValueRequest>(
+    ACCOUNT_DRAFTS.lookupValue(accountId, type),
+    open,
+    !!value,
+    draftId,
+    onDraftChange,
+  );
 
   const initialValues = useMemo<Partial<SaveLookupValueRequest>>(
     () =>
@@ -45,14 +58,18 @@ export function LookupValueModal({
         sortOrder: nextOrder + ORDER_STEP,
         isDefault: false,
         isActive: true,
+        ...saved.values,
       },
-    [value, nextOrder],
+    [value, nextOrder, saved.values],
   );
 
   const submit = async (data: SaveLookupValueRequest) => {
     try {
       if (value) await update.mutateAsync({ id: accountId, type, valueId: value.id, data });
-      else await create.mutateAsync({ id: accountId, type, data });
+      else {
+        await create.mutateAsync({ id: accountId, type, data });
+        await saved.finish();
+      }
       await onSaved();
       void message.success(t('lookups.saved'));
     } catch (error) {
@@ -75,12 +92,13 @@ export function LookupValueModal({
   return (
     <FormModal<SaveLookupValueRequest>
       open={open}
-      onClose={onClose}
+      onClose={() => saved.close(onClose)}
       form={form}
       title={t(value ? 'lookups.editTitle' : 'lookups.newTitle', { list: listName })}
       initialValues={initialValues}
       addAnotherText={value ? undefined : t('lookups.addAnother')}
       onSubmit={submit}
+      draft={saved.draft}
     >
       <FieldGrid columns={2}>
         <Field

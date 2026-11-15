@@ -7,12 +7,13 @@ import {
   ShopOutlined,
 } from '@ant-design/icons';
 import { ApiError, useSetupAccount, type AccountSetupResult } from '@erp/api-client';
-import { PageContainer, useUnsavedGuard, WizardLayout } from '@erp/ui';
+import { PageContainer, PageState, suggestUsername, useUnsavedGuard, WizardLayout } from '@erp/ui';
 import { App, Form } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { ACCOUNT_PATHS } from '../../constants';
+import { useFormDraft } from '@/common/hooks/useDrafts';
+import { ACCOUNT_PATHS, ACCOUNT_DRAFTS } from '../../constants';
 import { SetupSuccess } from '../components/SetupSuccess';
 import { SetupSummary } from '../components/SetupSummary';
 import {
@@ -46,6 +47,7 @@ export function AccountSetupPage() {
   const [form] = Form.useForm<SetupFormValues>();
   const values = Form.useWatch([], { form, preserve: true }) as SetupFormValues | undefined;
   const setup = useSetupAccount();
+  const draft = useFormDraft<SetupFormValues>(ACCOUNT_DRAFTS.setup);
 
   const [step, setStep] = useState(0);
   const [reached, setReached] = useState(0);
@@ -73,6 +75,9 @@ export function AccountSetupPage() {
       const all = form.getFieldsValue(true) as SetupFormValues;
       if (!all.admin?.email && all.account?.email)
         form.setFieldValue(['admin', 'email'], all.account.email.trim().toLowerCase());
+      const email = (form.getFieldValue(['admin', 'email']) as string | undefined) ?? '';
+      if (!all.admin?.username && email)
+        form.setFieldValue(['admin', 'username'], suggestUsername(email));
       if (!all.admin?.fullName && all.account?.name) {
         form.setFieldValue(
           ['admin', 'fullName'],
@@ -115,6 +120,7 @@ export function AccountSetupPage() {
         data: toSetupRequest(form.getFieldsValue(true) as SetupFormValues),
       });
       setDirty(false);
+      await draft.finish();
       setResult(created);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
@@ -211,6 +217,18 @@ export function AccountSetupPage() {
     },
   ].map((item, index) => ({ ...item, key: STEP_KEYS[index] ?? String(index) }));
 
+  const saveDraft = async () => {
+    try {
+      await draft.draft.onSave(form.getFieldsValue(true) as SetupFormValues);
+      setDirty(false);
+      void message.success(t('common.draftSaved'));
+    } catch {
+      void message.error(t('common.draftFailed'));
+    }
+  };
+
+  if (draft.loading) return <PageState loading>{null}</PageState>;
+
   return (
     <WizardLayout
       title={t('setup.title')}
@@ -219,18 +237,19 @@ export function AccountSetupPage() {
       cancelTo={ACCOUNT_PATHS.list}
       steps={stepItems}
       current={step}
-      reached={reached}
+      reached={draft.draft.continuing ? LAST_STEP : reached}
       onStepChange={(target) => void goTo(target)}
       finishLabel={t('setup.create')}
       finishing={setup.isPending}
       onFinish={() => void submit()}
       aside={<SetupSummary values={values} />}
+      draft={{ continuing: draft.draft.continuing, onSave: saveDraft }}
     >
       <Form
         form={form}
         layout="vertical"
         className="erp-form"
-        initialValues={initialValues}
+        initialValues={{ ...initialValues, ...draft.values }}
         onValuesChange={onValuesChange}
         onFinish={() => void (step === LAST_STEP ? submit() : goTo(step + 1))}
         scrollToFirstError={{ block: 'center', behavior: 'smooth' }}

@@ -8,11 +8,14 @@ import { itemMinorCategoryResources } from '@/modules/system-setup/item-manageme
 import { itemProfileResources } from '@/modules/system-setup/item-management/item-profile/i18n';
 import { itemSubCategoryResources } from '@/modules/system-setup/item-management/item-sub-category/i18n';
 import { uomResources } from '@/modules/system-setup/item-management/uom/i18n';
+import { employeeResources } from '@/modules/system-setup/user-management/employee/i18n';
+import { userRoleResources } from '@/modules/system-setup/user-management/user-role/i18n';
+import { userResources } from '@/modules/system-setup/user-management/user/i18n';
 
 const commonErpResources: AppResources = {
   en: {
     'shell.productName': 'myErp · ERP',
-    'shell.primaryAdmin': 'Primary',
+    'shell.accountAdmin': 'Account admin',
     'shell.businessUnitCount_one': '{{count}} business unit',
     'shell.businessUnitCount_other': '{{count}} business units',
     'bu.switched': 'Switched to {{name}}',
@@ -27,7 +30,7 @@ const commonErpResources: AppResources = {
   },
   bn: {
     'shell.productName': 'myErp · ERP',
-    'shell.primaryAdmin': 'প্রধান',
+    'shell.accountAdmin': 'অ্যাকাউন্ট অ্যাডমিন',
     'shell.businessUnitCount_one': '{{count}}টি বিজনেস ইউনিট',
     'shell.businessUnitCount_other': '{{count}}টি বিজনেস ইউনিট',
     'bu.switched': '{{name}}-এ পরিবর্তন করা হয়েছে',
@@ -52,4 +55,7 @@ export const erpResources = mergeResources(
   itemSubCategoryResources,
   itemMinorCategoryResources,
   uomResources,
+  userResources,
+  employeeResources,
+  userRoleResources,
 );

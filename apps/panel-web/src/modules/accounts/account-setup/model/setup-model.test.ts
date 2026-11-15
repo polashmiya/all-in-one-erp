@@ -59,7 +59,13 @@ describe('toSetupRequest', () => {
         ],
       },
     ],
-    admin: { fullName: ' Admin ', email: ' Admin@Demo.com ', passwordMode: 'generate', password: 'ignored' },
+    admin: {
+      fullName: ' Admin ',
+      username: ' Demo.Admin ',
+      email: ' Admin@Demo.com ',
+      passwordMode: 'generate',
+      password: 'ignored',
+    },
   };
 
   it('trims, upper-cases codes and nulls empty optional fields', () => {
@@ -69,11 +75,19 @@ describe('toSetupRequest', () => {
     expect(request.account.name).toBe('Demo Pharma');
     expect(request.account.website).toBeNull();
     expect(request.businessUnits[0]!.code).toBe('DHK');
-    expect(request.businessUnits[0]!.offices[0]).toEqual({ code: 'HO', name: 'Head Office', email: null, phone: null, address: null });
+    expect(request.businessUnits[0]!.offices[0]).toEqual({
+      code: 'HO',
+      name: 'Head Office',
+      email: null,
+      phone: null,
+      address: null,
+    });
   });
 
   it('sends the chosen features, or none when the step was never filled', () => {
-    expect(toSetupRequest({ ...values, featureCodes: ['system-setup.uom'] }).featureCodes).toEqual(['system-setup.uom']);
+    expect(toSetupRequest({ ...values, featureCodes: ['system-setup.uom'] }).featureCodes).toEqual([
+      'system-setup.uom',
+    ]);
     expect(toSetupRequest(values).featureCodes).toEqual([]);
   });
 
@@ -85,17 +99,31 @@ describe('toSetupRequest', () => {
   });
 
   it('sends no password when it should be generated, and the typed one otherwise', () => {
-    expect(toSetupRequest(values).admin).toEqual({ fullName: 'Admin', email: 'admin@demo.com', password: null });
-    expect(toSetupRequest({ ...values, admin: { ...values.admin, passwordMode: 'manual', password: 'Secret@123' } }).admin.password).toBe(
-      'Secret@123',
-    );
+    expect(toSetupRequest(values).admin).toEqual({
+      fullName: 'Admin',
+      username: 'demo.admin',
+      email: 'admin@demo.com',
+      password: null,
+    });
+    expect(
+      toSetupRequest({
+        ...values,
+        admin: { ...values.admin, passwordMode: 'manual', password: 'Secret@123' },
+      }).admin.password,
+    ).toBe('Secret@123');
   });
 });
 
 describe('server error mapping', () => {
   it('turns API keys into form paths', () => {
     expect(toFieldPath('account.code')).toEqual(['account', 'code']);
-    expect(toFieldPath('businessUnits[1].offices[0].code')).toEqual(['businessUnits', 1, 'offices', 0, 'code']);
+    expect(toFieldPath('businessUnits[1].offices[0].code')).toEqual([
+      'businessUnits',
+      1,
+      'offices',
+      0,
+      'code',
+    ]);
     expect(toFieldPath('businessUnits')).toEqual(['businessUnits']);
   });
 

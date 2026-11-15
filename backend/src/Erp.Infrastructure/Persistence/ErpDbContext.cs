@@ -98,9 +98,31 @@ public class ErpDbContext : DbContext
         return codes.ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>The account's feature codes minus the ones the Panel turned off for this business unit.</summary>
+    public async Task<HashSet<string>> UnitFeatureCodesAsync(Guid accountId, Guid businessUnitId, CancellationToken cancellationToken = default)
+    {
+        var codes = await AccountFeatureCodesAsync(accountId, cancellationToken);
+        var off = await BusinessUnitFeatures.AcrossTenants()
+            .Where(x => x.AccountId == accountId && x.BusinessUnitId == businessUnitId)
+            .Select(x => x.Feature!.Code)
+            .ToListAsync(cancellationToken);
+        codes.ExceptWith(off);
+        return codes;
+    }
+
+    public DbSet<BusinessUnitFeature> BusinessUnitFeatures => Set<BusinessUnitFeature>();
+
     public DbSet<PanelUser> PanelUsers => Set<PanelUser>();
 
     public DbSet<ErpUser> ErpUsers => Set<ErpUser>();
+
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
+
+    public DbSet<LoginEvent> LoginEvents => Set<LoginEvent>();
+
+    public DbSet<PasswordResetCode> PasswordResetCodes => Set<PasswordResetCode>();
+
+    public DbSet<Employee> Employees => Set<Employee>();
 
     public DbSet<UserBusinessUnit> UserBusinessUnits => Set<UserBusinessUnit>();
 
@@ -109,6 +131,8 @@ public class ErpDbContext : DbContext
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     public DbSet<Permission> Permissions => Set<Permission>();
+
+    public DbSet<Draft> Drafts => Set<Draft>();
 
     // Read by the query filters. EF parameterises these per context instance, so each request sees its own tenant.
     public Guid? CurrentAccountId => _current.AccountId;

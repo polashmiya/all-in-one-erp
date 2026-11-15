@@ -1,3 +1,4 @@
+using Erp.Api.Auth;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -137,7 +138,7 @@ public static class AccountEndpoints
                 db.Warehouses.Count(w => w.AccountId == a.Id),
                 db.ErpUsers.Count(u => u.AccountId == a.Id),
                 db.AccountFeatures.Count(f => f.AccountId == a.Id),
-                db.ErpUsers.Where(u => u.AccountId == a.Id && u.IsPrimaryAdmin)
+                db.ErpUsers.Where(u => u.AccountId == a.Id && u.IsAccountAdmin)
                     .OrderBy(u => u.CreatedAt).Select(u => u.Email).FirstOrDefault()))
             .ToListAsync(cancellationToken);
 
@@ -152,7 +153,7 @@ public static class AccountEndpoints
     }
 
     private static async Task<AvailabilityResponse> Availability(
-        string? accountCode, string? adminEmail, ErpDbContext db, CancellationToken cancellationToken)
+        string? accountCode, string? adminEmail, string? adminUsername, ErpDbContext db, CancellationToken cancellationToken)
     {
         bool? codeFree = null;
         if (!string.IsNullOrWhiteSpace(accountCode))
@@ -168,7 +169,14 @@ public static class AccountEndpoints
             emailFree = !await db.ErpUsers.AcrossTenants().AnyAsync(u => u.Email == email, cancellationToken);
         }
 
-        return new AvailabilityResponse(codeFree, emailFree);
+        bool? usernameFree = null;
+        if (!string.IsNullOrWhiteSpace(adminUsername))
+        {
+            var username = UserNames.Normalize(adminUsername);
+            usernameFree = !await db.ErpUsers.AcrossTenants().AnyAsync(u => u.Username == username, cancellationToken);
+        }
+
+        return new AvailabilityResponse(codeFree, emailFree, usernameFree);
     }
 
     private static async Task<Results<Ok<AccountDetail>, NotFound>> Get(
@@ -182,7 +190,7 @@ public static class AccountEndpoints
         if (account is null) return TypedResults.NotFound();
 
         var admin = await db.ErpUsers.AcrossTenants().AsNoTracking()
-            .Where(u => u.AccountId == id && u.IsPrimaryAdmin)
+            .Where(u => u.AccountId == id && u.IsAccountAdmin)
             .OrderBy(u => u.CreatedAt)
             .Select(u => new AccountAdminDto(u.Id, u.FullName, u.Email, u.IsActive, u.LastLoginAt))
             .FirstOrDefaultAsync(cancellationToken);

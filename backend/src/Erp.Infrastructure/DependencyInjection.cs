@@ -1,7 +1,9 @@
 using Erp.Core.Authorization;
 using Erp.Core.Modules;
 using Erp.Core.Security;
+using Erp.Core.Notifications;
 using Erp.Infrastructure.Authorization;
+using Erp.Infrastructure.Email;
 using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using Erp.Infrastructure.Persistence.Seeding;
@@ -51,6 +53,8 @@ public static class DependencyInjection
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IBusinessUnitAccess, BusinessUnitAccess>();
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Section));
+        services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddScoped<DemoDataSeeder>();
 
         services.AddHealthChecks()

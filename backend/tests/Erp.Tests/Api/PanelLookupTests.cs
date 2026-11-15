@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Erp.Api.Lookups;
 using Erp.Api.Panel.Configuration;
 using Erp.Api.Panel.Lookups;
+using Erp.Api.UserManagement.Employees;
 using Erp.Infrastructure.Persistence;
 using Erp.Metadata;
 using Erp.Modules.Inventory;
@@ -64,7 +65,7 @@ public sealed class PanelLookupTests(ApiFactory factory)
         var types = await client.GetFromJsonAsync<List<LookupTypeDto>>("/api/panel/lookup-types");
         var itemTypes = await client.GetFromJsonAsync<List<LookupValueRow>>($"/api/panel/accounts/{accountId}/lookups/{ItemLookups.ItemType}");
 
-        Assert.Equal([ItemLookups.ItemType, ItemLookups.SupplyType], types!.Select(t => t.Key).Order());
+        Assert.Superset(new HashSet<string> { ItemLookups.ItemType, ItemLookups.SupplyType, EmployeeLookups.Designation, EmployeeLookups.Gender }, types!.Select(t => t.Key).ToHashSet());
         Assert.Equal(8, itemTypes!.Count);
         Assert.Equal(("FG", "Finished Goods", "তৈরি পণ্য"), (itemTypes[0].Code, itemTypes[0].NameEn, itemTypes[0].NameBn));
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/panel/accounts/{accountId}/lookups/unknown")).StatusCode);

@@ -197,6 +197,14 @@ configuration only shapes the screens.
   and synced to the `Permissions` table at startup. Endpoints declare `.RequirePermission("inventory.item.create")`:
   a missing business unit returns 400, and a missing permission returns 403. The UI hides what a role can't do,
   but the API is the actual protection.
+- **Sign-in and sessions.** The ERP accepts email or username. Access tokens live 15 minutes; refresh tokens
+  (7 days, stored hashed in `UserSessions`, rotated on use) keep the session. Logout, password change and a Panel
+  sign-out end sessions at once through the security stamp. Three wrong passwords lock the user for 15 minutes
+  (`Auth` section). Users set by someone else must change the password first (`MustChangePassword`); forgot
+  password sends a 6-digit code by email (`Email` section; development writes `.eml` files to `.mail/`).
+- **Who manages users.** Account admins are made in the Panel and see everything in every unit. In the ERP, User
+  Management holds roles (account-wide, one role per user per unit), users of the selected unit and employees.
+  Only a Panel SuperAdmin edits, deactivates, unlocks, resets or signs out an ERP user account-wide.
 - Login endpoints are rate-limited per IP (`RateLimiting:LoginPerMinute`, default 10). Unknown email, wrong
   password and disabled users all get the same 401.
 - The JWT signing key in `appsettings.Development.json` is for development only. Set `Jwt__SigningKey`

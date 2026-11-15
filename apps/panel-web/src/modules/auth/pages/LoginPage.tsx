@@ -1,10 +1,12 @@
-import { AppstoreOutlined, ControlOutlined, EyeOutlined } from '@ant-design/icons';
 import { errorStatus, panelLogin, type LoginRequest } from '@erp/api-client';
-import { AuthHeading, LoginLayout, SignInForm, useGreeting } from '@erp/ui';
+import { AuthHeading, SignInForm, useGreeting } from '@erp/ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
+import { FORGOT_PASSWORD_PATH } from '@/common/constants/routes';
 import { useAuthStore } from '@/common/store/auth-store';
+import { AuthLayout } from '../components/AuthLayout';
 
 const ERROR_KEYS: Record<number, string> = {
   0: 'auth.serverUnreachable',
@@ -15,6 +17,7 @@ const ERROR_KEYS: Record<number, string> = {
 export function LoginPage() {
   const { t } = useTranslation();
   const greeting = useGreeting();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const signIn = useAuthStore((s) => s.signIn);
@@ -31,28 +34,7 @@ export function LoginPage() {
   };
 
   return (
-    <LoginLayout
-      appName={appConfig.name}
-      announcement={t('login.announcement')}
-      headline={t('login.headline')}
-      description={t('login.description')}
-      preview={{
-        stats: [t('login.previewStat1'), t('login.previewStat2'), t('login.previewStat3')],
-        publishedTitle: t('login.previewPublished'),
-        publishedMeta: t('login.previewPublishedMeta'),
-        roleNote: t('login.previewRole'),
-      }}
-      features={[
-        { icon: <ControlOutlined />, title: t('login.point1'), description: t('login.point1Text') },
-        {
-          icon: <AppstoreOutlined />,
-          title: t('login.point2'),
-          description: t('login.point2Text'),
-        },
-        { icon: <EyeOutlined />, title: t('login.point3'), description: t('login.point3Text') },
-      ]}
-      footerNote={t('login.footer', { year: new Date().getFullYear(), app: appConfig.name })}
-    >
+    <AuthLayout>
       <AuthHeading
         eyebrow={greeting}
         title={t('login.welcome')}
@@ -63,8 +45,9 @@ export function LoginPage() {
         error={error}
         loading={loading}
         demo={appConfig.demoAccount}
+        onForgotPassword={() => navigate(FORGOT_PASSWORD_PATH)}
         footer={t('login.internalOnly')}
       />
-    </LoginLayout>
+    </AuthLayout>
   );
 }

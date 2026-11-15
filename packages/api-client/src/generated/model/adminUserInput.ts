@@ -8,6 +8,7 @@
 
 export interface AdminUserInput {
   fullName: string;
+  username: string;
   email: string;
   /** @nullable */
   password: string | null;

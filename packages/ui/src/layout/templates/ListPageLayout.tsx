@@ -13,6 +13,8 @@ import { rowActionsWidth, type RowAction } from '../../components/table/row-acti
 import { SERIAL_COLUMN_KEY, SERIAL_COLUMN_WIDTH } from '../../components/table/constants';
 import type { ListFilters, ListSort, ListState } from '../../hooks/useListState';
 import { PageContainer } from '../page/PageContainer';
+import { DRAFT_VIEW, type ListDrafts } from './drafts';
+import { DraftTable } from './DraftTable';
 
 export interface ListFilterDef<F> {
   key: Extract<keyof F, string>;
@@ -53,6 +55,7 @@ export interface ListPageLayoutProps<
   onRefresh?: () => void;
   onRowClick?: (row: T) => void;
   onRowHover?: (row: T) => void;
+  drafts?: ListDrafts;
 }
 
 function SortHint({ sort, columns }: { sort?: ListSort; columns: TableColumnsType<object> }) {
@@ -98,6 +101,7 @@ export function ListPageLayout<
   onRefresh,
   onRowClick,
   onRowHover,
+  drafts,
 }: ListPageLayoutProps<T, F, V, S>) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -152,6 +156,12 @@ export function ListPageLayout<
     </div>
   );
 
+  const allViews =
+    drafts && views
+      ? [...views, { key: DRAFT_VIEW as V, label: t('common.drafts'), count: drafts.rows?.length }]
+      : views;
+  const showDrafts = !!drafts && state.view === DRAFT_VIEW;
+
   const filterBar = hasFilterBar && (
     <FilterBar
       toolsRef={setToolsEl}
@@ -162,7 +172,7 @@ export function ListPageLayout<
             label={t('common.quickViews')}
             value={state.view}
             onChange={state.setView}
-            views={views}
+            views={allViews ?? views}
           />
         )
       }
@@ -187,46 +197,50 @@ export function ListPageLayout<
   return (
     <PageContainer fill title={title} subTitle={subtitle} actions={actions}>
       {summary}
-      <DataTable<T>
-        fill
-        header={
-          filterRow || filterBar ? (
-            <>
-              {filterRow}
-              {filterBar}
-            </>
-          ) : undefined
-        }
-        toolsContainer={hasFilterBar ? toolsEl : undefined}
-        settingsKey={pathname}
-        defaultHidden={[SERIAL_COLUMN_KEY]}
-        rowKey={rowKey}
-        columns={[serialColumn, ...columns, ...actionColumns]}
-        dataSource={rows}
-        loading={loading}
-        sort={state.sort}
-        onSortChange={(sort) => state.setSort(sort as ListSort<S> | undefined)}
-        onRefresh={onRefresh}
-        toolbar={
-          toolbar ?? <SortHint sort={state.sort} columns={columns as TableColumnsType<object>} />
-        }
-        selection={
-          selectable ? { selectedKeys: state.selected, onChange: state.setSelected } : undefined
-        }
-        bulkActions={bulkActions}
-        empty={state.hasActiveFilters ? filteredEmpty : empty}
-        onRow={(row) => ({
-          onClick: onRowClick && (() => onRowClick(row)),
-          onMouseEnter: onRowHover && (() => onRowHover(row)),
-          className: onRowClick ? 'is-clickable' : undefined,
-        })}
-        pagination={{
-          page: state.page,
-          pageSize: state.pageSize,
-          total,
-          onChange: state.changePage,
-        }}
-      />
+      {showDrafts ? (
+        <DraftTable drafts={drafts} header={filterBar} toolsContainer={toolsEl} />
+      ) : (
+        <DataTable<T>
+          fill
+          header={
+            filterRow || filterBar ? (
+              <>
+                {filterRow}
+                {filterBar}
+              </>
+            ) : undefined
+          }
+          toolsContainer={hasFilterBar ? toolsEl : undefined}
+          settingsKey={pathname}
+          defaultHidden={[SERIAL_COLUMN_KEY]}
+          rowKey={rowKey}
+          columns={[serialColumn, ...columns, ...actionColumns]}
+          dataSource={rows}
+          loading={loading}
+          sort={state.sort}
+          onSortChange={(sort) => state.setSort(sort as ListSort<S> | undefined)}
+          onRefresh={onRefresh}
+          toolbar={
+            toolbar ?? <SortHint sort={state.sort} columns={columns as TableColumnsType<object>} />
+          }
+          selection={
+            selectable ? { selectedKeys: state.selected, onChange: state.setSelected } : undefined
+          }
+          bulkActions={bulkActions}
+          empty={state.hasActiveFilters ? filteredEmpty : empty}
+          onRow={(row) => ({
+            onClick: onRowClick && (() => onRowClick(row)),
+            onMouseEnter: onRowHover && (() => onRowHover(row)),
+            className: onRowClick ? 'is-clickable' : undefined,
+          })}
+          pagination={{
+            page: state.page,
+            pageSize: state.pageSize,
+            total,
+            onChange: state.changePage,
+          }}
+        />
+      )}
     </PageContainer>
   );
 }

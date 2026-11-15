@@ -3,6 +3,7 @@ import {
   KeyOutlined,
   LockOutlined,
   MailOutlined,
+  UserOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Form, Input, Typography } from 'antd';
@@ -10,7 +11,7 @@ import { useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export interface SignInValues {
-  email: string;
+  login: string;
   password: string;
 }
 
@@ -20,6 +21,8 @@ export interface SignInFormProps {
   loading?: boolean;
   demo?: SignInValues;
   footer?: ReactNode;
+  allowUsername?: boolean;
+  onForgotPassword?: () => void;
 }
 
 export function AuthHeading({
@@ -50,7 +53,7 @@ function DemoHint({ demo, onUse }: { demo: SignInValues; onUse: () => void }) {
       <span className="erp-auth__demo-text">
         <span className="erp-auth__demo-title">{t('auth.demoAccount')}</span>
         <span className="erp-auth__demo-value">
-          {demo.email} · {demo.password}
+          {demo.login} · {demo.password}
         </span>
       </span>
       <Button size="small" type="link" onClick={onUse}>
@@ -60,7 +63,15 @@ function DemoHint({ demo, onUse }: { demo: SignInValues; onUse: () => void }) {
   );
 }
 
-export function SignInForm({ onSubmit, error, loading, demo, footer }: SignInFormProps) {
+export function SignInForm({
+  onSubmit,
+  error,
+  loading,
+  demo,
+  footer,
+  allowUsername = false,
+  onForgotPassword,
+}: SignInFormProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<SignInValues>();
   const [capsLock, setCapsLock] = useState(false);
@@ -78,17 +89,20 @@ export function SignInForm({ onSubmit, error, loading, demo, footer }: SignInFor
     >
       {error && <Alert type="error" showIcon message={error} className="erp-auth__alert" />}
       <Form.Item
-        name="email"
-        label={t('auth.email')}
+        name="login"
+        label={allowUsername ? t('auth.login') : t('auth.email')}
         rules={[
-          { required: true, message: t('auth.emailRequired') },
-          { type: 'email', message: t('auth.emailInvalid') },
+          {
+            required: true,
+            message: allowUsername ? t('auth.loginRequired') : t('auth.emailRequired'),
+          },
+          ...(allowUsername ? [] : [{ type: 'email' as const, message: t('auth.emailInvalid') }]),
         ]}
       >
         <Input
           size="large"
-          prefix={<MailOutlined />}
-          placeholder={t('auth.emailPlaceholder')}
+          prefix={allowUsername ? <UserOutlined /> : <MailOutlined />}
+          placeholder={allowUsername ? t('auth.loginPlaceholder') : t('auth.emailPlaceholder')}
           autoComplete="username"
           autoFocus
         />
@@ -114,6 +128,13 @@ export function SignInForm({ onSubmit, error, loading, demo, footer }: SignInFor
           onKeyUp={trackCapsLock}
         />
       </Form.Item>
+      {onForgotPassword && (
+        <div className="erp-auth__forgot">
+          <Button type="link" size="small" onClick={onForgotPassword}>
+            {t('auth.forgotPassword')}
+          </Button>
+        </div>
+      )}
       {demo && <DemoHint demo={demo} onUse={() => form.setFieldsValue(demo)} />}
       <Button
         type="primary"

@@ -58,6 +58,8 @@ export interface TopbarProps {
   onThemeOpenChange: (open: boolean) => void;
   onShortcuts: () => void;
   onProfile?: () => void;
+  onChangePassword?: () => void;
+  onResetPassword?: () => void;
   onLogout?: () => void;
   onOpenMenu?: () => void;
 }
@@ -71,6 +73,8 @@ export function Topbar({
   onThemeOpenChange,
   onShortcuts,
   onProfile,
+  onChangePassword,
+  onResetPassword,
   onLogout,
   onOpenMenu,
 }: TopbarProps) {
@@ -133,6 +137,8 @@ export function Topbar({
       <ProfileMenu
         user={user}
         onProfile={onProfile}
+        onChangePassword={onChangePassword}
+        onResetPassword={onResetPassword}
         onPreferences={() => onThemeOpenChange(true)}
         onShortcuts={onShortcuts}
         onLogout={onLogout}

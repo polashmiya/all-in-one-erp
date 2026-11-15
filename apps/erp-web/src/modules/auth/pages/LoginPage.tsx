@@ -8,7 +8,9 @@ import {
 import { AuthHeading, SignInForm, useGreeting } from '@erp/ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
+import { FORGOT_PASSWORD_PATH } from '@/common/constants/routes';
 import { useAuthStore } from '@/common/store/auth-store';
 import { applyAccountTheme } from '@/common/utils/account-theme';
 import { AuthLayout } from '../components/AuthLayout';
@@ -22,6 +24,7 @@ const ERROR_KEYS: Record<number, string> = {
 export function LoginPage() {
   const { t } = useTranslation();
   const greeting = useGreeting();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const signIn = useAuthStore((s) => s.signIn);
@@ -32,7 +35,10 @@ export function LoginPage() {
     setLoading(true);
     try {
       const login = await erpLogin(values);
-      const only = login.businessUnits.length === 1 ? login.businessUnits[0] : undefined;
+      const only =
+        login.businessUnits.length === 1 && !login.mustChangePassword
+          ? login.businessUnits[0]
+          : undefined;
       const selection = only
         ? await selectBusinessUnit(
             { businessUnitId: only.id },
@@ -65,6 +71,8 @@ export function LoginPage() {
         error={error}
         loading={loading}
         demo={appConfig.demoAccount}
+        allowUsername
+        onForgotPassword={() => navigate(FORGOT_PASSWORD_PATH)}
         footer={t('login.askAdmin')}
       />
     </AuthLayout>

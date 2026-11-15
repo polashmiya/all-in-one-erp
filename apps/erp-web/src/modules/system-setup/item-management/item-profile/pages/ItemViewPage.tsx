@@ -31,7 +31,7 @@ import { useCustomLookups } from '@/common/hooks/useCustomLookups';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { problemMessage } from '@/common/utils/api-errors';
+import { problemMessage } from '@erp/api-client';
 import { useUnitKey } from '@/common/master-data';
 import { useRefreshItemManagement } from '../../item-management';
 import { ITEM_PROFILE_FEATURE, itemPaths } from '../constants';

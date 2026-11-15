@@ -29,7 +29,12 @@ function renderAt(path: string, state?: unknown) {
   );
 }
 
-const panelUser = { id: 'p1', email: 'superadmin@myerp.local', fullName: 'Super Admin', role: 'SuperAdmin' };
+const panelUser = {
+  id: 'p1',
+  email: 'superadmin@myerp.local',
+  fullName: 'Super Admin',
+  role: 'SuperAdmin',
+};
 
 describe('panel route guards', () => {
   beforeEach(() => useAuthStore.setState(signedOut));
@@ -43,6 +48,9 @@ describe('panel route guards', () => {
     useAuthStore.getState().signIn({
       accessToken: 't',
       expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      refreshToken: 'r',
+      refreshExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      mustChangePassword: false,
       user: panelUser,
     });
     renderAt('/tenants/accounts');
@@ -53,6 +61,9 @@ describe('panel route guards', () => {
     useAuthStore.getState().signIn({
       accessToken: 't',
       expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      refreshToken: 'r',
+      refreshExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      mustChangePassword: false,
       user: panelUser,
     });
     renderAt('/login', { from: '/dashboard' });
@@ -60,7 +71,14 @@ describe('panel route guards', () => {
   });
 
   it('signing out ends the session', () => {
-    useAuthStore.getState().signIn({ accessToken: 't', expiresAt: new Date(Date.now() + 60_000).toISOString(), user: panelUser });
+    useAuthStore.getState().signIn({
+      accessToken: 't',
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      refreshToken: 'r',
+      refreshExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+      mustChangePassword: false,
+      user: panelUser,
+    });
     useAuthStore.getState().signOut();
     renderAt('/tenants/accounts');
     expect(screen.getByText('login')).toBeTruthy();

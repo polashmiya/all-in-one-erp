@@ -1,0 +1,73 @@
+import type { AppResources } from '@erp/ui';
+
+export const employeeResources: AppResources = {
+  en: {
+    'employee.title': 'Employee',
+    'employee.subtitle': 'People whose home unit is {{unit}}.',
+    'employee.new': 'New employee',
+    'employee.search': 'Search name, code, mobile…',
+    'employee.searchLabel': 'Search employees',
+    'employee.emptyTitle': 'No employees yet',
+    'employee.emptyText':
+      'Add the people who work in this unit. Any of them can also be made a user.',
+    'employee.exportFile': 'employees',
+    'employee.notFound': 'This employee does not exist.',
+    'employee.backToList': 'Back to employees',
+    'employee.col.user': 'User',
+    'employee.userFilter.yes': 'Is a user',
+    'employee.userFilter.no': 'Not a user',
+    'employee.makeUser': 'Make a user',
+    'employee.openUser': 'Open user',
+
+    'employee.form.newTitle': 'New employee',
+    'employee.form.editTitle': 'Edit employee',
+    'employee.form.save': 'Save employee',
+    'employee.form.saveNew': 'Save & new',
+    'employee.form.saved': 'Employee {{code}} saved',
+
+    'employee.user.title': 'User account',
+    'employee.user.hint': 'A user can sign in to the ERP. The role is given later, per unit.',
+    'employee.user.isUser': 'Is user',
+    'employee.user.password': 'Password',
+
+    'employee.side.recordInfo': 'Record info',
+    'employee.side.created': 'Created',
+    'employee.side.updated': 'Last updated',
+    'employee.v.joined': 'Joined {{date}}',
+    'employee.v.noJoiningDate': 'No joining date',
+  },
+  bn: {
+    'employee.title': 'কর্মী',
+    'employee.subtitle': 'যাদের নিজ ইউনিট {{unit}}।',
+    'employee.new': 'নতুন কর্মী',
+    'employee.search': 'নাম, কোড, মোবাইল খুঁজুন…',
+    'employee.searchLabel': 'কর্মী খুঁজুন',
+    'employee.emptyTitle': 'এখনও কোনো কর্মী নেই',
+    'employee.emptyText': 'এই ইউনিটে যারা কাজ করেন তাদের যোগ করুন। যে কাউকে ইউজারও বানানো যায়।',
+    'employee.exportFile': 'employees',
+    'employee.notFound': 'এই কর্মী নেই।',
+    'employee.backToList': 'কর্মী তালিকায় ফিরুন',
+    'employee.col.user': 'ইউজার',
+    'employee.userFilter.yes': 'ইউজার আছে',
+    'employee.userFilter.no': 'ইউজার নেই',
+    'employee.makeUser': 'ইউজার বানান',
+    'employee.openUser': 'ইউজার খুলুন',
+
+    'employee.form.newTitle': 'নতুন কর্মী',
+    'employee.form.editTitle': 'কর্মী সম্পাদনা',
+    'employee.form.save': 'কর্মী সংরক্ষণ',
+    'employee.form.saveNew': 'সংরক্ষণ করে নতুন',
+    'employee.form.saved': 'কর্মী {{code}} সংরক্ষিত হয়েছে',
+
+    'employee.user.title': 'ইউজার অ্যাকাউন্ট',
+    'employee.user.hint': 'ইউজার ইআরপিতে সাইন ইন করতে পারেন। রোল পরে প্রতিটি ইউনিটে দেওয়া হয়।',
+    'employee.user.isUser': 'ইউজার',
+    'employee.user.password': 'পাসওয়ার্ড',
+
+    'employee.side.recordInfo': 'রেকর্ড তথ্য',
+    'employee.side.created': 'তৈরির সময়',
+    'employee.side.updated': 'সর্বশেষ হালনাগাদ',
+    'employee.v.joined': '{{date}} যোগদান',
+    'employee.v.noJoiningDate': 'যোগদানের তারিখ নেই',
+  },
+};

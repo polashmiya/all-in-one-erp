@@ -9,26 +9,28 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import {
+  type ActionItem,
+  type CsvColumn,
   downloadCsv,
   ForbiddenResult,
   formatDate,
   formatDateTime,
-  ListPageLayout,
-  StatusTag,
-  type ActionItem,
-  type CsvColumn,
-  type ListFilters,
   type ListFilterDef,
+  type ListFilters,
+  ListPageLayout,
   type ListState,
   type RowAction,
+  StatusTag,
   useUndoMessage,
 } from '@erp/ui';
 import { App, type TableColumnsType } from 'antd';
 import { useState, type Key, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useListDrafts } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
-import { problemMessage } from '@/common/utils/api-errors';
+import { problemMessage } from '@erp/api-client';
 import type { MasterList, MasterRow, StatusView } from '../master-data';
+import { MasterDraftContext } from './draft-context';
 
 type Override = { isActive: boolean } | 'deleted';
 
@@ -48,12 +50,13 @@ export interface MasterListPageProps<T extends MasterRow, F extends ListFilters>
   exportFile: string;
   fetchAll: () => Promise<T[]>;
   empty: { title: string; description: string };
-  onCreate: () => void;
+  onCreate: (draftId?: string) => void;
   onEdit: (row: T) => void;
   onView?: (row: T) => void;
   onDuplicate?: (row: T) => void;
   onSetStatus: (ids: number[], isActive: boolean) => Promise<unknown>;
-  onDelete: (ids: number[]) => Promise<unknown>;
+  onDelete?: (ids: number[]) => Promise<unknown>;
+  moreActions?: (row: T) => RowAction[];
   children?: ReactNode;
 }
 
@@ -79,11 +82,23 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
   onDuplicate,
   onSetStatus,
   onDelete,
+  moreActions,
   children,
 }: MasterListPageProps<T, F>) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const access = useFeatureAccess(feature);
+  const canDelete = access.delete && !!onDelete;
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const drafts = useListDrafts(
+    feature,
+    access.create,
+    (draftId) => {
+      setDraftId(draftId);
+      onCreate(draftId);
+    },
+    access.view,
+  );
   const showUndo = useUndoMessage();
   const [overrides, setOverrides] = useState<Record<number, Override>>({});
 
@@ -131,7 +146,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
     setOverride(ids, 'deleted');
     unselect(ids);
     try {
-      await onDelete(ids);
+      await onDelete?.(ids);
       void message.success(t('master.deleted', { count: ids.length }));
     } catch (error) {
       void message.error(problemMessage(error, t('master.failed')));
@@ -183,6 +198,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
       hidden: !onDuplicate || !access.create,
       onClick: () => onDuplicate?.(row),
     },
+    ...(moreActions?.(row) ?? []).map((action) => ({ ...action, inMenu: true })),
     {
       key: 'status',
       label: row.isActive ? t('master.deactivate') : t('master.activate'),
@@ -197,7 +213,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
       icon: <DeleteOutlined />,
       inMenu: true,
       danger: true,
-      hidden: !access.delete,
+      hidden: !canDelete,
       confirm: {
         title: t('master.deleteOne', { name: row.name }),
         description: t('master.deleteHint'),
@@ -235,11 +251,11 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
     icon: <PlusOutlined />,
     variant: 'primary',
     hidden: !access.create,
-    onClick: onCreate,
+    onClick: () => onCreate(),
   };
 
   return (
-    <>
+    <MasterDraftContext value={{ draftId, setDraftId }}>
       <ListPageLayout<T, F, StatusView>
         title={title}
         subtitle={subtitle}
@@ -262,14 +278,15 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
           { key: 'inactive', label: t('master.viewInactive'), count: data?.counts.inactive },
         ]}
         columns={allColumns}
-        rowActions={onView || access.edit || access.delete ? rowActions : undefined}
+        rowActions={onView || access.edit || canDelete ? rowActions : undefined}
         onRowClick={openRow}
         rows={rows}
         rowKey={(row) => row.id}
         total={data?.total}
         loading={loading}
         onRefresh={onRefresh}
-        selectable={access.edit || access.delete || access.export}
+        drafts={drafts}
+        selectable={access.edit || canDelete || access.export}
         bulkActions={(keys) => {
           const ids = keys.map(Number);
           return [
@@ -299,7 +316,7 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
               label: t('master.delete'),
               icon: <DeleteOutlined />,
               variant: 'danger',
-              hidden: !access.delete,
+              hidden: !canDelete,
               confirm: {
                 title: t('master.deleteMany', { count: ids.length }),
                 description: t('master.deleteHint'),
@@ -317,6 +334,6 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
         }}
       />
       {children}
-    </>
+    </MasterDraftContext>
   );
 }

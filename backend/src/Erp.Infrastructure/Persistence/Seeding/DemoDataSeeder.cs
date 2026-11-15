@@ -50,7 +50,7 @@ public sealed class DemoDataSeeder(
 
         var account = await EnsureAccountAsync(cancellationToken);
         var units = await EnsureBusinessUnitsAsync(account, cancellationToken);
-        var administrator = await EnsureRoleAsync(account, AdministratorRole, () => SystemRoles.CreateAdministrator(account.Id, catalog), catalog.Codes, cancellationToken);
+        var administrator = await EnsureRoleAsync(account, AdministratorRole, () => SystemRoles.CreateAdministrator(account.Id, catalog), [], cancellationToken);
         await EnsureRoleAsync(account, ViewerRole, () => SystemRoles.CreateViewer(account.Id, catalog), SystemRoles.ViewerPermissions(catalog), cancellationToken);
         await EnsureErpAdminAsync(seed.ErpAdmin, account, units, administrator, cancellationToken);
         await EnsureFeaturesAsync(account, cancellationToken);
@@ -137,12 +137,17 @@ public sealed class DemoDataSeeder(
         logger.LogInformation("Seeded {Count} units of measure for {Account}", ItemMasterDemoData.Uoms.Length, account.Name);
     }
 
-    /// <summary>The demo account gets every ERP feature, but only the first time (later Panel changes are kept).</summary>
+    /// <summary>The demo account gets every ERP feature added since its last grant; Panel removals of older ones are kept.</summary>
     private async Task EnsureFeaturesAsync(Account account, CancellationToken ct)
     {
-        if (await db.AccountFeatures.AcrossTenants().AnyAsync(af => af.AccountId == account.Id, ct)) return;
+        var lastGrant = await db.AccountFeatures.AcrossTenants()
+            .Where(af => af.AccountId == account.Id)
+            .MaxAsync(af => (DateTimeOffset?)af.CreatedAt, ct);
 
-        var features = await db.ErpFeatures.Where(f => f.IsActive).Select(f => f.Id).ToListAsync(ct);
+        var features = await db.ErpFeatures
+            .Where(f => f.IsActive && (lastGrant == null || f.CreatedAt > lastGrant))
+            .Select(f => f.Id)
+            .ToListAsync(ct);
         db.AccountFeatures.AddRange(features.Select(id => new AccountFeature { AccountId = account.Id, FeatureId = id }));
         if (features.Count > 0) logger.LogInformation("Granted {Count} ERP feature(s) to {Account}", features.Count, account.Name);
     }
@@ -259,10 +264,11 @@ public sealed class DemoDataSeeder(
             user = new ErpUser
             {
                 AccountId = account.Id,
+                Username = Username(seed, email),
                 Email = email,
                 FullName = seed.FullName,
                 PasswordHash = hasher.Hash(seed.Password),
-                IsPrimaryAdmin = true,
+                IsAccountAdmin = true,
             };
             db.ErpUsers.Add(user);
             logger.LogInformation("Seeded ERP admin {Email}", email);
@@ -273,6 +279,9 @@ public sealed class DemoDataSeeder(
             user.BusinessUnits.Add(new UserBusinessUnit { AccountId = account.Id, BusinessUnitId = unit.Id, Role = role });
         }
     }
+
+    private static string Username(SeedUserOptions seed, string email) =>
+        (string.IsNullOrWhiteSpace(seed.Username) ? email[..email.IndexOf('@')] : seed.Username).Trim().ToLowerInvariant();
 
     private static string Require(SeedUserOptions seed, string section)
     {

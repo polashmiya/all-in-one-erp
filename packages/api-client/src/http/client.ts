@@ -2,6 +2,7 @@ export interface ApiClientConfig {
   baseUrl: string;
   getAccessToken?: () => string | null | undefined;
   getBusinessUnitId?: () => string | null | undefined;
+  refreshSession?: () => Promise<boolean>;
   onUnauthorized?: () => void;
 }
 
@@ -30,7 +31,10 @@ export class ApiError extends Error {
   }
 }
 
+const NO_REFRESH_PATHS = ['/auth/login', '/auth/refresh'];
+
 let config: ApiClientConfig = { baseUrl: '' };
+let refreshing: Promise<boolean> | null = null;
 
 export function configureApiClient(next: ApiClientConfig) {
   config = { ...next, baseUrl: next.baseUrl.replace(/\/$/, '') };
@@ -48,7 +52,24 @@ async function readBody(response: Response): Promise<unknown> {
   return text.length ? text : undefined;
 }
 
-export async function customFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
+function refreshOnce(): Promise<boolean> {
+  refreshing ??= (config.refreshSession?.() ?? Promise.resolve(false)).finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+function canRefresh(url: string, hadToken: boolean) {
+  return (
+    hadToken && !!config.refreshSession && !NO_REFRESH_PATHS.some((path) => url.includes(path))
+  );
+}
+
+export async function customFetch<T>(
+  url: string,
+  init: RequestInit = {},
+  retried = false,
+): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set('Accept', 'application/json');
 
@@ -62,6 +83,9 @@ export async function customFetch<T>(url: string, init: RequestInit = {}): Promi
   const body = await readBody(response);
 
   if (!response.ok) {
+    if (response.status === 401 && !retried && canRefresh(url, !!token) && (await refreshOnce())) {
+      return customFetch<T>(url, init, true);
+    }
     if (response.status === 401) config.onUnauthorized?.();
     const problem = body && typeof body === 'object' ? (body as ApiProblemDetails) : undefined;
     throw new ApiError(response.status, problem, body);
@@ -74,7 +98,11 @@ export function errorStatus(error: unknown): number {
   return error instanceof ApiError ? error.status : 0;
 }
 
-export function isTokenActive(token: string | null | undefined, expiresAt: string | null | undefined, now = Date.now()) {
+export function isTokenActive(
+  token: string | null | undefined,
+  expiresAt: string | null | undefined,
+  now = Date.now(),
+) {
   return !!token && !!expiresAt && Date.parse(expiresAt) > now;
 }
 

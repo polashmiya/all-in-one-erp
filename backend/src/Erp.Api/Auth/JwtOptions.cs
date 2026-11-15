@@ -15,7 +15,7 @@ public sealed class JwtOptions
     [Required, MinLength(32)]
     public string SigningKey { get; set; } = "";
 
-    public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromHours(8);
+    public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(15);
 
     public SymmetricSecurityKey CreateSigningKey() => new(Encoding.UTF8.GetBytes(SigningKey));
 }

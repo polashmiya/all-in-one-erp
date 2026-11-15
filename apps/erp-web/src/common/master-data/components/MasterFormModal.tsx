@@ -1,11 +1,13 @@
 import type { FeatureConfig } from '@erp/api-client';
 import { ConfigFields, defaultValues, type FormOptions } from '@erp/metadata-engine';
-import { FormModal } from '@erp/ui';
 import { App, type FormInstance } from 'antd';
-import { useMemo, type ReactNode } from 'react';
+import { use, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FormModal } from '@erp/ui';
 import { useCustomLookups } from '@/common/hooks/useCustomLookups';
-import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
+import { useModalDraft } from '@/common/hooks/useDrafts';
+import { applyFieldErrors, problemMessage } from '@erp/api-client';
+import { MasterDraftContext } from './draft-context';
 import { ImageSourceInput } from './ImageSourceInput';
 
 export function MasterFormModal<V extends object>({
@@ -34,15 +36,18 @@ export function MasterFormModal<V extends object>({
   const { t } = useTranslation();
   const { message } = App.useApp();
   const customLookups = useCustomLookups(config);
+  const { draftId, setDraftId } = use(MasterDraftContext);
+  const saved = useModalDraft<V>(config.feature, open, editing, draftId, setDraftId);
   const values = useMemo(
-    () => ({ ...defaultValues(config), ...initialValues }) as Partial<V>,
-    [config, initialValues],
+    () => ({ ...defaultValues(config), ...initialValues, ...saved.values }) as Partial<V>,
+    [config, initialValues, saved.values],
   );
 
   const submit = async (data: V) => {
     try {
-      const saved = await onSave(data);
-      void message.success(t(editing ? 'master.updated' : 'master.created', { name: saved.name }));
+      const result = await onSave(data);
+      await saved.finish();
+      void message.success(t(editing ? 'master.updated' : 'master.created', { name: result.name }));
     } catch (error) {
       void message.error(
         applyFieldErrors(form, error)
@@ -56,7 +61,7 @@ export function MasterFormModal<V extends object>({
   return (
     <FormModal<V>
       open={open}
-      onClose={onClose}
+      onClose={() => saved.close(onClose)}
       title={title}
       subtitle={subtitle}
       form={form}
@@ -64,6 +69,7 @@ export function MasterFormModal<V extends object>({
       submitText={editing ? t('master.save') : t('master.create')}
       addAnotherText={editing ? undefined : t('master.createAnother')}
       onSubmit={submit}
+      draft={saved.draft}
     >
       <ConfigFields
         config={config}

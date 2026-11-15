@@ -13,5 +13,5 @@ public interface ICurrentContext
     /// <summary>The validated business unit for this request, or null when none was selected.</summary>
     Guid? BusinessUnitId { get; }
 
-    bool IsPrimaryAdmin { get; }
+    bool IsAccountAdmin { get; }
 }

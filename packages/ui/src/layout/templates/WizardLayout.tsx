@@ -25,6 +25,7 @@ export interface WizardLayoutProps {
   finishing?: boolean;
   onFinish: () => void;
   aside?: ReactNode;
+  draft?: { continuing: boolean; onSave: () => unknown };
   children: ReactNode;
 }
 
@@ -41,6 +42,7 @@ export function WizardLayout({
   finishing,
   onFinish,
   aside,
+  draft,
   children,
 }: WizardLayoutProps) {
   const { t } = useTranslation();
@@ -98,7 +100,11 @@ export function WizardLayout({
       title={title}
       subTitle={subTitle}
       crumbs={crumbs}
-      actions={cancelTo ? [{ key: 'cancel', label: t('common.cancel'), to: cancelTo }] : undefined}
+      status={draft?.continuing ? { tone: 'warning', label: t('common.draft') } : undefined}
+      actions={[
+        ...(draft ? [{ key: 'draft', label: t('common.saveDraft'), onClick: draft.onSave }] : []),
+        ...(cancelTo ? [{ key: 'cancel', label: t('common.cancel'), to: cancelTo }] : []),
+      ]}
     >
       {rail ? (
         <div className="erp-wizard">

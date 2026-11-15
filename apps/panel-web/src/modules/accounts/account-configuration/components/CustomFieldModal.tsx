@@ -9,6 +9,8 @@ import { useText } from '@erp/metadata-engine';
 import { Field, FieldGrid, FormModal } from '@erp/ui';
 import { App, Form, Input, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useModalDraft } from '@/common/hooks/useDrafts';
+import { ACCOUNT_DRAFTS } from '../../constants';
 import { LABEL_MAX, LOOKUP_TYPE } from '../field-settings';
 
 export function CustomFieldModal({
@@ -18,6 +20,8 @@ export function CustomFieldModal({
   types,
   sections,
   onClose,
+  draftId,
+  onDraftChange,
   onSaved,
 }: {
   accountId: string;
@@ -26,6 +30,8 @@ export function CustomFieldModal({
   types: string[];
   sections: ConfigSectionOption[];
   onClose: () => void;
+  draftId: string | null;
+  onDraftChange: (id: string | null) => void;
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
@@ -34,11 +40,19 @@ export function CustomFieldModal({
   const [form] = Form.useForm<CreateCustomFieldRequest>();
   const type = Form.useWatch('type', form);
   const create = useCreateCustomField();
+  const saved = useModalDraft<CreateCustomFieldRequest>(
+    ACCOUNT_DRAFTS.customField(accountId, feature),
+    open,
+    false,
+    draftId,
+    onDraftChange,
+  );
   const lists = useListLookupTypes();
 
   const submit = async (data: CreateCustomFieldRequest) => {
     try {
       await create.mutateAsync({ id: accountId, code: feature, data });
+      await saved.finish();
       await onSaved();
       void message.success(t('config.custom.saved'));
     } catch (error) {
@@ -61,12 +75,14 @@ export function CustomFieldModal({
   return (
     <FormModal<CreateCustomFieldRequest>
       open={open}
-      onClose={onClose}
+      onClose={() => saved.close(onClose)}
+      initialValues={saved.values}
       form={form}
       title={t('config.custom.new')}
       subtitle={t('config.custom.hint')}
       addAnotherText={t('config.custom.addAnother')}
       onSubmit={submit}
+      draft={saved.draft}
     >
       <FieldGrid columns={2}>
         <Field

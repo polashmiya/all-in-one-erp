@@ -10,5 +10,8 @@ import type { PanelUserDto } from './panelUserDto.ts';
 export interface PanelLoginResponse {
   accessToken: string;
   expiresAt: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
+  mustChangePassword: boolean;
   user: PanelUserDto;
 }

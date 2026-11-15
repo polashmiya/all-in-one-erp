@@ -7,12 +7,13 @@ import {
   type ItemRow,
 } from '@erp/api-client';
 import { fieldMap, useConfigColumns, useText, type LookupItem } from '@erp/metadata-engine';
-import { formatMoney, TitleCell, useListState } from '@erp/ui';
+import { formatMoney, TitleCell, useListState, withDraft } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
+
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
@@ -132,7 +133,7 @@ export function ItemListPage() {
         listItems({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)
       }
       empty={{ title: t('item.emptyTitle'), description: t('item.emptyText') }}
-      onCreate={() => navigate(itemPaths.create)}
+      onCreate={(draftId) => navigate(withDraft(itemPaths.create, draftId))}
       onEdit={(row) => navigate(itemPaths.edit(row.id))}
       onView={(row) => navigate(itemPaths.view(row.id))}
       onSetStatus={(ids, isActive) =>

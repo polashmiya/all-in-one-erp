@@ -26,6 +26,7 @@ function renderAt(path: string, state?: unknown) {
           }
         />
         <Route path="/select-unit" element={<Where label="picker" />} />
+        <Route path="/change-password" element={<Where label="change-password" />} />
         <Route path="/dashboard" element={<Where label="dashboard" />} />
         <Route
           path="/app/*"
@@ -52,26 +53,49 @@ describe('route guards', () => {
     expect(screen.getByText('login from=/app/inventory/item')).toBeTruthy();
   });
 
-  it('sends users with an expired token to /login', () => {
-    useAuthStore.setState({ accessToken: 't', expiresAt: new Date(Date.now() - 1).toISOString(), currentBusinessUnitId: 'dhk' });
+  it('sends users with an expired session to /login', () => {
+    useAuthStore.setState({
+      refreshToken: 't',
+      refreshExpiresAt: new Date(Date.now() - 1).toISOString(),
+      currentBusinessUnitId: 'dhk',
+    });
     renderAt('/app/inventory/item');
     expect(screen.getByText(/^login/)).toBeTruthy();
   });
 
   it('sends signed-in users without a unit to the picker', () => {
-    useAuthStore.setState({ accessToken: 't', expiresAt: future() });
+    useAuthStore.setState({ refreshToken: 't', refreshExpiresAt: future() });
     renderAt('/app/inventory/item');
     expect(screen.getByText('picker from=/app/inventory/item')).toBeTruthy();
   });
 
   it('renders the page once signed in with a unit', () => {
-    useAuthStore.setState({ accessToken: 't', expiresAt: future(), currentBusinessUnitId: 'dhk' });
+    useAuthStore.setState({
+      refreshToken: 't',
+      refreshExpiresAt: future(),
+      currentBusinessUnitId: 'dhk',
+    });
     renderAt('/app/inventory/item');
     expect(screen.getByText(/^feature/)).toBeTruthy();
   });
 
+  it('sends users who must change their password to the change-password page', () => {
+    useAuthStore.setState({
+      refreshToken: 't',
+      refreshExpiresAt: future(),
+      mustChangePassword: true,
+      currentBusinessUnitId: 'dhk',
+    });
+    renderAt('/app/inventory/item');
+    expect(screen.getByText('change-password from=/app/inventory/item')).toBeTruthy();
+  });
+
   it('moves signed-in users off /login to where they were going', () => {
-    useAuthStore.setState({ accessToken: 't', expiresAt: future(), currentBusinessUnitId: 'dhk' });
+    useAuthStore.setState({
+      refreshToken: 't',
+      refreshExpiresAt: future(),
+      currentBusinessUnitId: 'dhk',
+    });
     renderAt('/login', { from: '/dashboard' });
     expect(screen.getByText(/^dashboard/)).toBeTruthy();
   });

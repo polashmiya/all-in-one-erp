@@ -7,6 +7,7 @@ import { useGoBack } from '../../hooks/useGoBack';
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard';
 import { PageContainer, type PageStatus } from '../page/PageContainer';
 import { SplitLayout } from '../page/CardGrid';
+import type { FormDraft } from './drafts';
 
 export interface FormSection {
   key: string;
@@ -39,6 +40,7 @@ export interface FormPageLayoutProps<T> {
   saving?: boolean;
   guard?: boolean;
   onSubmit: (values: T, actionKey: string) => Promise<unknown>;
+  draft?: FormDraft<T>;
 }
 
 function Cards({ sections }: { sections: FormSection[] }) {
@@ -69,6 +71,7 @@ export function FormPageLayout<T extends object>({
   saving,
   guard = true,
   onSubmit,
+  draft,
 }: FormPageLayoutProps<T>) {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -121,20 +124,42 @@ export function FormPageLayout<T extends object>({
 
   useHotkey('s', () => saveAction && void submit(saveAction), { mod: true, enabled: !saving });
 
-  const actions: ActionItem[] = [
-    ...(cancelTo
-      ? [{ key: 'cancel', label: t('common.cancel'), variant: 'text' as const, onClick: goBack }]
-      : []),
-    ...submitActions.map((action) => ({
-      key: action.key,
-      label: action.label,
-      icon: action.icon,
-      variant: action.variant ?? 'default',
-      loading: saving,
-      hidden: action.hidden,
-      onClick: () => submit(action),
-    })),
+  const saveDraft = async () => {
+    if (!draft) return;
+    try {
+      await draft.onSave(form.getFieldsValue(true) as T);
+      markDirty(false);
+      void message.success(t('common.draftSaved'));
+    } catch {
+      void message.error(t('common.draftFailed'));
+    }
+  };
+
+  const cancel: ActionItem = { key: 'cancel', label: t('common.cancel'), onClick: goBack };
+  const menu: ActionItem[] = [
+    ...submitActions
+      .filter((action) => action !== saveAction && !action.hidden)
+      .map((action) => ({ key: action.key, label: action.label, onClick: () => submit(action) })),
+    ...(draft ? [{ key: 'draft', label: t('common.saveDraft'), onClick: saveDraft }] : []),
+    ...(cancelTo ? [cancel] : []),
   ];
+
+  const actions: ActionItem[] = saveAction
+    ? [
+        {
+          key: saveAction.key,
+          label: saveAction.label,
+          icon: saveAction.icon,
+          variant: 'primary',
+          loading: saving,
+          split: true,
+          menu,
+          onClick: () => submit(saveAction),
+        },
+      ]
+    : cancelTo
+      ? [{ ...cancel, variant: 'text' }]
+      : [];
 
   const statusText = [
     dirty ? t('common.unsaved') : null,
@@ -148,7 +173,9 @@ export function FormPageLayout<T extends object>({
       sticky
       title={title}
       subTitle={subTitle}
-      status={status}
+      status={
+        status ?? (draft?.continuing ? { tone: 'warning', label: t('common.draft') } : undefined)
+      }
       backTo={backTo}
       crumbs={crumbs}
       extra={

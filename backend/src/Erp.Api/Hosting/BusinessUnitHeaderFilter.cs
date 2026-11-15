@@ -29,7 +29,7 @@ public sealed class BusinessUnitHeaderFilter : IEndpointFilter
         if (current.UserId is not { } userId || current.AccountId is not { } accountId) return TypedResults.Unauthorized();
 
         var allowed = await http.RequestServices.GetRequiredService<IBusinessUnitAccess>()
-            .CanAccessAsync(userId, accountId, businessUnitId, current.IsPrimaryAdmin, http.RequestAborted);
+            .CanAccessAsync(userId, accountId, businessUnitId, current.IsAccountAdmin, http.RequestAborted);
 
         if (!allowed)
         {

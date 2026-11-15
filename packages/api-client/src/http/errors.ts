@@ -1,7 +1,11 @@
-import { ApiError } from '@erp/api-client';
-import type { FormInstance } from 'antd';
+import { ApiError } from './client';
 
-export function applyFieldErrors(form: FormInstance, error: unknown): boolean {
+export interface FieldErrorForm {
+  getFieldsValue: (all: true) => unknown;
+  setFields: (fields: never) => void;
+}
+
+export function applyFieldErrors(form: FieldErrorForm, error: unknown): boolean {
   if (!(error instanceof ApiError) || error.status !== 400) return false;
 
   const known = new Set(Object.keys(form.getFieldsValue(true) as object));
@@ -9,7 +13,7 @@ export function applyFieldErrors(form: FormInstance, error: unknown): boolean {
     .map(([name, errors]) => ({ name: name.split('.'), errors }))
     .filter(({ name }) => known.has(name[0] ?? ''));
 
-  if (fields.length > 0) form.setFields(fields);
+  if (fields.length > 0) form.setFields(fields as never);
   return fields.length > 0;
 }
 

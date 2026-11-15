@@ -30,6 +30,9 @@ public sealed record FieldDef(string Key, string Type, MenuText Label, string Se
 
     public bool Required { get; init; }
 
+    /// <summary>Not shown until an account turns it on in Screen settings.</summary>
+    public bool Hidden { get; init; }
+
     public int ColSpan { get; init; } = 1;
 
     public MenuText? Help { get; init; }

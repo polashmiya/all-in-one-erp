@@ -16,3 +16,9 @@ export const SCREEN_PARAMS = { feature: 'feature', unit: 'unit' };
 export const WORKSPACE_PARAM = 'account';
 
 export const ACCOUNT_PICKER_SIZE = 100;
+
+export const ACCOUNT_DRAFTS = {
+  setup: 'accounts.setup',
+  lookupValue: (accountId: string, type: string) => `accounts.lookups.${accountId}.${type}`,
+  customField: (accountId: string, feature: string) => `accounts.fields.${accountId}.${feature}`,
+};

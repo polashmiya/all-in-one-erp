@@ -4,7 +4,7 @@ export const appConfig = {
   name: env.VITE_APP_NAME ?? 'myErp Panel',
   demoAccount:
     env.DEV && env.VITE_DEMO_EMAIL && env.VITE_DEMO_PASSWORD
-      ? { email: env.VITE_DEMO_EMAIL, password: env.VITE_DEMO_PASSWORD }
+      ? { login: env.VITE_DEMO_EMAIL, password: env.VITE_DEMO_PASSWORD }
       : undefined,
   defaultPageSize: 10,
   sessionStaleMs: 5 * 60_000,

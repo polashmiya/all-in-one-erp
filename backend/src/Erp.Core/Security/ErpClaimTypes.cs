@@ -8,7 +8,10 @@ public static class ErpClaimTypes
     public const string Name = "name";
     public const string Role = "role";
     public const string AccountId = "account_id";
-    public const string PrimaryAdmin = "primary_admin";
+    public const string AccountAdmin = "account_admin";
+    public const string SecurityStamp = "stamp";
+    public const string SessionId = "sid";
+    public const string MustChangePassword = "must_change_password";
 }
 
 public interface IPasswordHasher

@@ -43,7 +43,7 @@ public sealed class TestContext : ICurrentContext
 
     public Guid? BusinessUnitId { get; set; }
 
-    public bool IsPrimaryAdmin { get; set; }
+    public bool IsAccountAdmin { get; set; }
 }
 
 /// <summary>Two accounts: A with units A1 + A2, B with unit B1; two notes per unit.</summary>

@@ -27,6 +27,8 @@ export default defineConfig({
         ASPNETCORE_ENVIRONMENT: 'Development',
         ASPNETCORE_URLS: E2E.apiUrl,
         ConnectionStrings__Erp: E2E.connectionString,
+        Email__PickupDirectory: E2E.mailFolder,
+        RateLimiting__LoginPerMinute: String(E2E.loginPerMinute),
         ...origins,
       },
     },

@@ -72,7 +72,7 @@ public static class FeatureConfigBuilder
                     ? target
                     : active[f.SectionId];
                 var tab = TabOf(section);
-                var visible = f.IsLocked || (setting?.IsVisible != false && !Hidden(section) && !Hidden(tab));
+                var visible = f.IsLocked || ((setting?.IsVisible ?? !f.IsHiddenByDefault) && !Hidden(section) && !Hidden(tab));
                 return (Field: f, Setting: setting, Section: section, Tab: tab, Visible: visible, Config: Field(f, setting, lookupDefaults));
             })
             .ToList();

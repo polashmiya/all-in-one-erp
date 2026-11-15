@@ -40,11 +40,11 @@ public sealed class AuthEndpointTests(ApiFactory factory)
     [Fact]
     public async Task Login_validation_errors_are_400_with_camel_case_keys()
     {
-        var response = await factory.CreateClient().PostAsJsonAsync("/api/erp/auth/login", new LoginRequest("not-an-email", ""));
+        var response = await factory.CreateClient().PostAsJsonAsync("/api/erp/auth/login", new LoginRequest("", ""));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.Contains("email", problem!.Errors.Keys);
+        Assert.Contains("login", problem!.Errors.Keys);
         Assert.Contains("password", problem.Errors.Keys);
     }
 
@@ -54,7 +54,7 @@ public sealed class AuthEndpointTests(ApiFactory factory)
         var login = await factory.ErpAdminLoginAsync();
 
         Assert.Equal("Demo Pharma Ltd", login.User.AccountName);
-        Assert.True(login.User.IsPrimaryAdmin);
+        Assert.True(login.User.IsAccountAdmin);
         Assert.Equal(["Chattogram Depot", "Dhaka Depot"], login.BusinessUnits.Select(u => u.Name));
         Assert.All(login.BusinessUnits, u => Assert.Equal("Administrator", u.RoleName));
     }
@@ -114,7 +114,7 @@ public sealed class AuthEndpointTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Select_unit_returns_role_and_every_permission_for_the_primary_admin()
+    public async Task Select_unit_returns_role_and_every_permission_for_an_account_admin()
     {
         var login = await factory.ErpAdminLoginAsync();
 
@@ -124,7 +124,7 @@ public sealed class AuthEndpointTests(ApiFactory factory)
         response.EnsureSuccessStatusCode();
         var selected = await response.Content.ReadFromJsonAsync<SelectUnitResponse>();
         Assert.Equal("Dhaka Depot", selected!.BusinessUnit.Name);
-        Assert.Equal(36, selected.Permissions.Count); // 6 features x 6 actions, all given to the demo account
+        Assert.Equal(49, selected.Permissions.Count); // 6 item screens x 6 actions, user and employee x 4, user role x 5
         Assert.Contains($"{ItemManagementMenu.Uom}.import", selected.Permissions);
     }
 
@@ -137,7 +137,7 @@ public sealed class AuthEndpointTests(ApiFactory factory)
             .PostAsJsonAsync("/api/erp/auth/select-unit", new SelectUnitRequest(factory.DhakaId));
 
         var selected = await response.Content.ReadFromJsonAsync<SelectUnitResponse>();
-        Assert.Equal(12, selected!.Permissions.Count); // view + export for each of the 6 features
+        Assert.Equal(18, selected!.Permissions.Count); // view + export for each of the 9 features
         Assert.All(selected.Permissions, code => Assert.True(code.EndsWith(".view") || code.EndsWith(".export")));
     }
 

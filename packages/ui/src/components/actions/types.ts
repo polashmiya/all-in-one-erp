@@ -29,6 +29,7 @@ export interface ActionItem {
   menu?: ActionItem[];
   htmlType?: 'button' | 'submit';
   divider?: boolean;
+  split?: boolean;
 }
 
 export type ActionSize = 'small' | 'middle' | 'large';

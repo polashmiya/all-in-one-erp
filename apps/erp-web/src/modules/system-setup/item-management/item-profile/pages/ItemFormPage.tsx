@@ -4,6 +4,7 @@ import {
   useCreateItem,
   useGetItem,
   useUpdateItem,
+  type DraftState,
   type FeatureConfig,
   type ItemDetail,
 } from '@erp/api-client';
@@ -14,9 +15,10 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useCustomLookups } from '@/common/hooks/useCustomLookups';
+import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
-import { applyFieldErrors, problemMessage } from '@/common/utils/api-errors';
+import { applyFieldErrors, problemMessage } from '@erp/api-client';
 import { useUnitKey } from '@/common/master-data';
 import { ConversionInput } from '../components/ConversionInput';
 import { ImageAttach } from '../components/ImageAttach';
@@ -35,13 +37,14 @@ export function ItemFormPage() {
   const access = useFeatureAccess(ITEM_PROFILE_FEATURE);
   const allowed = id ? access.edit : access.create;
   const config = useFeatureConfig(ITEM_PROFILE_FEATURE, allowed);
+  const saved = useFormDraft<ItemFormValues>(ITEM_PROFILE_FEATURE, allowed && !id && !copyId);
   const source = useGetItem(sourceId, {
     query: { queryKey: useUnitKey(getGetItemQueryKey(sourceId)), enabled: allowed && sourceId > 0 },
   });
 
   if (!allowed) return <ForbiddenResult />;
 
-  const loading = (sourceId > 0 && source.isPending) || config.isPending;
+  const loading = (sourceId > 0 && source.isPending) || config.isPending || saved.loading;
 
   return (
     <PageState
@@ -56,6 +59,7 @@ export function ItemFormPage() {
           config={config.data}
           item={id ? source.data : undefined}
           copyFrom={copyId ? source.data : undefined}
+          draft={saved}
         />
       )}
     </PageState>
@@ -66,10 +70,12 @@ function ItemForm({
   config,
   item,
   copyFrom,
+  draft,
 }: {
   config: FeatureConfig;
   item?: ItemDetail;
   copyFrom?: ItemDetail;
+  draft: DraftState<ItemFormValues>;
 }) {
   const { t } = useTranslation();
   const text = useText();
@@ -88,8 +94,8 @@ function ItemForm({
       item ??
       (copyFrom
         ? copyOf(copyFrom, t('item.copyName', { name: copyFrom.name }))
-        : (defaultValues(config) as Partial<ItemFormValues>)),
-    [item, copyFrom, config, t],
+        : { ...(defaultValues(config) as Partial<ItemFormValues>), ...draft.values }),
+    [item, copyFrom, config, t, draft.values],
   );
 
   const { sections, aside } = useFormSections(config, {
@@ -112,13 +118,15 @@ function ItemForm({
   const submit = async (values: ItemFormValues, action: string) => {
     try {
       const data = toRequest(values);
+      const fromDraft = draft.draft.continuing;
       const saved = item
         ? await update.mutateAsync({ id: item.id, data })
         : await create.mutateAsync({ data });
+      await draft.finish();
       await refresh();
       void message.success(t('item.form.saved', { code: saved.code }));
       if (action === 'new') {
-        if (source) void navigate(itemPaths.create);
+        if (source || fromDraft) void navigate(itemPaths.create);
         else form.resetFields();
       } else if (item) goBack();
       else void navigate(itemPaths.view(saved.id), { replace: true });
@@ -149,6 +157,7 @@ function ItemForm({
       cancelTo={item ? itemPaths.view(item.id) : itemPaths.list}
       saving={create.isPending || update.isPending}
       onSubmit={submit}
+      draft={item || copyFrom ? undefined : draft.draft}
       submitActions={[
         { key: 'new', label: t('item.form.saveNew') },
         { key: 'save', label: t('item.form.save'), icon: <CheckOutlined />, variant: 'primary' },

@@ -11,4 +11,6 @@ export interface AvailabilityResponse {
   accountCodeAvailable: boolean | null;
   /** @nullable */
   adminEmailAvailable: boolean | null;
+  /** @nullable */
+  adminUsernameAvailable: boolean | null;
 }

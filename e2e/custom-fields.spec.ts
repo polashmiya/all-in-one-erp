@@ -22,7 +22,9 @@ async function choose(scope: Locator, label: string, option: string) {
 }
 
 async function demoAccountId(request: APIRequestContext) {
-  const login = await request.post(`${E2E.apiUrl}/api/panel/auth/login`, { data: E2E.panelUser });
+  const login = await request.post(`${E2E.apiUrl}/api/panel/auth/login`, {
+    data: { login: E2E.panelUser.email, password: E2E.panelUser.password },
+  });
   const { accessToken } = (await login.json()) as { accessToken: string };
   const search = encodeURIComponent(E2E.demoAccount);
   const accounts = await request.get(`${E2E.apiUrl}/api/panel/accounts?search=${search}`, {

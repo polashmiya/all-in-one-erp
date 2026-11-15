@@ -12,6 +12,8 @@ public class Role : BaseEntity, IAccountOwned
     /// <summary>Created by the platform (e.g. Administrator); cannot be deleted by clients.</summary>
     public bool IsSystem { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public ICollection<RolePermission> Permissions { get; } = [];
 }
 

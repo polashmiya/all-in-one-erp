@@ -25,7 +25,7 @@ can be changed.
 | 8     | Item master data screens (department → UOM) on the engine                                      | ✅ 2026-11-12 |
 | 9     | Hardening: E2E, audit log (Panel History), docs                                                | ✅ 2026-11-12 |
 
-Not scheduled yet, on hold by the owner: ERP module › sub-module › feature permissions per role.
+In progress: user access and drafts (phases 10–16), see [user-access-plan.md](user-access-plan.md).
 
 ## Decisions to keep
 
@@ -172,26 +172,122 @@ Left open:
   carries `theme`; `applyAccountTheme` sets the theme store at sign-in.
 - Checked with an API test, typecheck, lint, unit tests, the E2E flow and screenshots of every new page in Chrome.
 
-## Next: owner to choose
+## Done: phase 10 — sessions and passwords (2026-11-15)
 
-Candidates, in no fixed order:
+- Migration `UserSessions`: `UserSessions` (refresh tokens: surface, user, family, hash, expiry, rotated, revoked, IP,
+  user agent), `LoginEvents`, and `MustChangePassword`, `FailedLoginCount`, `LockedUntil`, `SecurityStamp` on
+  `ErpUsers` and `PanelUsers` (shared `ISignInUser`).
+- `SignInService` is the one place for sign-in rules on both surfaces: password check with lockout (3 tries, 15
+  minutes, `Auth:*` settings), login events, sessions, refresh rotation (reuse after `Auth:RefreshReuseGrace` ends the
+  whole family), logout and "end all sessions". Access tokens last 15 minutes and carry `stamp` and `sid`;
+  `SessionCheck` rejects a token whose user's stamp changed or who is inactive (30 s cache, cleared on change).
+- `POST /auth/refresh`, `/auth/logout`, `/auth/change-password` on `/api/erp` and `/api/panel` (`SessionEndpoints`).
+  `PasswordChangeFilter` answers 403 on every endpoint except `me`, `change-password` and `logout` while
+  `MustChangePassword` is set. Password rules are `PasswordPolicy.StrongPassword()`.
+- Frontend: `customFetch` refreshes once on 401 (one refresh at a time) through `refreshSession`; both stores keep the
+  refresh token and treat the session as signed in while it is valid. Shared `ChangePasswordForm`,
+  `NewPasswordFields` and `password-rules` in `@erp/ui`; `/change-password` page in both apps (forced or from the
+  new profile menu item); sign out calls the server. `applyFieldErrors` and `problemMessage` moved to
+  `@erp/api-client` for both apps.
 
-1. **ERP permissions per role** (module › sub-module › feature actions), on hold by the owner.
-2. **Edit the ERP admin** (name, email, password reset), left out of account editing on purpose.
-3. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
-4. **Read-only history in the ERP** for account admins.
-5. **The next business module** (for example suppliers or VAT setup) built as a configurable screen (skill pattern E).
+## Done: phase 11 — username and email reset codes (2026-11-15)
 
-Ask the owner which one comes next before starting.
+- Migration `UsernameAndResetCodes`: `ErpUsers.Username` (unique, backfilled from the email) and
+  `PasswordResetCodes`. `LoginRequest` now has `login`: ERP accepts email or username (`UserNames`), the Panel email.
+- `IEmailSender` (`Erp.Core.Notifications`) with `SmtpEmailSender` (`Email:*` settings); in development and E2E
+  emails are written to `Email:PickupDirectory` (`.mail/`, `e2e/.mail/`). Tests capture them (`CapturedEmails`).
+- `PasswordResetService`: `forgot-password` emails a 6-digit code (10 minutes, 5 tries, one per minute, same answer
+  for unknown users, EN or বাংলা); `reset-password` sets the password, unlocks and ends every session.
+- Account setup asks for the admin's username (checked by `availability`); a password set at setup must be changed
+  at first sign-in. The demo admin's username comes from `Seed:ErpAdmin:Username`.
+- Frontend: `SignInForm` takes `allowUsername` and `onForgotPassword`; shared `ForgotPasswordFlow`; public
+  `/forgot-password` page in both apps; profile menu **Reset password** opens it with the email filled in.
+
+## Done: phase 12 — account admins and Panel ERP users (2026-11-15)
+
+- Migration `AccountAdminsAndUnitFeatures`: `IsPrimaryAdmin` renamed to `IsAccountAdmin` (claim `account_admin`; an
+  account may have several), `ErpUsers.Phone`, `UserBusinessUnits.RoleId` nullable and `IsActive` (a unit is offered
+  at sign-in only when the row is active and has a role), and `BusinessUnitFeatures` (features turned off per unit;
+  `UnitFeatureCodesAsync` limits permissions and the admin menu).
+- `RequireSuperAdmin()` guards every change to an ERP user. Panel API `/api/panel/erp-users` (list with account, unit,
+  type, status and search; detail with units, devices, last 50 sign-ins and access history; edit, status, reset
+  password, unlock, sign out), `POST /accounts/{id}/admins` and `/accounts/{id}/business-units/{unitId}/features`.
+  The last active admin of an account cannot be turned off. Changes go to `ConfigurationChanges` (`AccessAreas.User`).
+- `ErpUserProfile` (`Erp.Api/Users`) holds the shared profile rules, normalising and uniqueness checks for every
+  place that creates or edits an ERP user.
+- Panel: new module `erp-users` (menu **ERP users**, list and details pages, `useErpUserActions` shared by both, edit,
+  reset password and add admin modals). The account page has an **ERP users** tab (admins and **Add admin**) and
+  **Feature access per business unit** under Menu access (`FeatureAccessTree` takes `available`).
+
+## Done: phase 13 — ERP User Role (2026-11-15)
+
+- `UserManagementMenu` (`Erp.Api/UserManagement`) adds System Setup › User Management with User, Employee and User
+  Role. `ErpMenuCatalog` now merges modules with the same key from several providers.
+- Migration `RoleStatus`: `Roles.IsActive`. Administrator is computed (`SystemRoles.IsAdministrator`): it stores no
+  permissions and always gets every permission; Viewer is re-synced with the catalog at startup. An inactive role
+  gives nothing.
+- API `/api/erp/user-management/permission-tree` and `/roles` (list with users in the selected unit, options, get,
+  create, update, status, delete, assign and remove users per unit). Users can only give permissions they have in
+  the unit; account admins can give anything; nobody changes their own access.
+- The demo account now also gets ERP features added after its first grant (older ones removed in the Panel stay
+  removed). Other accounts get new screens only from the Panel.
+- ERP: `user-management/user-role` with `RoleListPage`, `RoleFormPage` and `PermissionTree` (search with highlight,
+  all / selected, expand and collapse, tri-state module, sub-module and column checkboxes, feature actions as chips;
+  logic in `permission-tree.ts` with unit tests).
+
+## Done: phase 14 — ERP Employee and User (2026-11-15)
+
+- Migration `EmployeesAndUserLink`: `Employee` table (typed columns, `MasterRecord`), `ErpUsers.EmployeeId` (unique
+  when set) and `FeatureFields.IsHiddenByDefault` (`FieldDef.Hidden`: optional fields an account turns on).
+- Employee is a configurable screen (`EmployeeManifest`, tabs General / Personal / Job) with seven lookup lists
+  (`EmployeeLookups`). API `/api/erp/user-management/employees` (list of the selected unit by home unit, options,
+  get, create, update, status) plus `/structure/offices` and `/structure/warehouses`. Code `EMP-00001` when empty.
+  Saving with `user` (Is user switch) also creates the user, linked by `EmployeeId`, in the home unit without a role.
+- API `/api/erp/user-management/users`: list of the selected unit (account admins always shown, read only), options,
+  unit choices, get, create with units (no role), update, add to units, role and status in this unit, sign out.
+  Adding to a unit needs `system-setup.user.create` in that unit; nobody changes their own access.
+- ERP screens: `user-management/employee` (list, form with the User account card, view) and `user-management/user`
+  (list with Assign role, Add to units, unit status and sign out; create and edit page). The role form has an
+  "Assign users" picker (`RoleUsers`). `UserProfileFields` and `UsernameField` moved to `@erp/ui` and are shared by
+  the ERP and the Panel. `MasterListPage` got optional `onDelete` and `moreActions`.
+
+## Done: phase 15 — drafts on create forms (2026-11-15)
+
+- Migration `Drafts`: one generic table (surface, account, unit, feature, title, JSON data). API `/api/erp/drafts`
+  (scoped to the account and selected unit; view needs `{feature}.view`, save and delete need `{feature}.create`)
+  and `/api/panel/drafts` (shared by Panel users). Size limit `Drafts:MaxDataLength`.
+- `FormPageLayout` and `FormModal` now show one split Save button; its menu holds Save & new, Save as draft and
+  Cancel. `WizardLayout` has a Save as draft action. `ListPageLayout` takes `drafts` and adds a Drafts view with
+  Continue and Delete (`DraftTable`).
+- `useDraftRows` / `useDraftValues` in `@erp/api-client` hold the logic for both surfaces; each app wraps them in
+  `common/hooks/useDrafts.ts`. Pages keep the draft in `?draft=`, modals in list state (`MasterDraftContext`).
+  The draft is deleted after the record is created. Password fields are never stored in a draft.
+- Covered: every ERP master modal and page (item profile, departments to UOM, employee, user, role) and in the
+  Panel the account setup wizard, lookup values and custom fields. Not yet: Panel Add admin and office / warehouse
+  modals (they have no list to continue from).
+
+## Done: phase 16 — hardening (2026-11-15)
+
+- `e2e/user-access.spec.ts`: a Panel admin builds a role and a user who signs in by username and sees only that
+  screen; forgot password by emailed code; three wrong passwords lock until the Panel unlocks. E2E runs the API
+  with `RateLimiting__LoginPerMinute` raised (`E2E.loginPerMinute`).
+- Panel history labels for user and role changes; ESLint skips Playwright output.
+
+Still open for later, ask the owner:
+
+1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
+2. **Read-only history in the ERP** for account admins.
+3. **The next business module** (for example suppliers or VAT setup) built as a configurable screen (skill pattern E).
 
 ## Where we are
 
-Last updated 2026-11-12. Phases 0 to 9 and account editing (account page, structure view, Screen configuration menu,
-ERP theme per account) are done. Nothing is half built. The next step is the owner's choice from "Next: owner to
-choose" above.
+Last updated 2026-11-15. Phases 0 to 16 are done: account editing, user access (sessions, username and reset codes,
+Panel ERP users, ERP roles, users and employees) and drafts on create forms. The plan is in
+[user-access-plan.md](user-access-plan.md). Next work is in "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
-`MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`.
+`MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
+`AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`.
 
 ## Working on another machine
 

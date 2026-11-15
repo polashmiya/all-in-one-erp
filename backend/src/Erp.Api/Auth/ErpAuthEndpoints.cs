@@ -1,9 +1,7 @@
-using System.Security.Claims;
 using Erp.Api.Hosting;
 using Erp.Api.Panel.Accounts;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
-using Erp.Core.Security;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Persistence;
@@ -14,6 +12,8 @@ namespace Erp.Api.Auth;
 
 public static class ErpAuthEndpoints
 {
+    public const string AccountAdminRole = "Account admin";
+
     public static IEndpointRouteBuilder MapErpAuthEndpoints(this IEndpointRouteBuilder erp)
     {
         var auth = erp.MapGroup("/auth").WithTags("ErpAuth");
@@ -30,6 +30,7 @@ public static class ErpAuthEndpoints
         auth.MapGet("/me", Me)
             .WithName("GetErpSession")
             .WithSummary("The signed-in user and their business units")
+            .AllowBeforePasswordChange()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         auth.MapPost("/select-unit", SelectUnit)
@@ -38,30 +39,22 @@ public static class ErpAuthEndpoints
             .Validate<SelectUnitRequest>()
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
+        auth.MapSessionEndpoints(AuthSurfaces.Erp, "Erp");
+
         return erp;
     }
 
     private static async Task<Results<Ok<ErpLoginResponse>, ProblemHttpResult>> Login(
         LoginRequest request,
         ErpDbContext db,
-        IPasswordHasher hasher,
-        TokenService tokens,
-        TimeProvider clock,
+        SignInService signIn,
         CancellationToken cancellationToken)
     {
-        // No tenant is known before login, so this lookup deliberately bypasses the tenant filter.
-        var email = request.Email.Trim().ToLowerInvariant();
-        var user = await db.ErpUsers.AcrossTenants()
-            .Include(u => u.Account)
-            .SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
+        var login = UserNames.Normalize(request.Login);
+        var found = await signIn.FindByLoginAsync(AuthSurfaces.Erp, login, cancellationToken);
 
-        if (user is null)
-        {
-            hasher.SimulateVerify();
-            return AuthProblems.InvalidCredentials();
-        }
-
-        if (!hasher.Verify(request.Password, user.PasswordHash) || !user.IsActive || user.Account?.IsActive != true)
+        if (!await signIn.TryPasswordAsync(AuthSurfaces.Erp, login, found, request.Password, cancellationToken) ||
+            found is not ErpUser user)
         {
             return AuthProblems.InvalidCredentials();
         }
@@ -69,26 +62,20 @@ public static class ErpAuthEndpoints
         var units = await GetBusinessUnitsAsync(db, user, cancellationToken);
         if (units.Count == 0)
         {
+            signIn.Record(AuthSurfaces.Erp, login, LoginResults.NoBusinessUnit, user.Id);
+            await db.SaveChangesAsync(cancellationToken);
             return TypedResults.Problem(
                 title: "No business unit assigned",
                 detail: "Your user has no active business unit. Contact your administrator.",
                 statusCode: StatusCodes.Status403Forbidden);
         }
 
-        user.LastLoginAt = clock.GetUtcNow();
+        var tokens = signIn.SignIn(AuthSurfaces.Erp, user, login);
         await db.SaveChangesAsync(cancellationToken);
 
-        var token = tokens.Issue(AuthSurfaces.Erp,
-        [
-            new Claim(ErpClaimTypes.Subject, user.Id.ToString()),
-            new Claim(ErpClaimTypes.Email, user.Email),
-            new Claim(ErpClaimTypes.Name, user.FullName),
-            new Claim(ErpClaimTypes.AccountId, user.AccountId.ToString()),
-            new Claim(ErpClaimTypes.PrimaryAdmin, user.IsPrimaryAdmin ? "true" : "false"),
-        ]);
-
         return TypedResults.Ok(new ErpLoginResponse(
-            token.AccessToken, token.ExpiresAt, ToDto(user), units, LastUsed(user, units), AccountTheme.Parse(user.Account?.Theme)));
+            tokens.AccessToken, tokens.ExpiresAt, tokens.RefreshToken, tokens.RefreshExpiresAt, tokens.MustChangePassword,
+            ToDto(user), units, LastUsed(user, units), AccountTheme.Parse(user.Account?.Theme)));
     }
 
     private static async Task<Results<Ok<ErpSessionResponse>, UnauthorizedHttpResult>> Me(
@@ -113,7 +100,7 @@ public static class ErpAuthEndpoints
     {
         if (current.UserId is not { } userId || current.AccountId is not { } accountId) return TypedResults.Unauthorized();
 
-        if (!await access.CanAccessAsync(userId, accountId, request.BusinessUnitId, current.IsPrimaryAdmin, cancellationToken))
+        if (!await access.CanAccessAsync(userId, accountId, request.BusinessUnitId, current.IsAccountAdmin, cancellationToken))
         {
             return TypedResults.Problem(
                 title: "Business unit not accessible",
@@ -126,7 +113,7 @@ public static class ErpAuthEndpoints
         await db.SaveChangesAsync(cancellationToken);
 
         var unit = (await GetBusinessUnitsAsync(db, user, cancellationToken)).Single(u => u.Id == request.BusinessUnitId);
-        var granted = await permissions.GetAsync(userId, accountId, request.BusinessUnitId, current.IsPrimaryAdmin, cancellationToken);
+        var granted = await permissions.GetAsync(userId, accountId, request.BusinessUnitId, current.IsAccountAdmin, cancellationToken);
 
         return TypedResults.Ok(new SelectUnitResponse(unit, granted.Codes.Order(StringComparer.Ordinal).ToList()));
     }
@@ -139,19 +126,19 @@ public static class ErpAuthEndpoints
         ErpDbContext db, ErpUser user, CancellationToken cancellationToken)
     {
         var assignments = await db.UserBusinessUnits.AcrossTenants()
-            .Where(x => x.UserId == user.Id && x.AccountId == user.AccountId)
+            .Where(x => x.UserId == user.Id && x.AccountId == user.AccountId && x.IsActive && x.RoleId != null)
             .Select(x => new { x.BusinessUnitId, RoleName = x.Role!.Name })
             .ToDictionaryAsync(x => x.BusinessUnitId, x => x.RoleName, cancellationToken);
 
         var units = await db.BusinessUnits.AcrossTenants()
             .Where(b => b.AccountId == user.AccountId && b.IsActive)
-            .Where(b => user.IsPrimaryAdmin || assignments.Keys.Contains(b.Id))
+            .Where(b => user.IsAccountAdmin || assignments.Keys.Contains(b.Id))
             .OrderBy(b => b.Name)
             .Select(b => new { b.Id, b.Code, b.Name })
             .ToListAsync(cancellationToken);
 
         return units
-            .Select(b => new BusinessUnitAccessDto(b.Id, b.Code, b.Name, assignments.GetValueOrDefault(b.Id) ?? "Primary admin"))
+            .Select(b => new BusinessUnitAccessDto(b.Id, b.Code, b.Name, assignments.GetValueOrDefault(b.Id) ?? AccountAdminRole))
             .ToList();
     }
 
@@ -159,5 +146,5 @@ public static class ErpAuthEndpoints
         units.Any(u => u.Id == user.LastBusinessUnitId) ? user.LastBusinessUnitId : null;
 
     private static ErpUserDto ToDto(ErpUser user) =>
-        new(user.Id, user.Email, user.FullName, user.AccountId, user.Account?.Name ?? "", user.IsPrimaryAdmin);
+        new(user.Id, user.Email, user.FullName, user.AccountId, user.Account?.Name ?? "", user.IsAccountAdmin);
 }

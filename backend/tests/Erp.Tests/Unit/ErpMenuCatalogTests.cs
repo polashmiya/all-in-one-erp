@@ -52,6 +52,20 @@ public sealed class ErpMenuCatalogTests
     }
 
     [Fact]
+    public void Modules_with_the_same_key_from_two_providers_are_merged()
+    {
+        var items = new MenuModule("system-setup", new("Setup", "Setup"), "setting", 1,
+            [new("items", new("Items", "Items"), null, 1, [new MenuFeature("item", new("Item", "Item"), 1)])]);
+        var users = new MenuModule("system-setup", new("Setup", "Setup"), "setting", 1,
+            [new("users", new("Users", "Users"), null, 2, [new MenuFeature("user", new("User", "User"), 1)])]);
+        var catalog = new ErpMenuCatalog([new Provider(items), new Provider(users)]);
+
+        var module = Assert.Single(catalog.Modules);
+        Assert.Equal(["system-setup.item", "system-setup.user"], catalog.Features.Select(f => f.Code));
+        Assert.Equal(2, module.SubModules.Count);
+    }
+
+    [Fact]
     public void Rejects_duplicate_feature_codes()
     {
         var error = Assert.Throws<InvalidOperationException>(() =>

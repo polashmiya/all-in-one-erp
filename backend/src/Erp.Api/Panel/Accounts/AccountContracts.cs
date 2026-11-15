@@ -31,7 +31,7 @@ public sealed record BusinessUnitInput(
     IReadOnlyList<WarehouseInput> Warehouses);
 
 /// <summary>The account's first ERP user. Leave <see cref="Password"/> empty to have a secure one generated.</summary>
-public sealed record AdminUserInput(string FullName, string Email, string? Password);
+public sealed record AdminUserInput(string FullName, string Username, string Email, string? Password);
 
 /// <param name="FeatureCodes">ERP features (menus) the account gets, e.g. system-setup.item-profile.</param>
 public sealed record AccountSetupRequest(
@@ -40,7 +40,7 @@ public sealed record AccountSetupRequest(
     IReadOnlyList<string> FeatureCodes,
     AdminUserInput Admin);
 
-public sealed record AdminCredentials(string FullName, string Email, string? GeneratedPassword);
+public sealed record AdminCredentials(string FullName, string Username, string Email, string? GeneratedPassword);
 
 public sealed record AccountSetupResult(
     Guid AccountId,
@@ -52,7 +52,7 @@ public sealed record AccountSetupResult(
     int Features,
     AdminCredentials Admin);
 
-public sealed record AvailabilityResponse(bool? AccountCodeAvailable, bool? AdminEmailAvailable);
+public sealed record AvailabilityResponse(bool? AccountCodeAvailable, bool? AdminEmailAvailable, bool? AdminUsernameAvailable);
 
 // ---------- Landing list ----------
 

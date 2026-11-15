@@ -67,6 +67,19 @@ internal sealed class ErpFeatureConfiguration : IEntityTypeConfiguration<ErpFeat
     }
 }
 
+internal sealed class BusinessUnitFeatureConfiguration : IEntityTypeConfiguration<BusinessUnitFeature>
+{
+    public void Configure(EntityTypeBuilder<BusinessUnitFeature> builder)
+    {
+        builder.ToTable("BusinessUnitFeatures");
+        builder.HasIndex(x => new { x.BusinessUnitId, x.FeatureId }).IsUnique();
+
+        builder.HasOne<Account>().WithMany().HasForeignKey(x => x.AccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Feature).WithMany().HasForeignKey(x => x.FeatureId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 internal sealed class AccountFeatureConfiguration : IEntityTypeConfiguration<AccountFeature>
 {
     public void Configure(EntityTypeBuilder<AccountFeature> builder)

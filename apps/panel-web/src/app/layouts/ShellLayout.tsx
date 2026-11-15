@@ -1,19 +1,19 @@
 import { useGetPanelSession, useSystemStatus } from '@erp/api-client';
 import { AppShell } from '@erp/ui';
-import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Outlet } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
+import { CHANGE_PASSWORD_PATH, FORGOT_PASSWORD_PATH } from '@/common/constants/routes';
 import { useNavigation } from '@/common/navigation/useNavigation';
+import { endSession } from '@/common/services/api-client';
 import { useAuthStore } from '@/common/store/auth-store';
 
 export function ShellLayout() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const signOut = useAuthStore((s) => s.signOut);
   const { status } = useSystemStatus();
   const session = useGetPanelSession({ query: { staleTime: appConfig.sessionStaleMs } });
   const navigation = useNavigation();
@@ -21,11 +21,6 @@ export function ShellLayout() {
   useEffect(() => {
     if (session.data) setUser(session.data);
   }, [session.data, setUser]);
-
-  const logout = () => {
-    signOut();
-    queryClient.clear();
-  };
 
   const role = user ? t(`role.${user.role}`) : undefined;
 
@@ -41,7 +36,11 @@ export function ShellLayout() {
         role,
         tags: role ? [role] : undefined,
       }}
-      onLogout={logout}
+      onChangePassword={() => navigate(CHANGE_PASSWORD_PATH)}
+      onResetPassword={() =>
+        navigate(`${FORGOT_PASSWORD_PATH}?login=${encodeURIComponent(user?.email ?? '')}`)
+      }
+      onLogout={endSession}
     >
       <Outlet />
     </AppShell>

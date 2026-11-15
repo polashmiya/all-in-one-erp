@@ -23,7 +23,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
 import { useAccountScreens } from '../../components/account-screens';
-import { ACCOUNT_PATHS, SCREEN_PARAMS } from '../../constants';
+import { ACCOUNT_DRAFTS, ACCOUNT_PATHS, SCREEN_PARAMS } from '../../constants';
+import { useListDrafts } from '@/common/hooks/useDrafts';
 import { CustomFieldModal } from '../components/CustomFieldModal';
 import { FieldSettingsModal } from '../components/FieldSettingsModal';
 import { effective, isChanged, PLACEMENT_KEYS } from '../field-settings';
@@ -43,7 +44,8 @@ export function AccountConfigurationPage() {
   const showUndo = useUndoMessage();
   const [editing, setEditing] = useState<FieldConfigRow>();
   const [adding, setAdding] = useState(false);
-  const list = useListState<Filters>({
+  const list = useListState<Filters, string>({
+    view: 'all',
     filters: { feature: null, unit: null },
     pageSize: appConfig.defaultPageSize,
   });
@@ -55,6 +57,11 @@ export function AccountConfigurationPage() {
   }, [list.filters.feature, firstFeature, setFilter]);
 
   const feature = list.filters.feature ?? firstFeature ?? '';
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const drafts = useListDrafts(ACCOUNT_DRAFTS.customField(accountId, feature), (draftId) => {
+    setDraftId(draftId);
+    setAdding(true);
+  });
   const unitId = list.filters.unit ?? undefined;
   const params = unitId ? { businessUnitId: unitId } : undefined;
   const queryKey = getGetFeatureConfigurationQueryKey(accountId, feature, params);
@@ -221,6 +228,8 @@ export function AccountConfigurationPage() {
         loading={account.isPending || editor.isFetching}
         onRefresh={() => void editor.refetch()}
         onRowClick={setEditing}
+        views={[{ key: 'all', label: t('config.view.all') }]}
+        drafts={drafts}
         rowActions={(row) => [
           {
             key: 'edit',
@@ -266,6 +275,8 @@ export function AccountConfigurationPage() {
       <CustomFieldModal
         accountId={accountId}
         feature={feature}
+        draftId={draftId}
+        onDraftChange={setDraftId}
         open={adding}
         types={editor.data?.customTypes ?? []}
         sections={sections}

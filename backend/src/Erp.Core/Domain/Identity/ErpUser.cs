@@ -6,22 +6,37 @@ namespace Erp.Core.Domain.Identity;
 /// A client user. Access to a business unit comes from a <see cref="UserBusinessUnit"/> row (which carries the role),
 /// except for the account's primary admin, who can use every active unit with every permission.
 /// </summary>
-public class ErpUser : BaseEntity, IAccountOwned
+public class ErpUser : BaseEntity, IAccountOwned, ISignInUser
 {
     public Guid AccountId { get; set; }
 
     public Account? Account { get; set; }
 
     /// <summary>Stored lower-cased; unique across all accounts so login needs only email + password.</summary>
+    /// <summary>Stored lower-cased; unique across all accounts. Sign-in accepts the email or the username.</summary>
+    public required string Username { get; set; }
+
     public required string Email { get; set; }
 
     public required string FullName { get; set; }
 
     public required string PasswordHash { get; set; }
 
-    public bool IsPrimaryAdmin { get; set; }
+    public string? Phone { get; set; }
+
+    public int? EmployeeId { get; set; }
+
+    public bool IsAccountAdmin { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    public bool MustChangePassword { get; set; }
+
+    public int FailedLoginCount { get; set; }
+
+    public DateTimeOffset? LockedUntil { get; set; }
+
+    public Guid SecurityStamp { get; set; } = Guid.NewGuid();
 
     public DateTimeOffset? LastLoginAt { get; set; }
 

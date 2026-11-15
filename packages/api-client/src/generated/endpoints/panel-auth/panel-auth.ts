@@ -22,11 +22,16 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ChangePasswordRequest,
+  ForgotPasswordRequest,
   HttpValidationProblemDetails,
   LoginRequest,
   PanelLoginResponse,
   PanelUserDto,
   ProblemDetails,
+  RefreshRequest,
+  ResetPasswordRequest,
+  SessionTokens,
 } from '../../model';
 
 import { customFetch } from '../../../http/client.ts';
@@ -271,3 +276,493 @@ export function useGetPanelSession<
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+export const getPanelRefreshUrl = () => {
+  return `/api/panel/auth/refresh`;
+};
+
+/**
+ * @summary Exchange a refresh token for a new access and refresh token
+ */
+export const panelRefresh = async (
+  refreshRequest: RefreshRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<SessionTokens> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<SessionTokens>(getPanelRefreshUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(refreshRequest),
+  });
+};
+
+export const getPanelRefreshMutationKey = () => ['panelRefresh'] as const;
+
+export const getPanelRefreshMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof panelRefresh>>,
+    TError,
+    PanelRefreshMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof panelRefresh>>,
+  TError,
+  PanelRefreshMutationVariables,
+  TContext
+> => {
+  const mutationKey = getPanelRefreshMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof panelRefresh>>,
+    PanelRefreshMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return panelRefresh(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PanelRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof panelRefresh>>>;
+export type PanelRefreshMutationBody = BodyType<RefreshRequest>;
+export type PanelRefreshMutationError = ErrorType<HttpValidationProblemDetails | ProblemDetails>;
+export type PanelRefreshMutationVariables = { data: BodyType<RefreshRequest> };
+
+/**
+ * @summary Exchange a refresh token for a new access and refresh token
+ */
+export const usePanelRefresh = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof panelRefresh>>,
+      TError,
+      PanelRefreshMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof panelRefresh>>,
+  TError,
+  PanelRefreshMutationVariables,
+  TContext
+> => {
+  return useMutation(getPanelRefreshMutationOptions(options), queryClient);
+};
+export const getPanelLogoutUrl = () => {
+  return `/api/panel/auth/logout`;
+};
+
+/**
+ * @summary End this session
+ */
+export const panelLogout = async (options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+  return customFetch<void>(getPanelLogoutUrl(), {
+    ...options,
+    method: 'POST',
+  });
+};
+
+export const getPanelLogoutMutationKey = () => ['panelLogout'] as const;
+
+export const getPanelLogoutMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof panelLogout>>, TError, void, TContext>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<Awaited<ReturnType<typeof panelLogout>>, TError, void, TContext> => {
+  const mutationKey = getPanelLogoutMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof panelLogout>>, void> = () => {
+    return panelLogout(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PanelLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof panelLogout>>>;
+
+export type PanelLogoutMutationError = ErrorType<ProblemDetails>;
+
+/**
+ * @summary End this session
+ */
+export const usePanelLogout = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof panelLogout>>, TError, void, TContext>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<Awaited<ReturnType<typeof panelLogout>>, TError, void, TContext> => {
+  return useMutation(getPanelLogoutMutationOptions(options), queryClient);
+};
+export const getPanelChangePasswordUrl = () => {
+  return `/api/panel/auth/change-password`;
+};
+
+/**
+ * @summary Change the signed-in user's password; ends every other session
+ */
+export const panelChangePassword = async (
+  changePasswordRequest: ChangePasswordRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<SessionTokens> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<SessionTokens>(getPanelChangePasswordUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(changePasswordRequest),
+  });
+};
+
+export const getPanelChangePasswordMutationKey = () => ['panelChangePassword'] as const;
+
+export const getPanelChangePasswordMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof panelChangePassword>>,
+    TError,
+    PanelChangePasswordMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof panelChangePassword>>,
+  TError,
+  PanelChangePasswordMutationVariables,
+  TContext
+> => {
+  const mutationKey = getPanelChangePasswordMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof panelChangePassword>>,
+    PanelChangePasswordMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return panelChangePassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PanelChangePasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof panelChangePassword>>
+>;
+export type PanelChangePasswordMutationBody = BodyType<ChangePasswordRequest>;
+export type PanelChangePasswordMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type PanelChangePasswordMutationVariables = { data: BodyType<ChangePasswordRequest> };
+
+/**
+ * @summary Change the signed-in user's password; ends every other session
+ */
+export const usePanelChangePassword = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof panelChangePassword>>,
+      TError,
+      PanelChangePasswordMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof panelChangePassword>>,
+  TError,
+  PanelChangePasswordMutationVariables,
+  TContext
+> => {
+  return useMutation(getPanelChangePasswordMutationOptions(options), queryClient);
+};
+export const getPanelForgotPasswordUrl = () => {
+  return `/api/panel/auth/forgot-password`;
+};
+
+/**
+ * @summary Email a password reset code; always answers the same, whether the user exists or not
+ */
+export const panelForgotPassword = async (
+  forgotPasswordRequest: ForgotPasswordRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<void>(getPanelForgotPasswordUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(forgotPasswordRequest),
+  });
+};
+
+export const getPanelForgotPasswordMutationKey = () => ['panelForgotPassword'] as const;
+
+export const getPanelForgotPasswordMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof panelForgotPassword>>,
+    TError,
+    PanelForgotPasswordMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof panelForgotPassword>>,
+  TError,
+  PanelForgotPasswordMutationVariables,
+  TContext
+> => {
+  const mutationKey = getPanelForgotPasswordMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof panelForgotPassword>>,
+    PanelForgotPasswordMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return panelForgotPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PanelForgotPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof panelForgotPassword>>
+>;
+export type PanelForgotPasswordMutationBody = BodyType<ForgotPasswordRequest>;
+export type PanelForgotPasswordMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type PanelForgotPasswordMutationVariables = { data: BodyType<ForgotPasswordRequest> };
+
+/**
+ * @summary Email a password reset code; always answers the same, whether the user exists or not
+ */
+export const usePanelForgotPassword = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof panelForgotPassword>>,
+      TError,
+      PanelForgotPasswordMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof panelForgotPassword>>,
+  TError,
+  PanelForgotPasswordMutationVariables,
+  TContext
+> => {
+  return useMutation(getPanelForgotPasswordMutationOptions(options), queryClient);
+};
+export const getPanelResetPasswordUrl = () => {
+  return `/api/panel/auth/reset-password`;
+};
+
+/**
+ * @summary Set a new password with the emailed code; ends every session of the user
+ */
+export const panelResetPassword = async (
+  resetPasswordRequest: ResetPasswordRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<void>(getPanelResetPasswordUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(resetPasswordRequest),
+  });
+};
+
+export const getPanelResetPasswordMutationKey = () => ['panelResetPassword'] as const;
+
+export const getPanelResetPasswordMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof panelResetPassword>>,
+    TError,
+    PanelResetPasswordMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof panelResetPassword>>,
+  TError,
+  PanelResetPasswordMutationVariables,
+  TContext
+> => {
+  const mutationKey = getPanelResetPasswordMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof panelResetPassword>>,
+    PanelResetPasswordMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return panelResetPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PanelResetPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof panelResetPassword>>
+>;
+export type PanelResetPasswordMutationBody = BodyType<ResetPasswordRequest>;
+export type PanelResetPasswordMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type PanelResetPasswordMutationVariables = { data: BodyType<ResetPasswordRequest> };
+
+/**
+ * @summary Set a new password with the emailed code; ends every session of the user
+ */
+export const usePanelResetPassword = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof panelResetPassword>>,
+      TError,
+      PanelResetPasswordMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof panelResetPassword>>,
+  TError,
+  PanelResetPasswordMutationVariables,
+  TContext
+> => {
+  return useMutation(getPanelResetPasswordMutationOptions(options), queryClient);
+};

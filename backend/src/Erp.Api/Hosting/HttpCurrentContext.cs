@@ -22,7 +22,7 @@ public sealed class HttpCurrentContext(IHttpContextAccessor accessor) : ICurrent
 
     public Guid? BusinessUnitId => _businessUnitId;
 
-    public bool IsPrimaryAdmin => IsAuthenticated && User?.FindFirst(ErpClaimTypes.PrimaryAdmin)?.Value == "true";
+    public bool IsAccountAdmin => IsAuthenticated && User?.FindFirst(ErpClaimTypes.AccountAdmin)?.Value == "true";
 
     public void SetBusinessUnit(Guid businessUnitId) => _businessUnitId = businessUnitId;
 

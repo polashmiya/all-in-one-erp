@@ -52,6 +52,11 @@ export function SetupSuccess({
             items={[
               { key: 'name', label: t('field.fullName'), children: result.admin.fullName },
               {
+                key: 'username',
+                label: t('field.username'),
+                children: <Typography.Text copyable>{result.admin.username}</Typography.Text>,
+              },
+              {
                 key: 'email',
                 label: t('field.loginEmail'),
                 children: <Typography.Text copyable>{result.admin.email}</Typography.Text>,

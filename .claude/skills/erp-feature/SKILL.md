@@ -17,14 +17,14 @@ Read `.claude/CLAUDE.md` first if it is not already in context. Its rules (simpl
 
 ## Where things live
 
-| Path                                                  | What it holds                                                                                                                                                                                                |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `apps/erp-web/src/modules/<module>/<area>/<feature>/` | One ERP feature: `routes.tsx`, `i18n.ts`, `pages/`, `components/`, optional `constants.ts`, `services/`, `*.css`                                                                                             |
-| `apps/erp-web/src/common/`                            | App-wide `constants/routes.ts` (`featurePath`), `config/app.config.ts` (page size, stale times), hooks (`useFeatureAccess`, `useFeatureConfig`), `utils/api-errors.ts`, `utils/mock.ts`, `i18n/resources.ts` |
-| `apps/panel-web/src/modules/`                         | Internal Panel screens (accounts). Same ideas, own routes and i18n                                                                                                                                           |
-| `packages/ui/src/`                                    | Shared components, page templates, hooks, format utils, theme tokens, CSS. Exported from `@erp/ui`                                                                                                           |
-| `packages/metadata-engine/src/`                       | Turns a feature configuration into form tabs, view tabs and list columns. Exported from `@erp/metadata-engine`                                                                                               |
-| `packages/api-client/`                                | Generated React Query hooks and models (`@erp/api-client`)                                                                                                                                                   |
+| Path                                                  | What it holds                                                                                                                                                                                      |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/erp-web/src/modules/<module>/<area>/<feature>/` | One ERP feature: `routes.tsx`, `i18n.ts`, `pages/`, `components/`, optional `constants.ts`, `services/`, `*.css`                                                                                   |
+| `apps/erp-web/src/common/`                            | App-wide `constants/routes.ts` (`featurePath`), `config/app.config.ts` (page size, stale times), hooks (`useFeatureAccess`, `useFeatureConfig`, `useDrafts`), `utils/mock.ts`, `i18n/resources.ts` |
+| `apps/panel-web/src/modules/`                         | Internal Panel screens (accounts). Same ideas, own routes and i18n                                                                                                                                 |
+| `packages/ui/src/`                                    | Shared components, page templates, hooks, format utils, theme tokens, CSS. Exported from `@erp/ui`                                                                                                 |
+| `packages/metadata-engine/src/`                       | Turns a feature configuration into form tabs, view tabs and list columns. Exported from `@erp/metadata-engine`                                                                                     |
+| `packages/api-client/`                                | Generated React Query hooks and models (`@erp/api-client`)                                                                                                                                         |
 
 Before writing any component, check `packages/ui/src/index.ts` and the folder's `index.ts` files. Layouts (`ListPageLayout`, `FormPageLayout`, `DetailsPageLayout`, `WizardLayout`), overlays (`FormModal`, `AppDrawer`, `useConfirm`), fields (`Field`, `FieldGrid`, `FieldInput`, `LookupSelect`, `MoneyInput`...), tags (`StatusTag`, `SoftTag`), feedback (`PageState`, `ForbiddenResult`, `EmptyState`, `useUndoMessage`), hooks (`useListState`, `useDisclosure`, `useGoBack`, `useUnsavedGuard`) and utils (`formatMoney`, `formatDateTime`, `downloadCsv`) already exist. A new shared component goes into `packages/ui` only when a second real use appears.
 
@@ -73,7 +73,7 @@ When you add a feature, each item below is one small edit:
 3. **i18n.** The feature's `i18n.ts` exports `<feature>Resources: AppResources` with `en` and `bn` blocks. Register it in `mergeResources(...)` in `apps/erp-web/src/common/i18n/resources.ts`.
 4. **Permissions.** `const access = useFeatureAccess(FEATURE_KEY)`. Return `<ForbiddenResult />` when `!access.view`. Hide actions with `hidden: !access.create` / `edit` / `delete` / `export`. The API enforces permissions anyway; the UI just should not offer what the role cannot do.
 5. **Data.** Wrap query keys with `useUnitKey(getXQueryKey(params))` so switching business unit refetches. Use `placeholderData: keepPreviousData` on lists and `enabled: access.view`. After a mutation, invalidate with the area's refresh hook.
-6. **Errors.** For form saves use `applyFieldErrors(form, error)` from `@/common/utils/api-errors` to put server field errors on the inputs; otherwise show `problemMessage(error, t('master.failed'))`.
+6. **Errors.** For form saves use `applyFieldErrors(form, error)` from `@erp/api-client` to put server field errors on the inputs; otherwise show `problemMessage(error, t('master.failed'))`.
 
 The sidebar menu comes from the API (`/api/erp/navigation`), not from frontend code. A route without a menu entry is still reachable by URL; say so to the user instead of hardcoding a menu item.
 
@@ -121,7 +121,7 @@ Every screen in both apps looks and works the same way. The shared templates alr
 **Forms**
 
 - Each section is a card. The main column has at most 3 field columns. The right column (`aside`) has 1 and holds status, classification, image or organize sections.
-- There is one save location: the sticky page header with Cancel, Save & new, and Save. Ctrl+S saves. No floating buttons.
+- There is one save location: the sticky page header with a split Save button; its menu holds Save & new, Save as draft and Cancel. Ctrl+S saves. No floating buttons. Create forms pass `draft` from `useFormDraft` (pages, `?draft=`) or `useModalDraft` (modals); list pages pass `drafts` from `useListDrafts` to show the Drafts view.
 - Spacing is fixed in the shared CSS; do not override it. Label to field: 4 px (`--erp-space-xs`). Field to help or error: 4 px. Between fields: 16 px (`--erp-space-lg`) in both directions. Section heading to first field: 12 px (`--erp-space-md`). Card padding: 20 px (`--erp-space-xl`).
 - Help text goes under the field (`extra`), not in a tooltip. On/off fields are switches.
 - A modal for new records offers "Create & add another" (`addAnotherText`).

@@ -5,6 +5,7 @@ using Erp.Api.Hosting;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Modules;
+using Erp.Core.Notifications;
 using Erp.Core.Security;
 using Erp.Core.Tenancy;
 using Erp.Infrastructure.Persistence;
@@ -38,6 +39,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public SeedOptions Seed => Services.GetRequiredService<IOptions<SeedOptions>>().Value;
 
+    public CapturedEmails Emails { get; } = new();
+
     public Guid DhakaId { get; private set; }
 
     public Guid ChattogramId { get; private set; }
@@ -52,7 +55,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Database:MigrateOnStartup", "true");
         builder.UseSetting("Database:SeedDemoData", "true");
         builder.UseSetting("RateLimiting:LoginPerMinute", "10000");
-        builder.ConfigureTestServices(services => services.AddSingleton<IErpEndpoints, ProbeEndpoints>());
+        builder.UseSetting("Auth:RefreshReuseGrace", "00:00:00");
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddSingleton<IErpEndpoints, ProbeEndpoints>();
+            services.AddSingleton(Emails);
+            services.AddSingleton<IEmailSender>(Emails);
+        });
     }
 
     public async Task InitializeAsync()
@@ -101,6 +110,21 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         return (await response.Content.ReadFromJsonAsync<PanelLoginResponse>())!;
     }
 
+    /// <summary>Signs in and, when the user must change the password first, changes it to <see cref="ChangedPassword"/>.</summary>
+    public async Task<ErpLoginResponse> ErpReadyLoginAsync(string login, string password)
+    {
+        var signIn = await ErpLoginAsync(login, password);
+        if (!signIn.MustChangePassword) return signIn;
+
+        var response = await CreateClient(signIn.AccessToken)
+            .PostAsJsonAsync("/api/erp/auth/change-password", new ChangePasswordRequest(password, ChangedPassword));
+        response.EnsureSuccessStatusCode();
+        var tokens = (await response.Content.ReadFromJsonAsync<SessionTokens>())!;
+        return signIn with { AccessToken = tokens.AccessToken, RefreshToken = tokens.RefreshToken, MustChangePassword = false };
+    }
+
+    public const string ChangedPassword = "Changed@12345";
+
     public Task<ErpLoginResponse> ErpAdminLoginAsync() => ErpLoginAsync(Seed.ErpAdmin.Email, Seed.ErpAdmin.Password);
 
     private async Task SeedTestDataAsync()
@@ -118,6 +142,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var viewerUser = new ErpUser
         {
             AccountId = demo.Id,
+            Username = "viewer.user",
             Email = ViewerEmail,
             FullName = "Viewer User",
             PasswordHash = hasher.Hash(TestPassword),
@@ -130,6 +155,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var newUser = new ErpUser
         {
             AccountId = demo.Id,
+            Username = "new.user",
             Email = NewUserEmail,
             FullName = "New User",
             PasswordHash = hasher.Hash(TestPassword),
@@ -144,10 +170,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         db.ErpUsers.Add(new ErpUser
         {
             Account = other,
+            Username = "other.admin",
             Email = OtherAdminEmail,
             FullName = "Other Admin",
             PasswordHash = hasher.Hash(TestPassword),
-            IsPrimaryAdmin = true,
+            IsAccountAdmin = true,
         });
 
         await db.SaveChangesAsync();

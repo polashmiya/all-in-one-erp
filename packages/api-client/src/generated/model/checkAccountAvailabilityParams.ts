@@ -9,4 +9,5 @@
 export type CheckAccountAvailabilityParams = {
   accountCode?: string;
   adminEmail?: string;
+  adminUsername?: string;
 };

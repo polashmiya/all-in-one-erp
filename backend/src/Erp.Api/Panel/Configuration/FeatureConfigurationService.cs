@@ -497,7 +497,7 @@ public sealed class FeatureConfigurationService(ErpDbContext db, FeatureConfigSe
         {
             FieldId = field.Id,
             SectionId = field.SectionId,
-            IsVisible = true,
+            IsVisible = !field.IsHiddenByDefault,
             IsRequired = field.IsRequired || field.IsLocked,
             IsReadOnly = false,
             LabelEn = field.LabelEn,

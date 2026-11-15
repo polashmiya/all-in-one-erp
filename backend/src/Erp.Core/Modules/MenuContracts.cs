@@ -58,7 +58,11 @@ public sealed class ErpMenuCatalog
 {
     public ErpMenuCatalog(IEnumerable<IErpMenuProvider> providers)
     {
-        Modules = providers.SelectMany(p => p.GetModules()).OrderBy(m => m.Order).ToList();
+        Modules = providers.SelectMany(p => p.GetModules())
+            .GroupBy(m => m.Key)
+            .Select(g => g.First() with { SubModules = g.SelectMany(m => m.SubModules).OrderBy(s => s.Order).ToList() })
+            .OrderBy(m => m.Order)
+            .ToList();
 
         Ensure(Modules.Select(m => m.Key), "module");
         foreach (var module in Modules) Ensure(module.SubModules.Select(s => s.Key), $"sub-module in '{module.Key}'");

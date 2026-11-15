@@ -29,6 +29,8 @@ export interface AppShellProps {
   notifications?: number;
   version?: string;
   onProfile?: () => void;
+  onChangePassword?: () => void;
+  onResetPassword?: () => void;
   onLogout?: () => void;
   children: ReactNode;
 }
@@ -43,6 +45,8 @@ export function AppShell({
   notifications,
   version,
   onProfile,
+  onChangePassword,
+  onResetPassword,
   onLogout,
   children,
 }: AppShellProps) {
@@ -132,6 +136,8 @@ export function AppShell({
               onThemeOpenChange={setThemeOpen}
               onShortcuts={() => setShortcutsOpen(true)}
               onProfile={onProfile}
+              onChangePassword={onChangePassword}
+              onResetPassword={onResetPassword}
               onLogout={onLogout}
               onOpenMenu={mobile ? () => setDrawerOpen(true) : undefined}
             />

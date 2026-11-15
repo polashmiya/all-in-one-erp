@@ -14,7 +14,7 @@ import {
 } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFeatureCatalog } from './feature-catalog';
+import { limitCatalog, useFeatureCatalog } from './feature-catalog';
 
 function useLabel() {
   const language = useLanguageStore((s) => s.language);
@@ -25,13 +25,20 @@ function useLabel() {
 export function FeatureAccessTree({
   value,
   onChange,
+  available,
 }: {
   value?: string[];
   onChange?: (codes: string[]) => void;
+  available?: string[];
 }) {
   const { t } = useTranslation();
   const label = useLabel();
-  const { modules, allCodes, loading } = useFeatureCatalog();
+  const catalog = useFeatureCatalog();
+  const { modules, allCodes } = useMemo(
+    () => limitCatalog(catalog.modules, available),
+    [catalog.modules, available],
+  );
+  const loading = catalog.loading;
   const selected = useMemo(() => value ?? [], [value]);
 
   const treeData = useMemo<TreeDataNode[]>(

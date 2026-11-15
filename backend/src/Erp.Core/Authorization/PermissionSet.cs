@@ -38,11 +38,11 @@ public interface IPermissionService
     /// in both cases limited to features the account has been given.
     /// </summary>
     Task<PermissionSet> GetAsync(
-        Guid userId, Guid accountId, Guid businessUnitId, bool isPrimaryAdmin, CancellationToken cancellationToken = default);
+        Guid userId, Guid accountId, Guid businessUnitId, bool isAccountAdmin, CancellationToken cancellationToken = default);
 }
 
 public interface IBusinessUnitAccess
 {
     /// <summary>True when the ERP user may work in the business unit (assigned, or primary admin of its account; unit active).</summary>
-    Task<bool> CanAccessAsync(Guid userId, Guid accountId, Guid businessUnitId, bool isPrimaryAdmin, CancellationToken cancellationToken = default);
+    Task<bool> CanAccessAsync(Guid userId, Guid accountId, Guid businessUnitId, bool isAccountAdmin, CancellationToken cancellationToken = default);
 }

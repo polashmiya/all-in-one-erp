@@ -19,13 +19,15 @@ import {
   TitleCell,
   useLanguageStore,
   useListState,
+  withDraft,
 } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
-import { ACCOUNT_PATHS } from '../../constants';
+import { useListDrafts } from '@/common/hooks/useDrafts';
+import { ACCOUNT_PATHS, ACCOUNT_DRAFTS } from '../../constants';
 import { countryName } from '../../utils/format';
 
 type View = 'all' | 'active' | 'inactive';
@@ -34,6 +36,9 @@ type SortField = 'name' | 'createdAt';
 export function AccountsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const drafts = useListDrafts(ACCOUNT_DRAFTS.setup, (draftId) =>
+    navigate(withDraft(ACCOUNT_PATHS.create, draftId)),
+  );
   const language = useLanguageStore((s) => s.language);
   const list = useListState<Record<string, never>, View, SortField>({
     filters: {},
@@ -199,6 +204,7 @@ export function AccountsPage() {
         loading={query.isFetching}
         onRefresh={() => void query.refetch()}
         onRowClick={(account) => navigate(ACCOUNT_PATHS.detail(account.id))}
+        drafts={drafts}
         empty={{
           title: t('accounts.empty'),
           actions: [

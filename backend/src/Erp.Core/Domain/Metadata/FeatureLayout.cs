@@ -65,6 +65,8 @@ public class FeatureField : BaseEntity
 
     public bool IsRequired { get; set; }
 
+    public bool IsHiddenByDefault { get; set; }
+
     public int? MaxLength { get; set; }
 
     public decimal? MinValue { get; set; }

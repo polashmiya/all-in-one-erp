@@ -1,3 +1,4 @@
+export * from './drafts/drafts.ts';
 export * from './erp-auth/erp-auth.ts';
 export * from './erp-navigation/erp-navigation.ts';
 export * from './feature-config/feature-config.ts';
@@ -9,9 +10,12 @@ export * from './items/items.ts';
 export * from './lookups/lookups.ts';
 export * from './panel-accounts/panel-accounts.ts';
 export * from './panel-auth/panel-auth.ts';
+export * from './panel-drafts/panel-drafts.ts';
 export * from './panel-erp-menu/panel-erp-menu.ts';
+export * from './panel-erp-users/panel-erp-users.ts';
 export * from './panel-feature-configuration/panel-feature-configuration.ts';
 export * from './panel-lookups/panel-lookups.ts';
 export * from './panel-navigation/panel-navigation.ts';
 export * from './system/system.ts';
 export * from './units-of-measure/units-of-measure.ts';
+export * from './user-management/user-management.ts';

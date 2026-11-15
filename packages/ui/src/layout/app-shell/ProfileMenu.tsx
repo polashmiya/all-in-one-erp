@@ -1,7 +1,9 @@
 import {
   DownOutlined,
   KeyOutlined,
+  LockOutlined,
   LogoutOutlined,
+  MailOutlined,
   SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -68,6 +70,8 @@ export interface ProfileMenuProps {
   onProfile?: () => void;
   onPreferences: () => void;
   onShortcuts: () => void;
+  onChangePassword?: () => void;
+  onResetPassword?: () => void;
   onLogout?: () => void;
 }
 
@@ -76,6 +80,8 @@ export function ProfileMenu({
   onProfile,
   onPreferences,
   onShortcuts,
+  onChangePassword,
+  onResetPassword,
   onLogout,
 }: ProfileMenuProps) {
   const { t } = useTranslation();
@@ -118,6 +124,20 @@ export function ProfileMenu({
         label={t('shell.preferences')}
         onClick={run(onPreferences)}
       />
+      {onChangePassword && (
+        <MenuButton
+          icon={<LockOutlined />}
+          label={t('shell.changePassword')}
+          onClick={run(onChangePassword)}
+        />
+      )}
+      {onResetPassword && (
+        <MenuButton
+          icon={<MailOutlined />}
+          label={t('shell.resetPassword')}
+          onClick={run(onResetPassword)}
+        />
+      )}
       <MenuButton
         icon={<KeyOutlined />}
         label={t('shell.shortcuts')}

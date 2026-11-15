@@ -1,3 +1,4 @@
+using Erp.Api.Auth;
 using FluentValidation;
 
 namespace Erp.Api.Panel.Accounts;
@@ -122,13 +123,9 @@ internal sealed class AdminUserValidator : AbstractValidator<AdminUserInput>
     public AdminUserValidator()
     {
         RuleFor(x => x.FullName).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Username).ValidUsername();
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(256);
-        RuleFor(x => x.Password!)
-            .Length(8, 128)
-            .Matches("[A-Z]").WithMessage("Include an upper-case letter.")
-            .Matches("[a-z]").WithMessage("Include a lower-case letter.")
-            .Matches("[0-9]").WithMessage("Include a digit.")
-            .When(x => !string.IsNullOrEmpty(x.Password));
+        RuleFor(x => x.Password!).StrongPassword().When(x => !string.IsNullOrEmpty(x.Password));
     }
 }
 

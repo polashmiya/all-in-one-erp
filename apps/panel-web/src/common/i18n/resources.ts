@@ -1,5 +1,6 @@
 import { mergeResources, type AppResources } from '@erp/ui';
 import { authResources } from '@/modules/auth/i18n';
+import { erpUserResources } from '@/modules/erp-users/i18n';
 
 const commonPanelResources: AppResources = {
   en: {
@@ -50,6 +51,14 @@ const commonPanelResources: AppResources = {
     'menus.save': 'Save menus',
     'menus.saved': 'Menu access updated. Users see the change on their next action.',
     'menus.saveFailed': 'Menu access could not be updated.',
+    'unitMenus.title': 'Feature access per business unit',
+    'unitMenus.lead':
+      "Every unit gets the account's screens unless you turn some off here. Menus and permissions follow.",
+    'unitMenus.edit': 'Edit screens',
+    'unitMenus.editTitle': 'Screens of {{unit}}',
+    'unitMenus.note':
+      "Untick a screen to turn it off in this business unit only. Only the account's screens are listed.",
+    'unitMenus.saved': 'Business unit screens saved.',
     'menus.selected': '{{count}} of {{total}} features selected',
     'menus.selectAll': 'Select all',
     'menus.clear': 'Clear',
@@ -226,6 +235,8 @@ const commonPanelResources: AppResources = {
     'history.area.custom-field': 'Custom field',
     'history.area.lookup-value': 'Lookup value',
     'history.area.theme': 'ERP theme',
+    'history.area.user': 'User access',
+    'history.area.role': 'Role',
     'layout.action': 'Layout',
     'layout.title': 'Screen layout · {{account}}',
     'layout.hint':
@@ -276,6 +287,7 @@ const commonPanelResources: AppResources = {
       'Tabs, sections and fields go back to their standard order and place, and renamed or hidden tabs and sections come back. Business units with their own layout don’t change.',
     'layout.resetDefaultDone': 'The default layout is back to the standard one.',
     'config.custom.new': 'New custom field',
+    'config.view.all': 'All fields',
     'config.custom.hint': 'The field is added for every business unit of the account',
     'config.custom.tag': 'Custom',
     'config.custom.list': 'Lookup list',
@@ -350,6 +362,10 @@ const commonPanelResources: AppResources = {
     'field.location': 'Location',
     'field.fullName': 'Full name',
     'field.loginEmail': 'Sign-in email',
+    'field.username': 'Username',
+    'setup.usernameTaken': 'A user with this username already exists.',
+    'setup.usernameFormat': 'Use 3–50 letters, digits, dot, dash or underscore.',
+    'setup.usernameHelp': 'The administrator can sign in with this username or the email.',
     'field.password': 'Password',
     'field.confirmPassword': 'Confirm password',
 
@@ -492,6 +508,14 @@ const commonPanelResources: AppResources = {
     'menus.save': 'মেনু সংরক্ষণ',
     'menus.saved': 'মেনু অ্যাক্সেস হালনাগাদ হয়েছে। ইউজাররা পরবর্তী কাজেই পরিবর্তন দেখবেন।',
     'menus.saveFailed': 'মেনু অ্যাক্সেস হালনাগাদ করা যায়নি।',
+    'unitMenus.title': 'বিজনেস ইউনিট অনুযায়ী ফিচার অ্যাক্সেস',
+    'unitMenus.lead':
+      'এখানে বন্ধ না করলে প্রতিটি ইউনিট অ্যাকাউন্টের সব স্ক্রিন পায়। মেনু ও অনুমতি এর সাথে চলে।',
+    'unitMenus.edit': 'স্ক্রিন সম্পাদনা',
+    'unitMenus.editTitle': '{{unit}}-এর স্ক্রিন',
+    'unitMenus.note':
+      'শুধু এই বিজনেস ইউনিটে বন্ধ করতে স্ক্রিনের টিক তুলে দিন। শুধু অ্যাকাউন্টের স্ক্রিন দেখানো হয়েছে।',
+    'unitMenus.saved': 'বিজনেস ইউনিটের স্ক্রিন সংরক্ষিত হয়েছে।',
     'menus.selected': '{{total}}টির মধ্যে {{count}}টি ফিচার নির্বাচিত',
     'menus.selectAll': 'সব নির্বাচন',
     'menus.clear': 'মুছুন',
@@ -668,6 +692,8 @@ const commonPanelResources: AppResources = {
     'history.area.custom-field': 'কাস্টম ফিল্ড',
     'history.area.lookup-value': 'লুকআপ মান',
     'history.area.theme': 'ইআরপি থিম',
+    'history.area.user': 'ইউজার অ্যাক্সেস',
+    'history.area.role': 'রোল',
     'layout.action': 'লেআউট',
     'layout.title': 'স্ক্রিন লেআউট · {{account}}',
     'layout.hint': 'ট্যাব, সেকশন ও ফিল্ড টেনে স্ক্রিন সাজান। পরিবর্তন সঙ্গে সঙ্গে সংরক্ষিত হয়।',
@@ -717,6 +743,7 @@ const commonPanelResources: AppResources = {
       'ট্যাব, সেকশন ও ফিল্ড তাদের স্ট্যান্ডার্ড ক্রম ও জায়গায় ফিরবে, আর নাম বদলানো বা লুকানো ট্যাব ও সেকশন আগের মতো হবে। নিজস্ব লেআউট থাকা বিজনেস ইউনিট বদলাবে না।',
     'layout.resetDefaultDone': 'ডিফল্ট লেআউট স্ট্যান্ডার্ডে ফিরেছে।',
     'config.custom.new': 'নতুন কাস্টম ফিল্ড',
+    'config.view.all': 'সব ফিল্ড',
     'config.custom.hint': 'ফিল্ডটি অ্যাকাউন্টের সব বিজনেস ইউনিটে যোগ হবে',
     'config.custom.tag': 'কাস্টম',
     'config.custom.list': 'লুকআপ তালিকা',
@@ -791,6 +818,10 @@ const commonPanelResources: AppResources = {
     'field.location': 'অবস্থান',
     'field.fullName': 'পূর্ণ নাম',
     'field.loginEmail': 'সাইন-ইন ইমেইল',
+    'field.username': 'ইউজারনেম',
+    'setup.usernameTaken': 'এই ইউজারনেমে আগে থেকেই একজন ইউজার আছে।',
+    'setup.usernameFormat': '৩–৫০টি অক্ষর, সংখ্যা, ডট, ড্যাশ বা আন্ডারস্কোর ব্যবহার করুন।',
+    'setup.usernameHelp': 'অ্যাডমিনিস্ট্রেটর এই ইউজারনেম বা ইমেইল দিয়ে সাইন ইন করতে পারবেন।',
     'field.password': 'পাসওয়ার্ড',
     'field.confirmPassword': 'পাসওয়ার্ড নিশ্চিত করুন',
 
@@ -887,4 +918,4 @@ const commonPanelResources: AppResources = {
   },
 };
 
-export const panelResources = mergeResources(commonPanelResources, authResources);
+export const panelResources = mergeResources(commonPanelResources, authResources, erpUserResources);

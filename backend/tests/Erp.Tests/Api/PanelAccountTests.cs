@@ -42,7 +42,7 @@ public sealed class PanelAccountTests(ApiFactory factory)
                 [new WarehouseInput("swh", "South Warehouse", null, "Khulna")]),
         ],
         features ?? AllFeatures,
-        new AdminUserInput("Test Admin", adminEmail, password));
+        new AdminUserInput("Test Admin", adminEmail.Split('@')[0], adminEmail, password));
 
     [Fact]
     public async Task Navigation_is_read_from_the_database()
@@ -120,8 +120,9 @@ public sealed class PanelAccountTests(ApiFactory factory)
         Assert.Equal("SWH", Assert.Single(south.Warehouses).Code);
 
         // The generated admin signs in to the ERP as primary admin of both units with every permission.
-        var erp = await factory.ErpLoginAsync(email, result.Admin.GeneratedPassword!);
-        Assert.True(erp.User.IsPrimaryAdmin);
+        Assert.True((await factory.ErpLoginAsync(email, result.Admin.GeneratedPassword!)).MustChangePassword);
+        var erp = await factory.ErpReadyLoginAsync(email, result.Admin.GeneratedPassword!);
+        Assert.True(erp.User.IsAccountAdmin);
         Assert.Equal(["North Division", "South Division"], erp.BusinessUnits.Select(u => u.Name));
         Assert.All(erp.BusinessUnits, u => Assert.Equal("Administrator", u.RoleName));
 
@@ -194,12 +195,12 @@ public sealed class PanelAccountTests(ApiFactory factory)
         var client = await PanelClientAsync();
 
         var taken = await client.GetFromJsonAsync<AvailabilityResponse>(
-            $"/api/panel/accounts/availability?accountCode=demo-pharma&adminEmail={factory.Seed.ErpAdmin.Email.ToUpperInvariant()}");
+            $"/api/panel/accounts/availability?accountCode=demo-pharma&adminEmail={factory.Seed.ErpAdmin.Email.ToUpperInvariant()}&adminUsername={factory.Seed.ErpAdmin.Username}");
         var free = await client.GetFromJsonAsync<AvailabilityResponse>(
-            $"/api/panel/accounts/availability?accountCode={UniqueCode()}&adminEmail=new.person@test.example");
+            $"/api/panel/accounts/availability?accountCode={UniqueCode()}&adminEmail=new.person@test.example&adminUsername=new.person");
 
-        Assert.Equal((false, false), (taken!.AccountCodeAvailable, taken.AdminEmailAvailable));
-        Assert.Equal((true, true), (free!.AccountCodeAvailable, free.AdminEmailAvailable));
+        Assert.Equal((false, false, false), (taken!.AccountCodeAvailable, taken.AdminEmailAvailable, taken.AdminUsernameAvailable));
+        Assert.Equal((true, true, true), (free!.AccountCodeAvailable, free.AdminEmailAvailable, free.AdminUsernameAvailable));
     }
 
     [Fact]

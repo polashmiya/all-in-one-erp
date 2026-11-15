@@ -1,4 +1,9 @@
-import { LockOutlined, MailOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  LockOutlined,
+  MailOutlined,
+  SafetyCertificateOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { useLanguageStore } from '@erp/ui';
 import { Alert, Button, Card, Col, Descriptions, Divider, Form, Input, Radio, Row } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -28,11 +33,33 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
   return (
     <>
       <FormSection title={t('setup.section.admin')}>
-        <Alert type="info" showIcon icon={<SafetyCertificateOutlined />} message={t('setup.adminIntro')} className="acc-alert" />
+        <Alert
+          type="info"
+          showIcon
+          icon={<SafetyCertificateOutlined />}
+          message={t('setup.adminIntro')}
+          className="acc-alert"
+        />
         <Row gutter={16}>
           <Col xs={24} md={12}>
-            <Form.Item name={['admin', 'fullName']} label={t('field.fullName')} rules={[rules.required, { max: 200 }]}>
+            <Form.Item
+              name={['admin', 'fullName']}
+              label={t('field.fullName')}
+              rules={[rules.required, { max: 200 }]}
+            >
               <Input prefix={<UserOutlined />} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name={['admin', 'username']}
+              label={t('field.username')}
+              tooltip={t('setup.usernameHelp')}
+              validateDebounce={400}
+              hasFeedback
+              rules={[...rules.username, rules.adminUsernameAvailable]}
+            >
+              <Input prefix={<UserOutlined />} autoComplete="off" />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -62,7 +89,12 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
           {passwordMode === 'manual' && (
             <>
               <Col xs={24} md={12}>
-                <Form.Item name={['admin', 'password']} label={t('field.password')} extra={t('setup.passwordRule')} rules={[{ required: true }, rules.strongPassword]}>
+                <Form.Item
+                  name={['admin', 'password']}
+                  label={t('field.password')}
+                  extra={t('setup.passwordRule')}
+                  rules={[{ required: true }, rules.strongPassword]}
+                >
                   <Input.Password prefix={<LockOutlined />} autoComplete="new-password" />
                 </Form.Item>
               </Col>
@@ -75,7 +107,8 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
                     { required: true },
                     ({ getFieldValue }) => ({
                       validator: async (_, value?: string) => {
-                        if (value && value !== getFieldValue(['admin', 'password'])) throw new Error(t('setup.passwordMismatch'));
+                        if (value && value !== getFieldValue(['admin', 'password']))
+                          throw new Error(t('setup.passwordMismatch'));
                       },
                     }),
                   ]}
@@ -103,13 +136,24 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
             { key: 'code', label: t('field.code'), children: account.code || '—' },
             { key: 'email', label: t('field.email'), children: account.email || '—' },
             { key: 'phone', label: t('field.phone'), children: account.phone || '—' },
-            { key: 'address', label: t('field.address'), span: 'filled', children: account.address || '—' },
+            {
+              key: 'address',
+              label: t('field.address'),
+              span: 'filled',
+              children: account.address || '—',
+            },
             {
               key: 'location',
               label: t('field.cityCountry'),
-              children: [account.city, countryName(account.country, language)].filter(Boolean).join(', ') || '—',
+              children:
+                [account.city, countryName(account.country, language)].filter(Boolean).join(', ') ||
+                '—',
             },
-            { key: 'regional', label: t('setup.section.regional'), children: `${account.baseCurrency ?? '—'} · ${account.timeZone ?? '—'}` },
+            {
+              key: 'regional',
+              label: t('setup.section.regional'),
+              children: `${account.baseCurrency ?? '—'} · ${account.timeZone ?? '—'}`,
+            },
           ]}
         />
         <Card size="small" title={t('detail.structure')} extra={edit(1)} className="acc-card-gap">

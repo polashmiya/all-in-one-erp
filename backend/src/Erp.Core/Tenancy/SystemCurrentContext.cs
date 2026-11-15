@@ -16,5 +16,5 @@ public sealed class SystemCurrentContext : ICurrentContext
 
     public Guid? BusinessUnitId => null;
 
-    public bool IsPrimaryAdmin => false;
+    public bool IsAccountAdmin => false;
 }

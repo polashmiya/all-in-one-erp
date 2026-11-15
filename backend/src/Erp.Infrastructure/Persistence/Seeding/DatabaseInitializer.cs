@@ -2,6 +2,7 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Modules;
 using Erp.Infrastructure.Metadata;
+using Erp.Infrastructure.Tenancy;
 using Erp.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ public static class DatabaseInitializer
         }
 
         await SyncPermissionCatalogAsync(db, provider.GetRequiredService<PermissionCatalog>(), logger, cancellationToken);
+        await SystemRoles.SyncViewersAsync(db, provider.GetRequiredService<PermissionCatalog>(), cancellationToken);
         await PanelMenuSynchronizer.SyncAsync(db, logger, cancellationToken);
         await ErpMenuSynchronizer.SyncAsync(db, provider.GetRequiredService<ErpMenuCatalog>(), logger, cancellationToken);
         await FeatureManifestSynchronizer.SyncAsync(db, provider.GetRequiredService<FeatureManifestCatalog>(), logger, cancellationToken);

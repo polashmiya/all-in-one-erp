@@ -57,6 +57,7 @@ public static class FeatureManifestSynchronizer
                 field.ColSpan = def.ColSpan;
                 field.IsLocked = def.Locked;
                 field.IsRequired = def.Required;
+                field.IsHiddenByDefault = def.Hidden && !def.Locked;
                 field.MaxLength = def.MaxLength;
                 field.MinValue = def.Min;
                 field.MaxValue = def.Max;

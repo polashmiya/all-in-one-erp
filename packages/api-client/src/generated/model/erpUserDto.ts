@@ -12,5 +12,5 @@ export interface ErpUserDto {
   fullName: string;
   accountId: string;
   accountName: string;
-  isPrimaryAdmin: boolean;
+  isAccountAdmin: boolean;
 }

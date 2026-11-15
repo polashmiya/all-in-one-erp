@@ -1,5 +1,6 @@
 import { DownOutlined } from '@ant-design/icons';
-import { Button, Dropdown, Tooltip, type ButtonProps } from 'antd';
+import { Button, Dropdown, Space, Tooltip, type ButtonProps } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { ActionItem, ActionSize, ActionVariant } from './types';
 import { toMenuItems, useRunAction } from './useRunAction';
 
@@ -14,10 +15,12 @@ const BUTTON_STYLE: Record<ActionVariant, ButtonProps> = {
 };
 
 export function ActionButton({ action, size }: { action: ActionItem; size?: ActionSize }) {
+  const { t } = useTranslation();
   const run = useRunAction();
   if (action.hidden) return null;
 
-  const hasMenu = !!action.menu?.length;
+  const split = !!action.split && !!action.menu?.length;
+  const hasMenu = !split && !!action.menu?.length;
   const iconOnly = !!action.iconOnly && !!action.icon;
 
   let control = (
@@ -40,6 +43,23 @@ export function ActionButton({ action, size }: { action: ActionItem; size?: Acti
       {!iconOnly && hasMenu && <DownOutlined className="erp-action__caret" />}
     </Button>
   );
+
+  if (split) {
+    control = (
+      <Space.Compact>
+        {control}
+        <Dropdown trigger={['click']} menu={{ items: toMenuItems(action.menu!, run) }}>
+          <Button
+            {...BUTTON_STYLE[action.variant ?? 'default']}
+            size={size}
+            icon={<DownOutlined />}
+            disabled={action.disabled || action.loading}
+            aria-label={t('common.moreOptions')}
+          />
+        </Dropdown>
+      </Space.Compact>
+    );
+  }
 
   if (hasMenu) {
     control = (

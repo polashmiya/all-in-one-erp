@@ -35,12 +35,12 @@ public static class ErpNavigationEndpoints
     {
         if (current.AccountId is not { } accountId) return TypedResults.Unauthorized();
 
-        // The primary admin sees every feature the account has; anyone else needs the feature's view permission
-        // in the selected business unit (permissions are already limited to the account's features).
         Func<string, bool> include;
-        if (current.IsPrimaryAdmin)
+        if (current.IsAccountAdmin)
         {
-            var features = await db.AccountFeatureCodesAsync(accountId, cancellationToken);
+            var features = current.BusinessUnitId is { } unitId
+                ? await db.UnitFeatureCodesAsync(accountId, unitId, cancellationToken)
+                : await db.AccountFeatureCodesAsync(accountId, cancellationToken);
             include = features.Contains;
         }
         else

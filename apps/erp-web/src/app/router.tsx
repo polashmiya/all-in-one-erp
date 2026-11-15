@@ -1,6 +1,12 @@
 import { FullPageLoader, RouteErrorResult } from '@erp/ui';
 import { createBrowserRouter, Navigate } from 'react-router';
-import { HOME_PATH, LOGIN_PATH, SELECT_UNIT_PATH } from '@/common/constants/routes';
+import {
+  CHANGE_PASSWORD_PATH,
+  FORGOT_PASSWORD_PATH,
+  HOME_PATH,
+  LOGIN_PATH,
+  SELECT_UNIT_PATH,
+} from '@/common/constants/routes';
 import { GuestOnly, RequireBusinessUnit, RequireSignedIn } from '@/common/guards';
 import { moduleRoutes } from '@/modules';
 import { ShellLayout } from './layouts/ShellLayout';
@@ -29,6 +35,29 @@ export const router = createBrowserRouter([
         element: (
           <RequireSignedIn>
             <SelectUnitPage />
+          </RequireSignedIn>
+        ),
+      };
+    },
+    errorElement: <RouteErrorResult />,
+    hydrateFallbackElement: <FullPageLoader />,
+  },
+  {
+    path: FORGOT_PASSWORD_PATH,
+    lazy: async () => ({
+      Component: (await import('@/modules/auth/pages/ForgotPasswordPage')).ForgotPasswordPage,
+    }),
+    errorElement: <RouteErrorResult />,
+    hydrateFallbackElement: <FullPageLoader />,
+  },
+  {
+    path: CHANGE_PASSWORD_PATH,
+    lazy: async () => {
+      const { ChangePasswordPage } = await import('@/modules/auth/pages/ChangePasswordPage');
+      return {
+        element: (
+          <RequireSignedIn>
+            <ChangePasswordPage />
           </RequireSignedIn>
         ),
       };

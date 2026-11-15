@@ -1,7 +1,5 @@
-using System.Security.Claims;
 using Erp.Api.Hosting;
 using Erp.Core.Domain.Identity;
-using Erp.Core.Security;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Persistence;
@@ -27,7 +25,10 @@ public static class PanelAuthEndpoints
         auth.MapGet("/me", Me)
             .WithName("GetPanelSession")
             .WithSummary("The signed-in Panel user")
+            .AllowBeforePasswordChange()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        auth.MapSessionEndpoints(AuthSurfaces.Panel, "Panel");
 
         return panel;
     }
@@ -35,34 +36,24 @@ public static class PanelAuthEndpoints
     private static async Task<Results<Ok<PanelLoginResponse>, ProblemHttpResult>> Login(
         LoginRequest request,
         ErpDbContext db,
-        IPasswordHasher hasher,
-        TokenService tokens,
-        TimeProvider clock,
+        SignInService signIn,
         CancellationToken cancellationToken)
     {
-        var email = request.Email.Trim().ToLowerInvariant();
-        var user = await db.PanelUsers.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
+        var login = UserNames.Normalize(request.Login);
+        var found = await signIn.FindByLoginAsync(AuthSurfaces.Panel, login, cancellationToken);
 
-        if (user is null)
+        if (!await signIn.TryPasswordAsync(AuthSurfaces.Panel, login, found, request.Password, cancellationToken) ||
+            found is not PanelUser user)
         {
-            hasher.SimulateVerify();
             return AuthProblems.InvalidCredentials();
         }
 
-        if (!hasher.Verify(request.Password, user.PasswordHash) || !user.IsActive) return AuthProblems.InvalidCredentials();
-
-        user.LastLoginAt = clock.GetUtcNow();
+        var tokens = signIn.SignIn(AuthSurfaces.Panel, user, login);
         await db.SaveChangesAsync(cancellationToken);
 
-        var token = tokens.Issue(AuthSurfaces.Panel,
-        [
-            new Claim(ErpClaimTypes.Subject, user.Id.ToString()),
-            new Claim(ErpClaimTypes.Email, user.Email),
-            new Claim(ErpClaimTypes.Name, user.FullName),
-            new Claim(ErpClaimTypes.Role, user.Role.ToString()),
-        ]);
-
-        return TypedResults.Ok(new PanelLoginResponse(token.AccessToken, token.ExpiresAt, ToDto(user)));
+        return TypedResults.Ok(new PanelLoginResponse(
+            tokens.AccessToken, tokens.ExpiresAt, tokens.RefreshToken, tokens.RefreshExpiresAt, tokens.MustChangePassword,
+            ToDto(user)));
     }
 
     private static async Task<Results<Ok<PanelUserDto>, UnauthorizedHttpResult>> Me(
@@ -77,7 +68,10 @@ public static class PanelAuthEndpoints
 
 internal static class AuthProblems
 {
-    /// <summary>Same response for unknown email, wrong password and disabled user, so accounts cannot be enumerated.</summary>
+    /// <summary>Same response for unknown email, wrong password, locked and disabled users, so accounts cannot be enumerated.</summary>
     public static ProblemHttpResult InvalidCredentials() =>
         TypedResults.Problem(title: "Invalid email or password", statusCode: StatusCodes.Status401Unauthorized);
+
+    public static ProblemHttpResult SessionEnded() =>
+        TypedResults.Problem(title: "Session ended", detail: "Sign in again.", statusCode: StatusCodes.Status401Unauthorized);
 }

@@ -12,8 +12,10 @@ export const E2E = {
   connectionString:
     process.env.ERP_E2E_CONNECTION ??
     'Server=(localdb)\\MSSQLLocalDB;Database=myErp_E2E;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True',
+  mailFolder: process.env.ERP_E2E_MAIL ?? `${process.cwd()}/e2e/.mail`,
   panelUser: { email: 'superadmin@myerp.local', password: 'Admin@12345' },
   erpUser: { email: 'admin@demopharma.com', password: 'Demo@12345' },
   demoAccount: 'Demo Pharma',
   businessUnit: 'Dhaka Depot',
+  loginPerMinute: 1000,
 };

@@ -4,25 +4,27 @@ import { useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Outlet } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { appConfig } from '@/common/config/app.config';
+import { CHANGE_PASSWORD_PATH, FORGOT_PASSWORD_PATH } from '@/common/constants/routes';
 import { footerMenu } from '@/common/navigation/footer-menu';
 import { useErpNavigation } from '@/common/navigation/useErpNavigation';
+import { endSession } from '@/common/services/api-client';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 
 export function ShellLayout() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const { user, businessUnits, currentUnit, refreshSession, selectUnit, signOut } = useAuthStore(
+  const navigate = useNavigate();
+  const { user, businessUnits, currentUnit, refreshSession, selectUnit } = useAuthStore(
     useShallow((s) => ({
       user: s.user,
       businessUnits: s.businessUnits,
       currentUnit: selectCurrentUnit(s),
       refreshSession: s.refreshSession,
       selectUnit: s.selectUnit,
-      signOut: s.signOut,
     })),
   );
   const { status } = useSystemStatus();
@@ -45,11 +47,6 @@ export function ShellLayout() {
     }
   };
 
-  const logout = () => {
-    signOut();
-    queryClient.clear();
-  };
-
   const role = currentUnit?.roleName;
 
   return (
@@ -64,7 +61,7 @@ export function ShellLayout() {
         email: user?.email,
         role,
         tags: [
-          [role, user?.isPrimaryAdmin ? t('shell.primaryAdmin') : undefined]
+          [role, user?.isAccountAdmin ? t('shell.accountAdmin') : undefined]
             .filter(Boolean)
             .join(' · '),
           t('shell.businessUnitCount', { count: businessUnits.length }),
@@ -82,7 +79,11 @@ export function ShellLayout() {
           onChange={(id) => void switchBusinessUnit(id)}
         />
       }
-      onLogout={logout}
+      onChangePassword={() => navigate(CHANGE_PASSWORD_PATH)}
+      onResetPassword={() =>
+        navigate(`${FORGOT_PASSWORD_PATH}?login=${encodeURIComponent(user?.email ?? '')}`)
+      }
+      onLogout={endSession}
     >
       <Outlet />
     </AppShell>

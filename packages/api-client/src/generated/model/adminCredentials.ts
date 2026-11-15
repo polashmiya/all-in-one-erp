@@ -8,6 +8,7 @@
 
 export interface AdminCredentials {
   fullName: string;
+  username: string;
   email: string;
   /** @nullable */
   generatedPassword: string | null;

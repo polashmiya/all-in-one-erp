@@ -1,12 +1,12 @@
 import type { Language } from '@erp/ui';
 
 export interface LookupItem {
-  id: number;
+  id: number | string;
   code?: string | null;
   name: string;
   nameBn?: string | null;
   isActive: boolean;
-  parentId?: number | null;
+  parentId?: number | string | null;
 }
 
 export type LookupSources = Record<string, LookupItem[] | undefined>;

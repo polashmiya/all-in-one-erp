@@ -15,6 +15,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
+import { useListDrafts } from '@/common/hooks/useDrafts';
+import { ACCOUNT_DRAFTS } from '../../constants';
 import { LookupValueModal } from '../components/LookupValueModal';
 
 type Filters = { list: string | null };
@@ -45,6 +47,11 @@ export function AccountLookupsPage() {
 
   const type = list.filters.list ?? firstType ?? '';
   const listName = text(types.data?.find((ty) => ty.key === type)?.name) ?? type;
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const drafts = useListDrafts(ACCOUNT_DRAFTS.lookupValue(accountId, type), (draftId) => {
+    setDraftId(draftId);
+    setEditing({});
+  });
   const values = useListAccountLookupValues(accountId, type, { query: { enabled: !!type } });
   const refresh = () =>
     queryClient.invalidateQueries({
@@ -159,6 +166,7 @@ export function AccountLookupsPage() {
         loading={account.isPending || values.isFetching}
         onRefresh={() => void values.refetch()}
         onRowClick={(value) => setEditing({ value })}
+        drafts={drafts}
         rowActions={(value) => [
           {
             key: 'edit',
@@ -179,6 +187,8 @@ export function AccountLookupsPage() {
       <LookupValueModal
         key={editing?.value?.id ?? 'new'}
         accountId={accountId}
+        draftId={draftId}
+        onDraftChange={setDraftId}
         type={type}
         listName={listName}
         open={!!editing}

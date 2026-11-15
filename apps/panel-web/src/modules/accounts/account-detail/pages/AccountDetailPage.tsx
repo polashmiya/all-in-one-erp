@@ -25,7 +25,7 @@ import {
   useLanguageStore,
 } from '@erp/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Typography } from 'antd';
+import { Button, Flex, Typography } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
@@ -35,7 +35,9 @@ import { structureCounts, structureFromDetail } from '../../components/structure
 import { StructureView, type StructureTarget } from '../../components/StructureView';
 import { ACCOUNT_PATHS } from '../../constants';
 import { countryName } from '../../utils/format';
+import { AccountAdmins } from '../components/AccountAdmins';
 import { StructureNodeModal } from '../components/StructureNodeModal';
+import { UnitFeaturesModal, type UnitTarget } from '../components/UnitFeaturesModal';
 
 export function AccountDetailPage() {
   const { t } = useTranslation();
@@ -46,6 +48,7 @@ export function AccountDetailPage() {
   const query = useGetAccount(id);
   const menus = useDisclosure();
   const [target, setTarget] = useState<StructureTarget>();
+  const [unitMenus, setUnitMenus] = useState<UnitTarget>();
   const account = query.data;
 
   if (!account)
@@ -161,6 +164,25 @@ export function AccountDetailPage() {
     </DetailSection>
   );
 
+  const unitAccess = (
+    <DetailSection title={t('unitMenus.title')} description={t('unitMenus.lead')}>
+      <Flex vertical gap={8}>
+        {account.businessUnits.map((unit) => (
+          <Flex key={unit.id} align="center" justify="space-between" gap={12}>
+            <Typography.Text>{unit.name}</Typography.Text>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => setUnitMenus({ id: unit.id, name: unit.name })}
+            >
+              {t('unitMenus.edit')}
+            </Button>
+          </Flex>
+        ))}
+      </Flex>
+    </DetailSection>
+  );
+
   const go = (path: string) => () => navigate(path);
 
   return (
@@ -249,7 +271,24 @@ export function AccountDetailPage() {
             label: t('detail.structure'),
             sections: [{ key: 'structure', content: structure }],
           },
-          { key: 'menus', label: t('menus.title'), sections: [{ key: 'menus', content: access }] },
+          {
+            key: 'users',
+            label: t('erpUsers.title'),
+            sections: [
+              {
+                key: 'users',
+                content: <AccountAdmins accountId={id} accountName={account.name} />,
+              },
+            ],
+          },
+          {
+            key: 'menus',
+            label: t('menus.title'),
+            sections: [
+              { key: 'menus', content: access },
+              { key: 'unit-menus', content: unitAccess },
+            ],
+          },
         ]}
       />
       <StructureNodeModal
@@ -266,6 +305,12 @@ export function AccountDetailPage() {
         initial={account.featureCodes}
         open={menus.open}
         onClose={menus.onClose}
+      />
+      <UnitFeaturesModal
+        accountId={account.id}
+        accountCodes={account.featureCodes}
+        unit={unitMenus}
+        onClose={() => setUnitMenus(undefined)}
       />
     </>
   );

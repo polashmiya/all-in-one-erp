@@ -12,6 +12,9 @@ import type { ErpUserDto } from './erpUserDto.ts';
 export interface ErpLoginResponse {
   accessToken: string;
   expiresAt: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
+  mustChangePassword: boolean;
   user: ErpUserDto;
   businessUnits: BusinessUnitAccessDto[];
   /** @nullable */

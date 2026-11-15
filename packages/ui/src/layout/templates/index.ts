@@ -6,3 +6,5 @@ export { ListPageLayout } from './ListPageLayout';
 export type { ListFilterDef, ListPageLayoutProps, ListViewDef } from './ListPageLayout';
 export { WizardLayout } from './WizardLayout';
 export type { WizardLayoutProps, WizardStep } from './WizardLayout';
+export { DRAFT_VIEW } from './drafts';
+export type { DraftItem, FormDraft, ListDrafts } from './drafts';

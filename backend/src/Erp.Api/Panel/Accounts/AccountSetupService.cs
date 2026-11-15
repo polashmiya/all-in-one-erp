@@ -1,3 +1,4 @@
+using Erp.Api.Auth;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Tenancy;
@@ -25,6 +26,7 @@ public sealed class AccountSetupService(
         var info = request.Account;
         var code = AccountSetupRequestValidator.Normalize(info.Code);
         var adminEmail = NormalizeEmail(request.Admin.Email);
+        var adminUsername = UserNames.Normalize(request.Admin.Username);
 
         var errors = new Dictionary<string, string[]>();
         if (await db.Accounts.AnyAsync(a => a.Code == code, cancellationToken))
@@ -35,6 +37,11 @@ public sealed class AccountSetupService(
         if (await db.ErpUsers.AcrossTenants().AnyAsync(u => u.Email == adminEmail, cancellationToken))
         {
             errors["admin.email"] = ["A user with this email already exists."];
+        }
+
+        if (await db.ErpUsers.AcrossTenants().AnyAsync(u => u.Username == adminUsername, cancellationToken))
+        {
+            errors["admin.username"] = ["A user with this username already exists."];
         }
 
         var (featureIds, unknownFeatures) = await features.ResolveAsync(request.FeatureCodes, cancellationToken);
@@ -72,10 +79,12 @@ public sealed class AccountSetupService(
         var admin = new ErpUser
         {
             AccountId = account.Id,
+            Username = adminUsername,
             Email = adminEmail,
             FullName = request.Admin.FullName.Trim(),
             PasswordHash = hasher.Hash(generatedPassword ?? request.Admin.Password!),
-            IsPrimaryAdmin = true,
+            IsAccountAdmin = true,
+            MustChangePassword = true,
         };
         foreach (var unit in units)
         {
@@ -95,7 +104,7 @@ public sealed class AccountSetupService(
                 units.Sum(u => u.Offices.Count),
                 units.Sum(u => u.Warehouses.Count),
                 featureIds.Count,
-                new AdminCredentials(admin.FullName, admin.Email, generatedPassword)),
+                new AdminCredentials(admin.FullName, admin.Username, admin.Email, generatedPassword)),
             null);
     }
 

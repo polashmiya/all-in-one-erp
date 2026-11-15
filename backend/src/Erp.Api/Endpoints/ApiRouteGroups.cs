@@ -12,10 +12,15 @@ public static class ApiRouteGroups
     public const string PanelPrefix = "/api/panel";
     public const string ErpPrefix = "/api/erp";
 
-    public static RouteGroupBuilder MapPanelApi(this IEndpointRouteBuilder app) =>
-        app.MapGroup(PanelPrefix)
+    public static RouteGroupBuilder MapPanelApi(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup(PanelPrefix)
             .RequireAuthorization(AuthSurfaces.Panel)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        group.AddEndpointFilter<PasswordChangeFilter>();
+        return group;
+    }
 
     public static RouteGroupBuilder MapErpApi(this IEndpointRouteBuilder app)
     {
@@ -23,6 +28,7 @@ public static class ApiRouteGroups
             .RequireAuthorization(AuthSurfaces.Erp)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
+        group.AddEndpointFilter<PasswordChangeFilter>();
         group.AddEndpointFilter<BusinessUnitHeaderFilter>();
         return group;
     }

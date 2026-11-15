@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { redirectTarget } from '@/common/guards/redirect';
+import { endSession } from '@/common/services/api-client';
 import { useAuthStore } from '@/common/store/auth-store';
 import { AuthLayout } from '../components/AuthLayout';
 
@@ -15,13 +16,12 @@ export function SelectUnitPage() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, businessUnits, lastBusinessUnitId, selectUnit, signOut } = useAuthStore(
+  const { user, businessUnits, lastBusinessUnitId, selectUnit } = useAuthStore(
     useShallow((s) => ({
       user: s.user,
       businessUnits: s.businessUnits,
       lastBusinessUnitId: s.lastBusinessUnitId,
       selectUnit: s.selectUnit,
-      signOut: s.signOut,
     })),
   );
   const select = useSelectBusinessUnit();
@@ -42,7 +42,7 @@ export function SelectUnitPage() {
 
   return (
     <AuthLayout>
-      <button type="button" className="erp-linkbtn is-muted erp-auth__back" onClick={signOut}>
+      <button type="button" className="erp-linkbtn is-muted erp-auth__back" onClick={endSession}>
         <ArrowLeftOutlined /> {t('selectUnit.back')}
       </button>
       <AuthHeading

@@ -36,6 +36,7 @@ import type {
   ProblemDetails,
   StructureNodeRequest,
   StructureNodeResult,
+  UnitFeaturesDto,
   UpdateAccountRequest,
 } from '../../model';
 
@@ -1345,4 +1346,250 @@ export const useResetAccountTheme = <TError = ErrorType<ProblemDetails>, TContex
   TContext
 > => {
   return useMutation(getResetAccountThemeMutationOptions(options), queryClient);
+};
+export const getGetUnitFeaturesUrl = (id: string, unitId: string) => {
+  return `/api/panel/accounts/${id}/business-units/${unitId}/features`;
+};
+
+/**
+ * @summary The account's features that are turned off for this business unit
+ */
+export const getUnitFeatures = async (
+  id: string,
+  unitId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<UnitFeaturesDto> => {
+  return customFetch<UnitFeaturesDto>(getGetUnitFeaturesUrl(id, unitId), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetUnitFeaturesQueryKey = (id: string, unitId: string) => {
+  return [`/api/panel/accounts/${id}/business-units/${unitId}/features`] as const;
+};
+
+export const getGetUnitFeaturesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUnitFeatures>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  unitId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUnitFeatures>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUnitFeaturesQueryKey(id, unitId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getUnitFeatures>>> = ({ signal }) =>
+    getUnitFeatures(id, unitId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined && unitId !== null && unitId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getUnitFeatures>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetUnitFeaturesQueryResult = NonNullable<Awaited<ReturnType<typeof getUnitFeatures>>>;
+export type GetUnitFeaturesQueryError = ErrorType<ProblemDetails>;
+
+export function useGetUnitFeatures<
+  TData = Awaited<ReturnType<typeof getUnitFeatures>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  unitId: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUnitFeatures>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUnitFeatures>>,
+          TError,
+          Awaited<ReturnType<typeof getUnitFeatures>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetUnitFeatures<
+  TData = Awaited<ReturnType<typeof getUnitFeatures>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  unitId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUnitFeatures>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUnitFeatures>>,
+          TError,
+          Awaited<ReturnType<typeof getUnitFeatures>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetUnitFeatures<
+  TData = Awaited<ReturnType<typeof getUnitFeatures>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  unitId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUnitFeatures>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary The account's features that are turned off for this business unit
+ */
+
+export function useGetUnitFeatures<
+  TData = Awaited<ReturnType<typeof getUnitFeatures>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: string,
+  unitId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getUnitFeatures>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetUnitFeaturesQueryOptions(id, unitId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getSaveUnitFeaturesUrl = (id: string, unitId: string) => {
+  return `/api/panel/accounts/${id}/business-units/${unitId}/features`;
+};
+
+/**
+ * @summary Turn account features off (or back on) for one business unit; menus and permissions follow
+ */
+export const saveUnitFeatures = async (
+  id: string,
+  unitId: string,
+  unitFeaturesDto: UnitFeaturesDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<UnitFeaturesDto> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<UnitFeaturesDto>(getSaveUnitFeaturesUrl(id, unitId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(unitFeaturesDto),
+  });
+};
+
+export const getSaveUnitFeaturesMutationKey = () => ['saveUnitFeatures'] as const;
+
+export const getSaveUnitFeaturesMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveUnitFeatures>>,
+    TError,
+    SaveUnitFeaturesMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof saveUnitFeatures>>,
+  TError,
+  SaveUnitFeaturesMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSaveUnitFeaturesMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof saveUnitFeatures>>,
+    SaveUnitFeaturesMutationVariables
+  > = (props) => {
+    const { id, unitId, data } = props ?? {};
+
+    return saveUnitFeatures(id, unitId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SaveUnitFeaturesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof saveUnitFeatures>>
+>;
+export type SaveUnitFeaturesMutationBody = BodyType<UnitFeaturesDto>;
+export type SaveUnitFeaturesMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type SaveUnitFeaturesMutationVariables = {
+  id: string;
+  unitId: string;
+  data: BodyType<UnitFeaturesDto>;
+};
+
+/**
+ * @summary Turn account features off (or back on) for one business unit; menus and permissions follow
+ */
+export const useSaveUnitFeatures = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof saveUnitFeatures>>,
+      TError,
+      SaveUnitFeaturesMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof saveUnitFeatures>>,
+  TError,
+  SaveUnitFeaturesMutationVariables,
+  TContext
+> => {
+  return useMutation(getSaveUnitFeaturesMutationOptions(options), queryClient);
 };

@@ -13,6 +13,8 @@ export default tseslint.config(
       '**/coverage/**',
       '**/src/generated/**',
       'backend/**',
+      'e2e/playwright-report/**',
+      'e2e/test-results/**',
     ],
   },
   js.configs.recommended,

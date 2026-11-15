@@ -1,0 +1,136 @@
+.role-tree__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--erp-space-sm) var(--erp-space-md);
+  margin-bottom: var(--erp-space-md);
+}
+
+.role-tree__search {
+  width: var(--erp-search-w);
+  max-width: 100%;
+}
+
+.role-tree__tools {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--erp-space-sm);
+  margin-left: auto;
+}
+
+.role-tree {
+  overflow-x: auto;
+  border: 1px solid var(--erp-border-2);
+  border-radius: var(--erp-radius-md);
+}
+
+.role-tree__row {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) repeat(6, 76px);
+  align-items: center;
+  min-width: 740px;
+  border-bottom: 1px solid var(--erp-divider);
+}
+
+.role-tree__row:last-child {
+  border-bottom: 0;
+}
+
+.role-tree__row > div {
+  padding: var(--erp-space-sm) var(--erp-space-md);
+}
+
+.role-tree__row.is-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--erp-table-head, var(--erp-panel));
+  font-size: var(--erp-font-sm);
+  font-weight: 600;
+  color: var(--erp-text-2);
+}
+
+.role-tree__row.is-module {
+  background: var(--erp-panel);
+}
+
+.role-tree__row.is-feature:hover {
+  background: var(--erp-row-hover);
+}
+
+.role-tree__name {
+  display: flex;
+  align-items: center;
+  gap: var(--erp-space-sm);
+  min-width: 0;
+}
+
+.role-tree__row.is-sub .role-tree__name {
+  padding-left: calc(var(--erp-space-xxl) + var(--erp-space-md));
+}
+
+.role-tree__row.is-feature .role-tree__name {
+  align-items: flex-start;
+  padding-left: calc(var(--erp-space-xxl) * 2 + var(--erp-space-xl));
+}
+
+.role-tree__row.is-module .role-tree__label {
+  font-weight: 600;
+  color: var(--erp-text-strong);
+}
+
+.role-tree__row.is-sub .role-tree__label {
+  font-weight: 600;
+}
+
+.role-tree__chevron .anticon {
+  transition: transform 0.15s;
+}
+
+.role-tree__chevron.is-open .anticon {
+  transform: rotate(90deg);
+}
+
+.role-tree__icon {
+  color: var(--erp-primary);
+}
+
+.role-tree__count {
+  margin-inline-end: 0;
+}
+
+.role-tree__feature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--erp-space-xs);
+}
+
+.role-tree__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--erp-space-xs);
+}
+
+.role-tree__cell,
+.role-tree__head-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--erp-space-xs);
+}
+
+.role-tree__none {
+  color: var(--erp-text-muted);
+}
+
+.role-tree mark {
+  padding: 0 1px;
+  border-radius: var(--erp-radius-xs);
+  background: var(--erp-tone-warning-bg);
+  color: inherit;
+}
+
+.role-progress {
+  width: calc(var(--erp-space-huge) * 2);
+  margin: 0;
+}
