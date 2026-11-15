@@ -179,10 +179,17 @@ test('a forgotten password is reset with the emailed code', async ({ browser, re
   await expect(page.getByText('Check your email')).toBeVisible();
 
   await expect.poll(() => latestCode(`${username}@demopharma.com`)).toBeTruthy();
+  const code = latestCode(`${username}@demopharma.com`)!;
+  const wrongCode = code.replace(/^\d/, (digit) => String((Number(digit) + 1) % 10));
   await page.locator('.ant-otp input').first().click();
-  await page.keyboard.type(latestCode(`${username}@demopharma.com`)!);
+  await page.keyboard.type(wrongCode);
   await page.locator('input[type=password]').nth(0).fill(RESET_PASSWORD);
   await page.locator('input[type=password]').nth(1).fill(RESET_PASSWORD);
+  await page.getByRole('button', { name: 'Reset password' }).click();
+  await expect(page.getByText('The code is wrong or has expired.')).toBeVisible();
+
+  await page.locator('.ant-otp input').first().click();
+  await page.keyboard.type(code);
   await page.getByRole('button', { name: 'Reset password' }).click();
   await expect(page.getByText('Password changed')).toBeVisible();
 

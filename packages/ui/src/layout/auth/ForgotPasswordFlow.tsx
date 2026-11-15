@@ -90,6 +90,7 @@ export function ForgotPasswordFlow({
       {error && <Alert type="error" showIcon message={error} className="erp-auth__alert" />}
       {step === 'login' ? (
         <Form<{ login: string }>
+          key="login"
           layout="vertical"
           requiredMark={false}
           initialValues={{ login }}
@@ -125,6 +126,7 @@ export function ForgotPasswordFlow({
         </Form>
       ) : (
         <Form<ResetPasswordValues & { confirmPassword: string }>
+          key="code"
           form={codeForm}
           layout="vertical"
           requiredMark={false}
