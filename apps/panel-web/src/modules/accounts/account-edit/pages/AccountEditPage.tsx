@@ -1,4 +1,4 @@
-import { CheckOutlined } from '@ant-design/icons';
+import { SaveOutlined } from '@ant-design/icons';
 import {
   ApiError,
   getGetAccountQueryKey,
@@ -97,7 +97,7 @@ function AccountEditForm({ account }: { account: AccountDetail }) {
       saving={update.isPending}
       onSubmit={submit}
       submitActions={[
-        { key: 'save', label: t('edit.save'), icon: <CheckOutlined />, variant: 'primary' },
+        { key: 'save', label: t('edit.save'), icon: <SaveOutlined />, variant: 'primary' },
       ]}
     >
       <div className="acc-form">

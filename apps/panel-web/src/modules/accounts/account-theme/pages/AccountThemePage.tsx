@@ -1,4 +1,4 @@
-import { CheckOutlined, UndoOutlined } from '@ant-design/icons';
+import { CheckOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
 import {
   ApiError,
   getGetAccountQueryKey,
@@ -133,10 +133,11 @@ function ThemeForm({ account }: { account: AccountDetail }) {
           key: 'reset',
           label: t('theme.reset'),
           icon: <UndoOutlined />,
+          description: t('theme.resetHint'),
           hidden: !account.theme,
           validate: [],
         },
-        { key: 'save', label: t('theme.save'), icon: <CheckOutlined />, variant: 'primary' },
+        { key: 'save', label: t('theme.save'), icon: <SaveOutlined />, variant: 'primary' },
       ]}
     >
       <div className="acc-form acc-theme">

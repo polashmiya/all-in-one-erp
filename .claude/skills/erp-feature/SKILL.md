@@ -124,6 +124,7 @@ Every screen in both apps looks and works the same way. The shared templates alr
 - There is one save location: the sticky page header with a split Save button; its menu holds Save & new, Save as draft and Cancel. Ctrl+S saves. No floating buttons. Create forms pass `draft` from `useFormDraft` (pages, `?draft=`) or `useModalDraft` (modals); list pages pass `drafts` from `useListDrafts` to show the Drafts view.
 - Spacing is fixed in the shared CSS; do not override it. Label to field: 4 px (`--erp-space-xs`). Field to help or error: 4 px. Between fields: 16 px (`--erp-space-lg`) in both directions. Section heading to first field: 12 px (`--erp-space-md`). Card padding: 20 px (`--erp-space-xl`).
 - Help text goes under the field (`extra`), not in a tooltip. On/off fields are switches.
+- Every input has a placeholder. Config fields fall back to "Enter / Select {label}" by themselves; hand-written inputs use `usePlaceholder()` from `@erp/ui` unless a specific example key exists. Save menu items carry an `icon` and a one-line `description`.
 - A modal for new records offers "Create & add another" (`addAnotherText`).
 
 **View pages.** `DetailsPageLayout` puts a profile card on the left: image or icon, title, `StatusTag` tags, a meta list, and the actions Edit (primary), Duplicate, More. Read-only section cards go on the right, under sticky pill tabs (one per manifest tab) that jump to and follow each group. Pass `onDuplicate` to `MasterListPage` when a record can be copied; it adds Duplicate to the row menu.

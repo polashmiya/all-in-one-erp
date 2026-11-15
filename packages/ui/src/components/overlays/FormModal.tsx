@@ -1,3 +1,4 @@
+import { CloseOutlined, FileTextOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import { App, Form, type FormInstance } from 'antd';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -77,31 +78,57 @@ export function FormModal<T extends object>({
     }
   };
 
+  const save = {
+    key: 'ok',
+    label: submitText ?? t('common.save'),
+    icon: <SaveOutlined />,
+    onClick: () => submit().catch(() => undefined),
+  };
+
   const menu: ActionItem[] = [
+    { ...save, description: t('common.saveHint') },
     ...(addAnotherText
       ? [
           {
             key: 'another',
             label: addAnotherText,
+            icon: <PlusOutlined />,
+            description: t('common.saveNewHint'),
             onClick: () => submit(true).catch(() => undefined),
           },
         ]
       : []),
-    ...(draft ? [{ key: 'draft', label: t('common.saveDraft'), onClick: saveDraft }] : []),
-    { key: 'cancel', label: t('common.cancel'), onClick: onClose },
+    ...(draft
+      ? [
+          {
+            key: 'draft',
+            label: t('common.saveDraft'),
+            icon: <FileTextOutlined />,
+            description: t('common.saveDraftHint'),
+            onClick: saveDraft,
+          },
+        ]
+      : []),
+    { key: 'cancel-divider', label: '', divider: true },
+    {
+      key: 'cancel',
+      label: t('common.cancel'),
+      icon: <CloseOutlined />,
+      danger: true,
+      description: t('common.cancelHint'),
+      onClick: onClose,
+    },
   ];
 
   const actions: ActionItem[] | undefined =
-    menu.length > 1
+    addAnotherText || draft
       ? [
           {
-            key: 'ok',
-            label: submitText ?? t('common.save'),
+            ...save,
             variant: danger ? 'danger' : 'primary',
             loading: saving,
             split: true,
             menu,
-            onClick: () => submit().catch(() => undefined),
           },
         ]
       : undefined;

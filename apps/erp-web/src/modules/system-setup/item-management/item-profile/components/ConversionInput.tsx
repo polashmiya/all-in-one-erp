@@ -5,11 +5,13 @@ import { Form } from 'antd';
 export function ConversionInput({
   uoms,
   id,
+  placeholder,
   value,
   onChange,
 }: {
   uoms?: ItemLookup[];
   id?: string;
+  placeholder?: string;
   value?: number | null;
   onChange?: (value: number | null) => void;
 }) {
@@ -22,6 +24,7 @@ export function ConversionInput({
       unit={unit}
       min={0.0001}
       precision={4}
+      placeholder={placeholder}
       value={value}
       onChange={onChange}
       className="erp-w-full"

@@ -8,7 +8,7 @@ import {
   type FieldSettingValues,
 } from '@erp/api-client';
 import { useText } from '@erp/metadata-engine';
-import { Field, FieldSection, FormModal, YesNoSwitch } from '@erp/ui';
+import { Field, FieldSection, FormModal, usePlaceholder, YesNoSwitch } from '@erp/ui';
 import { App, Form, Input, InputNumber, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +45,7 @@ export function FieldSettingsModal({
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const text = useText();
   const { message } = App.useApp();
   const [form] = Form.useForm<FieldSettingValues>();
@@ -126,22 +127,28 @@ export function FieldSettingsModal({
 
       <FieldSection title={t('config.sec.texts')} columns={2}>
         <Field name="labelEn" label={t('config.f.labelEn')} rules={[{ max: LABEL_MAX }]}>
-          <Input maxLength={LABEL_MAX} />
+          <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelEn'))} />
         </Field>
         <Field name="labelBn" label={t('config.f.labelBn')} rules={[{ max: LABEL_MAX }]}>
-          <Input maxLength={LABEL_MAX} />
+          <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelBn'))} />
         </Field>
         <Field name="helpEn" label={t('config.f.helpEn')}>
-          <Input maxLength={HELP_MAX} />
+          <Input maxLength={HELP_MAX} placeholder={placeholder('enter', t('config.f.helpEn'))} />
         </Field>
         <Field name="helpBn" label={t('config.f.helpBn')}>
-          <Input maxLength={HELP_MAX} />
+          <Input maxLength={HELP_MAX} placeholder={placeholder('enter', t('config.f.helpBn'))} />
         </Field>
         <Field name="placeholderEn" label={t('config.f.placeholderEn')}>
-          <Input maxLength={LABEL_MAX} />
+          <Input
+            maxLength={LABEL_MAX}
+            placeholder={placeholder('enter', t('config.f.placeholderEn'))}
+          />
         </Field>
         <Field name="placeholderBn" label={t('config.f.placeholderBn')}>
-          <Input maxLength={LABEL_MAX} />
+          <Input
+            maxLength={LABEL_MAX}
+            placeholder={placeholder('enter', t('config.f.placeholderBn'))}
+          />
         </Field>
       </FieldSection>
 
@@ -150,6 +157,7 @@ export function FieldSettingsModal({
           <Select
             showSearch
             optionFilterProp="label"
+            placeholder={placeholder('select', t('config.f.section'))}
             options={sections.map((s) => ({
               value: s.key,
               label: `${text(s.tabLabel)} › ${text(s.label)}`,
@@ -157,10 +165,16 @@ export function FieldSettingsModal({
           />
         </Field>
         <Field name="sortOrder" label={t('config.f.order')}>
-          <InputNumber min={0} precision={0} className="erp-w-full" />
+          <InputNumber
+            min={0}
+            precision={0}
+            placeholder={placeholder('enter', t('config.f.order'))}
+            className="erp-w-full"
+          />
         </Field>
         <Field name="colSpan" label={t('config.f.width')}>
           <Select
+            placeholder={placeholder('select', t('config.f.width'))}
             options={FIELD_WIDTHS.map((count) => ({
               value: count,
               label: t('config.f.columns', { count }),
@@ -183,7 +197,10 @@ export function FieldSettingsModal({
               </Field>
             ) : isText ? (
               <Field name="defaultValue" label={t('config.f.default')}>
-                <Input maxLength={DEFAULT_MAX} />
+                <Input
+                  maxLength={DEFAULT_MAX}
+                  placeholder={placeholder('enter', t('config.f.default'))}
+                />
               </Field>
             ) : list ? (
               <Field name="defaultValue" label={t('config.f.default')} {...numberProps}>
@@ -192,6 +209,7 @@ export function FieldSettingsModal({
                   showSearch
                   optionFilterProp="label"
                   loading={listValues.isPending}
+                  placeholder={placeholder('select', t('config.f.default'))}
                   options={(listValues.data ?? [])
                     .filter((value) => value.isActive)
                     .map((value) => ({
@@ -202,7 +220,10 @@ export function FieldSettingsModal({
               </Field>
             ) : (
               <Field name="defaultValue" label={t('config.f.default')} {...numberProps}>
-                <InputNumber className="erp-w-full" />
+                <InputNumber
+                  placeholder={placeholder('enter', t('config.f.default'))}
+                  className="erp-w-full"
+                />
               </Field>
             ))}
           {isText && (
@@ -219,6 +240,7 @@ export function FieldSettingsModal({
                 min={1}
                 max={row.maxLengthLimit ?? undefined}
                 precision={0}
+                placeholder={placeholder('enter', t('config.f.maxLength'))}
                 className="erp-w-full"
               />
             </Field>
@@ -226,10 +248,18 @@ export function FieldSettingsModal({
           {isNumber && (
             <>
               <Field name="minValue" label={t('config.f.min')}>
-                <InputNumber min={row.minLimit ?? undefined} className="erp-w-full" />
+                <InputNumber
+                  min={row.minLimit ?? undefined}
+                  placeholder={placeholder('enter', t('config.f.min'))}
+                  className="erp-w-full"
+                />
               </Field>
               <Field name="maxValue" label={t('config.f.max')}>
-                <InputNumber max={row.maxLimit ?? undefined} className="erp-w-full" />
+                <InputNumber
+                  max={row.maxLimit ?? undefined}
+                  placeholder={placeholder('enter', t('config.f.max'))}
+                  className="erp-w-full"
+                />
               </Field>
             </>
           )}
@@ -244,7 +274,12 @@ export function FieldSettingsModal({
                 <YesNoSwitch />
               </Field>
               <Field name="listOrder" label={t('config.f.listOrder')}>
-                <InputNumber min={0} precision={0} className="erp-w-full" />
+                <InputNumber
+                  min={0}
+                  precision={0}
+                  placeholder={placeholder('enter', t('config.f.listOrder'))}
+                  className="erp-w-full"
+                />
               </Field>
             </>
           )}

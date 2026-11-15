@@ -27,7 +27,14 @@ export function toMenuItems(
       if (action.divider) return { type: 'divider', key: action.key };
       return {
         key: action.key,
-        label: action.label,
+        label: action.description ? (
+          <span className="erp-menu-rich">
+            <span className="erp-menu-rich__title">{action.label}</span>
+            <span className="erp-menu-rich__desc">{action.description}</span>
+          </span>
+        ) : (
+          action.label
+        ),
         icon: action.icon,
         disabled: action.disabled,
         danger: action.danger || action.variant === 'danger',

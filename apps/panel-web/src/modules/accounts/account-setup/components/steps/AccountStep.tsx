@@ -1,5 +1,5 @@
 import { GlobalOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
-import { useLanguageStore } from '@erp/ui';
+import { useLanguageStore, usePlaceholder } from '@erp/ui';
 import { AutoComplete, Col, Divider, Form, Input, Row, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { normalizeCode } from '../../model/setup-model';
 
 export function AccountStep({ lockedCode = false }: { lockedCode?: boolean }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const language = useLanguageStore((s) => s.language);
   const rules = setupRules(t);
 
@@ -92,7 +93,7 @@ export function AccountStep({ lockedCode = false }: { lockedCode?: boolean }) {
           </Col>
           <Col xs={24} md={12}>
             <Form.Item name={['account', 'country']} label={t('field.country')} rules={[{ required: true }]}>
-              <Select showSearch optionFilterProp="label" options={countries} />
+              <Select showSearch optionFilterProp="label" options={countries} placeholder={placeholder('select', t('field.country'))} />
             </Form.Item>
           </Col>
         </Row>
@@ -104,12 +105,12 @@ export function AccountStep({ lockedCode = false }: { lockedCode?: boolean }) {
         <Row gutter={16}>
           <Col xs={24} md={12}>
             <Form.Item name={['account', 'baseCurrency']} label={t('field.baseCurrency')} rules={[{ required: true }]}>
-              <Select showSearch options={CURRENCIES.map((value) => ({ value, label: value }))} />
+              <Select showSearch options={CURRENCIES.map((value) => ({ value, label: value }))} placeholder={placeholder('select', t('field.baseCurrency'))} />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item name={['account', 'timeZone']} label={t('field.timeZone')} rules={[{ required: true }]}>
-              <Select showSearch options={TIME_ZONES.map((value) => ({ value, label: value.replace('_', ' ') }))} />
+              <Select showSearch options={TIME_ZONES.map((value) => ({ value, label: value.replace('_', ' ') }))} placeholder={placeholder('select', t('field.timeZone'))} />
             </Form.Item>
           </Col>
         </Row>

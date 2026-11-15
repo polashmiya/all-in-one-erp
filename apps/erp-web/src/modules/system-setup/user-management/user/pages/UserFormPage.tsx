@@ -1,4 +1,4 @@
-import { CheckOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   applyFieldErrors,
   getEmployee,
@@ -224,8 +224,14 @@ function UserForm({ user, draft }: { user?: UserDetail; draft: DraftState<Values
       onSubmit={submit}
       draft={user ? undefined : draft.draft}
       submitActions={[
-        { key: 'new', label: t('user.form.saveNew'), hidden: !!user },
-        { key: 'save', label: t('user.form.save'), icon: <CheckOutlined />, variant: 'primary' },
+        {
+          key: 'new',
+          label: t('user.form.saveNew'),
+          icon: <PlusOutlined />,
+          description: t('common.saveNewHint'),
+          hidden: !!user,
+        },
+        { key: 'save', label: t('user.form.save'), icon: <SaveOutlined />, variant: 'primary' },
       ]}
       sections={[
         { key: 'employee', fields: ['employeeId'], content: employeeCard },

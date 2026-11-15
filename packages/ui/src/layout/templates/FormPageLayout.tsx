@@ -1,3 +1,4 @@
+import { CloseOutlined, FileTextOutlined } from '@ant-design/icons';
 import { App, Form, type FormInstance } from 'antd';
 import { useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +20,7 @@ export interface FormSubmitAction {
   key: string;
   label: string;
   icon?: ReactNode;
+  description?: string;
   variant?: ActionVariant;
   validate?: 'all' | string[];
   hidden?: boolean;
@@ -136,13 +138,52 @@ export function FormPageLayout<T extends object>({
   };
 
   const cancel: ActionItem = { key: 'cancel', label: t('common.cancel'), onClick: goBack };
-  const menu: ActionItem[] = [
+  const extra: ActionItem[] = [
     ...submitActions
       .filter((action) => action !== saveAction && !action.hidden)
-      .map((action) => ({ key: action.key, label: action.label, onClick: () => submit(action) })),
-    ...(draft ? [{ key: 'draft', label: t('common.saveDraft'), onClick: saveDraft }] : []),
-    ...(cancelTo ? [cancel] : []),
+      .map((action) => ({
+        key: action.key,
+        label: action.label,
+        icon: action.icon,
+        description: action.description,
+        onClick: () => submit(action),
+      })),
+    ...(draft
+      ? [
+          {
+            key: 'draft',
+            label: t('common.saveDraft'),
+            icon: <FileTextOutlined />,
+            description: t('common.saveDraftHint'),
+            onClick: saveDraft,
+          },
+        ]
+      : []),
+    ...(cancelTo
+      ? [
+          { key: 'cancel-divider', label: '', divider: true },
+          {
+            ...cancel,
+            icon: <CloseOutlined />,
+            danger: true,
+            description: t('common.cancelHint'),
+          },
+        ]
+      : []),
   ];
+  const menu: ActionItem[] =
+    saveAction && extra.length
+      ? [
+          {
+            key: saveAction.key,
+            label: saveAction.label,
+            icon: saveAction.icon,
+            description: t('common.saveHint'),
+            onClick: () => submit(saveAction),
+          },
+          ...extra,
+        ]
+      : [];
 
   const actions: ActionItem[] = saveAction
     ? [

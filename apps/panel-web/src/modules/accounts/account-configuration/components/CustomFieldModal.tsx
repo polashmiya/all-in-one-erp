@@ -6,7 +6,7 @@ import {
   type CreateCustomFieldRequest,
 } from '@erp/api-client';
 import { useText } from '@erp/metadata-engine';
-import { Field, FieldGrid, FormModal } from '@erp/ui';
+import { Field, FieldGrid, FormModal, usePlaceholder } from '@erp/ui';
 import { App, Form, Input, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useModalDraft } from '@/common/hooks/useDrafts';
@@ -35,6 +35,7 @@ export function CustomFieldModal({
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const text = useText();
   const { message } = App.useApp();
   const [form] = Form.useForm<CreateCustomFieldRequest>();
@@ -90,17 +91,20 @@ export function CustomFieldModal({
           label={t('config.f.labelEn')}
           rules={[{ required: true, whitespace: true, message: t('config.custom.labelRequired') }]}
         >
-          <Input maxLength={LABEL_MAX} />
+          <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelEn'))} />
         </Field>
         <Field name="labelBn" label={t('config.f.labelBn')}>
-          <Input maxLength={LABEL_MAX} />
+          <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelBn'))} />
         </Field>
         <Field
           name="type"
           label={t('config.col.type')}
           rules={[{ required: true, message: t('config.custom.typeRequired') }]}
         >
-          <Select options={types.map((key) => ({ value: key, label: t(`config.type.${key}`) }))} />
+          <Select
+            placeholder={placeholder('select', t('config.col.type'))}
+            options={types.map((key) => ({ value: key, label: t(`config.type.${key}`) }))}
+          />
         </Field>
         <Field
           name="sectionKey"
@@ -110,6 +114,7 @@ export function CustomFieldModal({
           <Select
             showSearch
             optionFilterProp="label"
+            placeholder={placeholder('select', t('config.f.section'))}
             options={sections.map((s) => ({
               value: s.key,
               label: `${text(s.tabLabel)} › ${text(s.label)}`,
@@ -126,6 +131,7 @@ export function CustomFieldModal({
               showSearch
               optionFilterProp="label"
               loading={lists.isPending}
+              placeholder={placeholder('select', t('config.custom.list'))}
               options={(lists.data ?? []).map((list) => ({
                 value: list.key,
                 label: text(list.name) ?? list.key,

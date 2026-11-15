@@ -46,9 +46,14 @@ export function ActionButton({ action, size }: { action: ActionItem; size?: Acti
 
   if (split) {
     control = (
-      <Space.Compact>
+      <Space.Compact className="erp-split-btn">
         {control}
-        <Dropdown trigger={['click']} menu={{ items: toMenuItems(action.menu!, run) }}>
+        <Dropdown
+          trigger={['click']}
+          placement="bottomRight"
+          rootClassName="erp-split-menu"
+          menu={{ items: toMenuItems(action.menu!, run) }}
+        >
           <Button
             {...BUTTON_STYLE[action.variant ?? 'default']}
             size={size}

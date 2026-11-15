@@ -5,7 +5,7 @@ import {
   type LookupValueRow,
   type SaveLookupValueRequest,
 } from '@erp/api-client';
-import { Field, FieldGrid, FormModal, YesNoSwitch } from '@erp/ui';
+import { Field, FieldGrid, FormModal, usePlaceholder, YesNoSwitch } from '@erp/ui';
 import { App, Form, Input, InputNumber } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +40,7 @@ export function LookupValueModal({
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const { message } = App.useApp();
   const [form] = Form.useForm<SaveLookupValueRequest>();
   const create = useCreateLookupValue();
@@ -106,16 +107,21 @@ export function LookupValueModal({
           label={t('lookups.f.nameEn')}
           rules={[{ required: true, whitespace: true, message: t('lookups.f.nameRequired') }]}
         >
-          <Input maxLength={NAME_MAX} />
+          <Input maxLength={NAME_MAX} placeholder={placeholder('enter', t('lookups.f.nameEn'))} />
         </Field>
         <Field name="nameBn" label={t('lookups.f.nameBn')}>
-          <Input maxLength={NAME_MAX} />
+          <Input maxLength={NAME_MAX} placeholder={placeholder('enter', t('lookups.f.nameBn'))} />
         </Field>
         <Field name="code" label={t('lookups.f.code')}>
-          <Input maxLength={CODE_MAX} />
+          <Input maxLength={CODE_MAX} placeholder={placeholder('enter', t('lookups.f.code'))} />
         </Field>
         <Field name="sortOrder" label={t('lookups.f.order')}>
-          <InputNumber min={0} precision={0} className="erp-w-full" />
+          <InputNumber
+            min={0}
+            precision={0}
+            placeholder={placeholder('enter', t('lookups.f.order'))}
+            className="erp-w-full"
+          />
         </Field>
         <Field
           name="isDefault"

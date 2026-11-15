@@ -1,6 +1,7 @@
 import { ApartmentOutlined, InboxOutlined, PlusOutlined, ShopOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Flex, Form, Input, Row, Select, Space, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { usePlaceholder } from '@erp/ui';
 import { setupRules, suggestCodeOnBlur } from '../../model/rules';
 import { normalizeCode, UNIT_LEVEL, type BusinessUnitForm } from '../../model/setup-model';
 import { ItemCard } from './ItemCard';
@@ -8,6 +9,7 @@ import { UnitTabs } from './UnitTabs';
 
 function WarehouseList({ unitIndex, unit }: { unitIndex: number; unit: BusinessUnitForm }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const form = Form.useFormInstance();
   const rules = setupRules(t);
   const listPath = ['businessUnits', unitIndex, 'warehouses'];
@@ -74,12 +76,12 @@ function WarehouseList({ unitIndex, unit }: { unitIndex: number; unit: BusinessU
                         },
                       ]}
                     >
-                      <Select options={locationOptions} />
+                      <Select options={locationOptions} placeholder={placeholder('select', t('field.location'))} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
                     <Form.Item name={[field.name, 'address']} label={t('field.address')} rules={[{ max: 500 }]} className="erp-flush">
-                      <Input />
+                      <Input placeholder={placeholder('enter', t('field.address'))} />
                     </Form.Item>
                   </Col>
                 </Row>

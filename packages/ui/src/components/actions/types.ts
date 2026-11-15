@@ -14,6 +14,7 @@ export interface ActionConfirm {
 export interface ActionItem {
   key: string;
   label: ReactNode;
+  description?: ReactNode;
   icon?: ReactNode;
   variant?: ActionVariant;
   to?: string;

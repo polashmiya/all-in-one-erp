@@ -1,6 +1,7 @@
 import { LockOutlined } from '@ant-design/icons';
 import { Alert, Button, Form, Input, type FormInstance } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { usePlaceholder } from '../../components/fields/placeholder';
 import { NewPasswordFields } from './PasswordFields';
 
 export interface ChangePasswordValues {
@@ -25,6 +26,7 @@ export function ChangePasswordForm({
   onCancel,
 }: ChangePasswordFormProps) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
 
   return (
     <Form<ChangePasswordValues>
@@ -44,6 +46,7 @@ export function ChangePasswordForm({
         <Input.Password
           size="large"
           prefix={<LockOutlined />}
+          placeholder={placeholder('enter', t('auth.currentPassword'))}
           autoComplete="current-password"
           autoFocus
         />

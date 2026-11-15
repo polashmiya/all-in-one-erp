@@ -1,6 +1,7 @@
 import { MailOutlined, PhoneOutlined, PlusOutlined, ShopOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Flex, Form, Input, Row, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { usePlaceholder } from '@erp/ui';
 import { setupRules, suggestCodeOnBlur } from '../../model/rules';
 import { normalizeCode } from '../../model/setup-model';
 import { ItemCard } from './ItemCard';
@@ -8,6 +9,7 @@ import { UnitTabs } from './UnitTabs';
 
 function OfficeList({ unitIndex }: { unitIndex: number }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const form = Form.useFormInstance();
   const rules = setupRules(t);
   const listPath = ['businessUnits', unitIndex, 'offices'];
@@ -40,17 +42,17 @@ function OfficeList({ unitIndex }: { unitIndex: number }) {
                   </Col>
                   <Col xs={24} md={12}>
                     <Form.Item name={[field.name, 'phone']} label={t('field.phone')} rules={[rules.phone]}>
-                      <Input prefix={<PhoneOutlined />} />
+                      <Input prefix={<PhoneOutlined />} placeholder={placeholder('enter', t('field.phone'))} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
                     <Form.Item name={[field.name, 'email']} label={t('field.email')} rules={[rules.email, { max: 256 }]}>
-                      <Input prefix={<MailOutlined />} />
+                      <Input prefix={<MailOutlined />} placeholder={placeholder('enter', t('field.email'))} />
                     </Form.Item>
                   </Col>
                   <Col xs={24}>
                     <Form.Item name={[field.name, 'address']} label={t('field.address')} rules={[{ max: 500 }]} className="erp-flush">
-                      <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} />
+                      <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} placeholder={placeholder('enter', t('field.address'))} />
                     </Form.Item>
                   </Col>
                 </Row>

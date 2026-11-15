@@ -4,7 +4,7 @@ import {
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { useLanguageStore } from '@erp/ui';
+import { useLanguageStore, usePlaceholder } from '@erp/ui';
 import { Alert, Button, Card, Col, Descriptions, Divider, Form, Input, Radio, Row } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { FeatureAccessSummary } from '../../../components/FeatureAccess';
@@ -17,6 +17,7 @@ import type { SetupFormValues } from '../../model/setup-model';
 
 export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const language = useLanguageStore((s) => s.language);
   const form = Form.useFormInstance<SetupFormValues>();
   const values = (Form.useWatch([], { form, preserve: true }) as SetupFormValues | undefined) ?? {};
@@ -47,7 +48,10 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
               label={t('field.fullName')}
               rules={[rules.required, { max: 200 }]}
             >
-              <Input prefix={<UserOutlined />} />
+              <Input
+                prefix={<UserOutlined />}
+                placeholder={placeholder('enter', t('field.fullName'))}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -59,7 +63,11 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
               hasFeedback
               rules={[...rules.username, rules.adminUsernameAvailable]}
             >
-              <Input prefix={<UserOutlined />} autoComplete="off" />
+              <Input
+                prefix={<UserOutlined />}
+                placeholder={placeholder('enter', t('field.username'))}
+                autoComplete="off"
+              />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -71,7 +79,11 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
               hasFeedback
               rules={[rules.required, rules.email, { max: 256 }, rules.adminEmailAvailable]}
             >
-              <Input prefix={<MailOutlined />} autoComplete="off" />
+              <Input
+                prefix={<MailOutlined />}
+                placeholder={placeholder('enter', t('field.loginEmail'))}
+                autoComplete="off"
+              />
             </Form.Item>
           </Col>
           <Col xs={24}>
@@ -95,7 +107,11 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
                   extra={t('setup.passwordRule')}
                   rules={[{ required: true }, rules.strongPassword]}
                 >
-                  <Input.Password prefix={<LockOutlined />} autoComplete="new-password" />
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder={placeholder('enter', t('field.password'))}
+                    autoComplete="new-password"
+                  />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
@@ -113,7 +129,11 @@ export function ReviewStep({ onEdit }: { onEdit: (step: number) => void }) {
                     }),
                   ]}
                 >
-                  <Input.Password prefix={<LockOutlined />} autoComplete="new-password" />
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder={t('auth.confirmPasswordPlaceholder')}
+                    autoComplete="new-password"
+                  />
                 </Form.Item>
               </Col>
             </>

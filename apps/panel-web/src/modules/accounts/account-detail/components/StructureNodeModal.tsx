@@ -4,7 +4,7 @@ import {
   useUpdateStructureNode,
   type StructureNodeRequest,
 } from '@erp/api-client';
-import { Field, FieldGrid, FormModal, YesNoSwitch } from '@erp/ui';
+import { Field, FieldGrid, FormModal, usePlaceholder, YesNoSwitch } from '@erp/ui';
 import { App, Form, Input, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +33,7 @@ export function StructureNodeModal({
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const { message } = App.useApp();
   const rules = setupRules(t);
   const [form] = Form.useForm<Values>();
@@ -105,19 +106,24 @@ export function StructureNodeModal({
           normalize={normalizeCode}
           rules={rules.code}
         >
-          <Input className="erp-code" maxLength={CODE_MAX} />
+          <Input
+            className="erp-code"
+            maxLength={CODE_MAX}
+            placeholder={placeholder('enter', t('structure.f.code'))}
+          />
         </Field>
         <Field
           name="name"
           label={t('structure.f.name')}
           rules={[rules.required, { max: NAME_MAX }]}
         >
-          <Input maxLength={NAME_MAX} />
+          <Input maxLength={NAME_MAX} placeholder={placeholder('enter', t('structure.f.name'))} />
         </Field>
         {isWarehouse ? (
           <Field name="officeId" label={t('structure.office')} extra={t('structure.officeHint')}>
             <Select
               allowClear
+              placeholder={placeholder('select', t('structure.office'))}
               options={(unit?.offices ?? []).map((o) => ({
                 value: o.key,
                 label: `${o.name} (${o.code})`,
@@ -127,10 +133,10 @@ export function StructureNodeModal({
         ) : (
           <>
             <Field name="email" label={t('field.email')} rules={[rules.email]}>
-              <Input />
+              <Input placeholder={placeholder('enter', t('field.email'))} />
             </Field>
             <Field name="phone" label={t('field.phone')} rules={[rules.phone]}>
-              <Input />
+              <Input placeholder={placeholder('enter', t('field.phone'))} />
             </Field>
           </>
         )}
@@ -139,7 +145,11 @@ export function StructureNodeModal({
         </Field>
       </FieldGrid>
       <Field name="address" label={t('field.address')} rules={[{ max: ADDRESS_MAX }]}>
-        <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} maxLength={ADDRESS_MAX} />
+        <Input.TextArea
+          autoSize={{ minRows: 2, maxRows: 4 }}
+          maxLength={ADDRESS_MAX}
+          placeholder={placeholder('enter', t('field.address'))}
+        />
       </Field>
     </FormModal>
   );

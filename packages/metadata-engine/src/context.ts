@@ -16,7 +16,7 @@ export interface FieldBehavior {
   state: (values: FieldValues) => FieldState;
 }
 
-export type FieldRenderer = (field: ConfigField) => ReactElement;
+export type FieldRenderer = (field: ConfigField, placeholder?: string) => ReactElement;
 
 export interface FormOptions {
   lookups?: LookupSources;

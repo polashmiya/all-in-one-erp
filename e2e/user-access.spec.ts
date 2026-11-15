@@ -133,7 +133,7 @@ test('a Panel admin builds a role and a user who signs in by username and sees o
   await page.goto('/app/system-setup/user-role/new');
   await page.getByLabel('Role name').fill(roleName);
   await page.getByRole('checkbox', { name: 'View · Item Profile' }).check();
-  await page.getByRole('button', { name: /^(check )?Save$/ }).click();
+  await page.getByRole('button', { name: /^(save )?Save$/ }).click();
   await expect(page).toHaveURL(/user-role$/);
 
   const username = `usr.${id}`;

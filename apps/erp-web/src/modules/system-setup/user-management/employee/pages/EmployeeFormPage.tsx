@@ -1,4 +1,4 @@
-import { CheckOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   applyFieldErrors,
   getGetEmployeeQueryKey,
@@ -146,11 +146,17 @@ function EmployeeForm({
       onSubmit={submit}
       draft={employee ? undefined : draft.draft}
       submitActions={[
-        { key: 'new', label: t('employee.form.saveNew'), hidden: !!employee },
+        {
+          key: 'new',
+          label: t('employee.form.saveNew'),
+          icon: <PlusOutlined />,
+          description: t('common.saveNewHint'),
+          hidden: !!employee,
+        },
         {
           key: 'save',
           label: t('employee.form.save'),
-          icon: <CheckOutlined />,
+          icon: <SaveOutlined />,
           variant: 'primary',
         },
       ]}

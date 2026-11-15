@@ -2,6 +2,7 @@ import { CheckCircleFilled, CloseCircleOutlined, LockOutlined } from '@ant-desig
 import { Form, Input } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
 import { useTranslation } from 'react-i18next';
+import { usePlaceholder } from '../../components/fields/placeholder';
 import { isStrongPassword, PASSWORD_MIN_LENGTH, passwordRules } from './sign-in-rules';
 
 export function PasswordRuleList({ value }: { value: string }) {
@@ -33,6 +34,7 @@ export function NewPasswordFields({
   size?: 'large';
 }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const form = Form.useFormInstance();
   const value = (Form.useWatch(name, form) as string | undefined) ?? '';
 
@@ -52,7 +54,12 @@ export function NewPasswordFields({
         ]}
         extra={<PasswordRuleList value={value} />}
       >
-        <Input.Password size={size} prefix={<LockOutlined />} autoComplete="new-password" />
+        <Input.Password
+          size={size}
+          prefix={<LockOutlined />}
+          placeholder={placeholder('enter', label ?? t('auth.newPassword'))}
+          autoComplete="new-password"
+        />
       </Form.Item>
       <Form.Item
         name={confirmName}
@@ -68,7 +75,12 @@ export function NewPasswordFields({
           }),
         ]}
       >
-        <Input.Password size={size} prefix={<LockOutlined />} autoComplete="new-password" />
+        <Input.Password
+          size={size}
+          prefix={<LockOutlined />}
+          placeholder={t('auth.confirmPasswordPlaceholder')}
+          autoComplete="new-password"
+        />
       </Form.Item>
     </>
   );

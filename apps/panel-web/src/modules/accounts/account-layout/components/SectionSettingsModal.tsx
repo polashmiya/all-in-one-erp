@@ -5,7 +5,7 @@ import {
   type SectionSettingValues,
 } from '@erp/api-client';
 import { useText } from '@erp/metadata-engine';
-import { Field, FieldGrid, FormModal, YesNoSwitch } from '@erp/ui';
+import { Field, FieldGrid, FormModal, usePlaceholder, YesNoSwitch } from '@erp/ui';
 import { App, Form, Input, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +34,7 @@ export function SectionSettingsModal({
   onSaved: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const text = useText();
   const { message } = App.useApp();
   const [form] = Form.useForm<SectionSettingValues>();
@@ -82,10 +83,10 @@ export function SectionSettingsModal({
     >
       <FieldGrid columns={2}>
         <Field name="labelEn" label={t('config.f.labelEn')}>
-          <Input maxLength={LABEL_MAX} />
+          <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelEn'))} />
         </Field>
         <Field name="labelBn" label={t('config.f.labelBn')}>
-          <Input maxLength={LABEL_MAX} />
+          <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelBn'))} />
         </Field>
         <Field name="isVisible" label={t('config.f.visible')} valuePropName="checked">
           <YesNoSwitch />
@@ -93,6 +94,7 @@ export function SectionSettingsModal({
         {!row.isTab && (
           <Field name="columns" label={t('layout.f.columns')}>
             <Select
+              placeholder={placeholder('select', t('layout.f.columns'))}
               options={FIELD_WIDTHS.map((count) => ({
                 value: count,
                 label: t('config.f.columns', { count }),

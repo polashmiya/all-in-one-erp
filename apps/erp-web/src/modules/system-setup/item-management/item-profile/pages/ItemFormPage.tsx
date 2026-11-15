@@ -1,4 +1,4 @@
-import { CheckOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   getGetItemQueryKey,
   useCreateItem,
@@ -8,7 +8,7 @@ import {
   type FeatureConfig,
   type ItemDetail,
 } from '@erp/api-client';
-import { defaultValues, useFormSections, useText } from '@erp/metadata-engine';
+import { defaultValues, useFormSections } from '@erp/metadata-engine';
 import { ForbiddenResult, FormPageLayout, PageState, useGoBack } from '@erp/ui';
 import { App, Form } from 'antd';
 import { useMemo } from 'react';
@@ -78,7 +78,6 @@ function ItemForm({
   draft: DraftState<ItemFormValues>;
 }) {
   const { t } = useTranslation();
-  const text = useText();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const [form] = Form.useForm<ItemFormValues>();
@@ -104,14 +103,12 @@ function ItemForm({
     behaviors: itemBehaviors(t),
     widgets: {
       imageSource: () => <ImageAttach />,
-      masterItemId: (field) => (
-        <MasterItemSelect
-          source={source}
-          excludeId={item?.id}
-          placeholder={text(field.placeholder)}
-        />
+      masterItemId: (_field, placeholder) => (
+        <MasterItemSelect source={source} excludeId={item?.id} placeholder={placeholder} />
       ),
-      altUomConversionQty: () => <ConversionInput uoms={lookups[ITEM_LOOKUPS.uom]} />,
+      altUomConversionQty: (_field, placeholder) => (
+        <ConversionInput uoms={lookups[ITEM_LOOKUPS.uom]} placeholder={placeholder} />
+      ),
     },
   });
 
@@ -159,8 +156,13 @@ function ItemForm({
       onSubmit={submit}
       draft={item || copyFrom ? undefined : draft.draft}
       submitActions={[
-        { key: 'new', label: t('item.form.saveNew') },
-        { key: 'save', label: t('item.form.save'), icon: <CheckOutlined />, variant: 'primary' },
+        {
+          key: 'new',
+          label: t('item.form.saveNew'),
+          icon: <PlusOutlined />,
+          description: t('common.saveNewHint'),
+        },
+        { key: 'save', label: t('item.form.save'), icon: <SaveOutlined />, variant: 'primary' },
       ]}
       sections={sections}
       aside={aside}

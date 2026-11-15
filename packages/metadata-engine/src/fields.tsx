@@ -1,5 +1,5 @@
 import type { ConfigField } from '@erp/api-client';
-import { Field, FieldInput, useLanguageStore, type FieldDataType } from '@erp/ui';
+import { Field, FieldInput, useLanguageStore, usePlaceholder, type FieldDataType } from '@erp/ui';
 import { Form, Select, type SelectProps } from 'antd';
 import { use } from 'react';
 import { columnsOf, namePath, useText, type FieldValues } from './config';
@@ -8,6 +8,7 @@ import { childSelectOptions, localized, parentOf, selectOptions, type LookupItem
 import { useFieldRules } from './rules';
 
 const NO_STATE: FieldState = {};
+const PICKED_TYPES = new Set(['lookup', 'select', 'multiSelect', 'date', 'datetime']);
 
 export function DynamicField({ field }: { field: ConfigField }) {
   const behavior = use(Engine).behaviors?.[field.key];
@@ -25,13 +26,17 @@ export function DynamicField({ field }: { field: ConfigField }) {
 function FieldItem({ field, state }: { field: ConfigField; state: FieldState }) {
   const text = useText();
   const rules = useFieldRules();
+  const placeholderOf = usePlaceholder();
   const widget = use(Engine).widgets?.[field.key];
   if (state.hidden) return null;
 
   const label = text(field.label);
   const disabled = !!state.disabled || field.readOnly;
   const required = !disabled && (field.required || !!state.required);
-  const placeholder = state.placeholder ?? text(field.placeholder);
+  const placeholder =
+    state.placeholder ||
+    text(field.placeholder) ||
+    (label && placeholderOf(PICKED_TYPES.has(field.type) ? 'select' : 'enter', label));
 
   return (
     <Field
@@ -42,7 +47,7 @@ function FieldItem({ field, state }: { field: ConfigField; state: FieldState }) 
       className={field.colSpan > 1 ? `erp-field-span-${columnsOf(field.colSpan)}` : undefined}
     >
       {widget ? (
-        widget(field)
+        widget(field, placeholder)
       ) : field.type === 'lookup' ? (
         <LookupInput
           field={field}

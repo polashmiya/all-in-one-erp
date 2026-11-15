@@ -1,4 +1,4 @@
-import { CheckOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import {
   applyFieldErrors,
   getGetPermissionTreeQueryKey,
@@ -9,7 +9,14 @@ import {
   useGetRole,
   useUpdateRole,
 } from '@erp/api-client';
-import { DetailSection, FieldSection, FormPageLayout, PageState, SwitchList } from '@erp/ui';
+import {
+  DetailSection,
+  FieldSection,
+  FormPageLayout,
+  PageState,
+  SwitchList,
+  usePlaceholder,
+} from '@erp/ui';
 import { App, Form, Input } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
@@ -33,6 +40,7 @@ const EMPTY: RoleFormValues = { name: '', description: null, isActive: true, per
 
 export function RoleFormPage() {
   const { t } = useTranslation();
+  const placeholder = usePlaceholder();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const id = useParams().id;
@@ -108,11 +116,17 @@ export function RoleFormPage() {
       onSubmit={submit}
       draft={detail || readOnly ? undefined : draft.draft}
       submitActions={[
-        { key: 'new', label: t('role.saveNew'), hidden: readOnly },
+        {
+          key: 'new',
+          label: t('role.saveNew'),
+          icon: <PlusOutlined />,
+          description: t('common.saveNewHint'),
+          hidden: readOnly,
+        },
         {
           key: 'save',
           label: t('role.save'),
-          icon: <CheckOutlined />,
+          icon: <SaveOutlined />,
           variant: 'primary',
           hidden: readOnly,
         },
@@ -128,7 +142,10 @@ export function RoleFormPage() {
                 label={t('role.field.name')}
                 rules={[{ required: true, whitespace: true }, { max: ROLE_NAME_MAX }]}
               >
-                <Input disabled={readOnly || detail?.isSystem} />
+                <Input
+                  placeholder={placeholder('enter', t('role.field.name'))}
+                  disabled={readOnly || detail?.isSystem}
+                />
               </Form.Item>
               <Form.Item
                 name="description"
@@ -136,7 +153,10 @@ export function RoleFormPage() {
                 rules={[{ max: ROLE_DESCRIPTION_MAX }]}
                 className="erp-field-span-2"
               >
-                <Input disabled={readOnly} />
+                <Input
+                  placeholder={placeholder('enter', t('role.field.description'))}
+                  disabled={readOnly}
+                />
               </Form.Item>
             </FieldSection>
           ),
