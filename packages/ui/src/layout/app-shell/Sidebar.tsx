@@ -195,7 +195,7 @@ export function Sidebar({
   const { trail } = useShell();
   const favoriteKeys = useFavoritesStore((s) => s.keys);
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
-  const [closedSubs, setClosedSubs] = useState<Record<string, boolean>>({});
+  const [openSubs, setOpenSubs] = useState<Record<string, boolean>>({});
   const [flyout, setFlyout] = useState<string | null>(null);
 
   const activeKeys = useMemo(() => new Set(trail.map((n) => n.key)), [trail]);
@@ -212,7 +212,8 @@ export function Sidebar({
   const isModuleOpen = (key: string) => openModules[key] ?? activeKeys.has(key);
   const toggleModule = (key: string) =>
     setOpenModules((s) => ({ ...s, [key]: !isModuleOpen(key) }));
-  const toggleSub = (key: string) => setClosedSubs((s) => ({ ...s, [key]: !s[key] }));
+  const isSubOpen = (key: string) => openSubs[key] ?? activeKeys.has(key);
+  const toggleSub = (key: string) => setOpenSubs((s) => ({ ...s, [key]: !isSubOpen(key) }));
 
   const pinOpen = (moduleKey: string) => {
     setFlyout(null);
@@ -428,15 +429,15 @@ export function Sidebar({
                             'erp-sb-row erp-sb-sub',
                             activeKeys.has(sub.key) && 'has-active',
                           )}
-                          aria-expanded={!closedSubs[sub.key]}
+                          aria-expanded={isSubOpen(sub.key)}
                           onClick={() => toggleSub(sub.key)}
                         >
                           <span className="erp-sb-text">{label(sub)}</span>
-                          <span className={cx('erp-sb-chev', closedSubs[sub.key] ? '' : 'is-open')}>
+                          <span className={cx('erp-sb-chev', isSubOpen(sub.key) && 'is-open')}>
                             <RightOutlined />
                           </span>
                         </button>
-                        {!closedSubs[sub.key] && (
+                        {isSubOpen(sub.key) && (
                           <div className="erp-sb-tree">
                             {sub.children
                               .filter((leaf) => leaf.path)
