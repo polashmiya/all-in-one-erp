@@ -1762,6 +1762,7 @@ html[data-content-width='boxed'] .erp-page {
   white-space: nowrap;
 }
 
+.erp-table .ant-table-thead .ant-table-column-sorters,
 .erp-table .ant-table-thead .ant-table-column-title {
   font-size: inherit;
 }
@@ -2140,6 +2141,20 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
 
 .erp-overlay__footer {
   justify-content: flex-end;
+}
+
+.erp-modal .ant-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 2 * var(--erp-space-xxl));
+}
+
+.erp-modal .ant-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin-inline: calc(-1 * var(--erp-space-xs));
+  padding-inline: var(--erp-space-xs);
 }
 
 @media (max-width: 1199.98px) {
