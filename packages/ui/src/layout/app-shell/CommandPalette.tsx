@@ -3,6 +3,7 @@ import { Modal } from 'antd';
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { AppModal } from '../../components/overlays/AppModal';
 import { useLanguageStore } from '../../i18n/i18n';
 import { localize } from '../../i18n/language';
 import { flattenLeavesWithTrail, type MenuNode } from '../../utils/menu';
@@ -166,7 +167,7 @@ export function ShortcutsModal({ open, onClose }: { open: boolean; onClose: () =
   ];
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} title={t('shell.shortcuts')} width={420}>
+    <AppModal open={open} onClose={onClose} title={t('shell.shortcuts')} size="sm" hideFooter>
       <dl className="erp-shortcuts">
         {rows.map(([keys, label]) => (
           <div key={label} className="erp-contents">
@@ -181,6 +182,6 @@ export function ShortcutsModal({ open, onClose }: { open: boolean; onClose: () =
           </div>
         ))}
       </dl>
-    </Modal>
+    </AppModal>
   );
 }

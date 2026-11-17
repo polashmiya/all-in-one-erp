@@ -2147,14 +2147,29 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
   display: flex;
   flex-direction: column;
   max-height: calc(100dvh - 2 * var(--erp-space-xxl));
+  padding: 0;
+}
+
+.erp-modal .ant-modal-header {
+  margin-bottom: 0;
+  padding: var(--erp-space-md) var(--erp-space-xxl);
+  border-bottom: 1px solid var(--erp-divider);
+}
+
+.erp-modal .ant-modal-close {
+  top: var(--erp-space-xs);
 }
 
 .erp-modal .ant-modal-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  margin-inline: calc(-1 * var(--erp-space-xs));
-  padding-inline: var(--erp-space-xs);
+  padding: var(--erp-space-lg) var(--erp-space-xxl);
+}
+
+.erp-modal .ant-modal-footer {
+  margin-top: 0;
+  padding: 0 var(--erp-space-xxl) var(--erp-space-lg);
 }
 
 @media (max-width: 1199.98px) {
