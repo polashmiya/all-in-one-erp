@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Erp.Api.Lookups;
+using Erp.Api.PartnerManagement.Suppliers;
 using Erp.Metadata;
 using Erp.Modules.Inventory;
 using Erp.Modules.Inventory.ItemManagement;
@@ -84,7 +85,7 @@ public sealed class ItemProfileTests(ApiFactory factory)
         BarCode = null,
         IsChildBarcode = false,
         MasterItemId = null,
-        SupplierName = null,
+        SupplierId = null,
         UomId = setup.Uom.Id,
         AltUomId = null,
         AltUomConversionQty = null,
@@ -215,15 +216,15 @@ public sealed class ItemProfileTests(ApiFactory factory)
             ("hsCode", s => s.IsVisible = false),
             ("itemTypeId", s => s.IsRequired = false),
             ("isSaleable", s => s.IsVisible = false),
-            ("supplierName", s => (s.IsRequired, s.MaxLength) = (true, 5)));
+            ("description", s => (s.IsRequired, s.MaxLength) = (true, 5)));
 
-        var missing = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { SupplierName = null });
-        var tooLong = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { SupplierName = "Acme Ltd" });
-        Assert.Equal(["supplierName"], await ErrorsAsync(missing));
-        Assert.Equal(["supplierName"], await ErrorsAsync(tooLong));
+        var missing = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { Description = null });
+        var tooLong = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { Description = "Acme Ltd" });
+        Assert.Equal(["description"], await ErrorsAsync(missing));
+        Assert.Equal(["description"], await ErrorsAsync(tooLong));
 
         var created = await CreateAsync<ItemDetail>(client, "items",
-            NewItem(setup) with { HsCode = "IGNORED", ItemTypeId = null, IsSaleable = false, SupplierName = "Acme" });
+            NewItem(setup) with { HsCode = "IGNORED", ItemTypeId = null, IsSaleable = false, Description = "Acme" });
         Assert.Equal(("", null, null, true), (created.HsCode, created.ItemTypeId, created.ItemTypeName, created.IsSaleable));
 
         var updated = await ReadAsync<ItemDetail>(await client.PutAsJsonAsync($"{Base}/items/{existing.Id}", NewItem(setup) with
@@ -231,9 +232,31 @@ public sealed class ItemProfileTests(ApiFactory factory)
             Name = existing.Name,
             HsCode = "CHANGED",
             IsSaleable = false,
-            SupplierName = "Acme",
+            Description = "Acme",
         }));
-        Assert.Equal((existing.HsCode, true, "Acme"), (updated.HsCode, updated.IsSaleable, updated.SupplierName));
+        Assert.Equal((existing.HsCode, true, "Acme"), (updated.HsCode, updated.IsSaleable, updated.Description));
+    }
+
+    [Fact]
+    public async Task An_item_takes_a_supplier_of_its_own_unit()
+    {
+        var client = await AdminAsync();
+        var setup = await CreateSetupAsync(client);
+        var supplier = await SupplierAsync(client);
+        var elsewhere = await SupplierAsync(await AdminAsync(factory.ChattogramId));
+
+        var created = await CreateAsync<ItemDetail>(client, "items", NewItem(setup) with { SupplierId = supplier.Id });
+        var wrongUnit = await client.PostAsJsonAsync($"{Base}/items", NewItem(setup) with { SupplierId = elsewhere.Id });
+
+        Assert.Equal((supplier.Id, supplier.Name), (created.SupplierId, created.SupplierName));
+        Assert.Equal(["supplierId"], await ErrorsAsync(wrongUnit));
+    }
+
+    private static async Task<SupplierDetail> SupplierAsync(HttpClient client)
+    {
+        var response = await client.PostAsJsonAsync("/api/erp/partner-management/suppliers", PartnerManagementTests.Supplier());
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<SupplierDetail>())!;
     }
 
     [Fact]

@@ -1048,6 +1048,8 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SubCategoryId");
 
+                    b.HasIndex("SupplierId");
+
                     b.HasIndex("UomId");
 
                     b.HasIndex("BusinessUnitId", "Code")
@@ -1492,6 +1494,62 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("UnitOfMeasure", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Locations.District", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int")
+                        .HasColumnName("DistrictID");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("DistrictName");
+
+                    b.Property<string>("NameBn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("DistrictNameBn");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("District", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Locations.Thana", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int")
+                        .HasColumnName("ThanaID");
+
+                    b.Property<int>("DistrictId")
+                        .HasColumnType("int")
+                        .HasColumnName("DistrictID");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ThanaName");
+
+                    b.Property<string>("NameBn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ThanaNameBn");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DistrictId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Thana", (string)null);
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Metadata.AccountFieldSetting", b =>
@@ -2288,6 +2346,422 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("PanelMenuItems", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Partners.Customer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(31);
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("BillingName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("CustomerBillingName")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("BinNumber")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnOrder(23);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(32);
+
+                    b.Property<string>("CentralVatRegistrationNo")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("CentralVATRegistrationNo")
+                        .HasColumnOrder(27);
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("CustomerCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("ContactMobile")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("OtherContactNumber")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("ContactPerson")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("OtherContactName")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(35);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(36);
+
+                    b.Property<decimal?>("CreditLimit")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(14);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(39);
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnOrder(19);
+
+                    b.Property<int?>("DistrictId")
+                        .HasColumnType("int")
+                        .HasColumnName("DistrictID")
+                        .HasColumnOrder(11);
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(6);
+
+                    b.Property<int?>("GenderId")
+                        .HasColumnType("int")
+                        .HasColumnName("GenderID")
+                        .HasColumnOrder(20);
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerGroupID")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(33);
+
+                    b.Property<bool>("IsForeign")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(13);
+
+                    b.Property<bool>("IsVatNotApplicable")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsVATNotApplicable")
+                        .HasColumnOrder(28);
+
+                    b.Property<bool>("IsVdsApplicable")
+                        .HasColumnType("bit")
+                        .HasColumnName("isVDSApplicable")
+                        .HasColumnOrder(29);
+
+                    b.Property<DateOnly?>("MarriageDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(22);
+
+                    b.Property<string>("Mobile")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("MobileNo")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(38);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(37);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("CustomerName")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Nid")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("NID")
+                        .HasColumnOrder(26);
+
+                    b.Property<int?>("PaymentDays")
+                        .HasColumnType("int")
+                        .HasColumnOrder(15);
+
+                    b.Property<int?>("PriceTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PriceTypeID")
+                        .HasColumnOrder(16);
+
+                    b.Property<string>("Profession")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnOrder(21);
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(30);
+
+                    b.Property<int?>("SalesRepresentativeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesRepresentativeID")
+                        .HasColumnOrder(18);
+
+                    b.Property<int?>("TerritoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("TerritoryID")
+                        .HasColumnOrder(17);
+
+                    b.Property<int?>("ThanaId")
+                        .HasColumnType("int")
+                        .HasColumnName("ThanaID")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("TinNumber")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("TINNumber")
+                        .HasColumnOrder(24);
+
+                    b.Property<string>("TradeLicenseNumber")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnOrder(25);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(34);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("DistrictId");
+
+                    b.HasIndex("SalesRepresentativeId");
+
+                    b.HasIndex("ThanaId");
+
+                    b.HasIndex("BusinessUnitId", "Code")
+                        .IsUnique();
+
+                    b.ToTable("Customer", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Partners.Supplier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("SupplierID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(25);
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("BillingName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("SupplierBillingName")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("BinNumber")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnOrder(17);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(26);
+
+                    b.Property<string>("CentralVatRegistrationNo")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("CentralVATRegistrationNo")
+                        .HasColumnOrder(21);
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("SupplierCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("ContactMobile")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("OtherContactNumber")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("ContactPerson")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("OtherContactName")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(29);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(30);
+
+                    b.Property<decimal?>("CreditLimit")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(14);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(33);
+
+                    b.Property<int?>("DistrictId")
+                        .HasColumnType("int")
+                        .HasColumnName("DistrictID")
+                        .HasColumnOrder(11);
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(6);
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("SupplierGroupID")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(27);
+
+                    b.Property<bool>("IsForeign")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(13);
+
+                    b.Property<bool>("IsVatNotApplicable")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsVATNotApplicable")
+                        .HasColumnOrder(22);
+
+                    b.Property<bool>("IsVdsApplicable")
+                        .HasColumnType("bit")
+                        .HasColumnName("isVDSApplicable")
+                        .HasColumnOrder(23);
+
+                    b.Property<string>("Mobile")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("MobileNo")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(32);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(31);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("SupplierName")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Nid")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("NID")
+                        .HasColumnOrder(20);
+
+                    b.Property<int?>("PaymentDays")
+                        .HasColumnType("int")
+                        .HasColumnOrder(15);
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(24);
+
+                    b.Property<int?>("ThanaId")
+                        .HasColumnType("int")
+                        .HasColumnName("ThanaID")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("TinNumber")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("TINNumber")
+                        .HasColumnOrder(18);
+
+                    b.Property<decimal?>("Tolerance")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnOrder(16);
+
+                    b.Property<string>("TradeLicenseNumber")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnOrder(19);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(28);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("DistrictId");
+
+                    b.HasIndex("ThanaId");
+
+                    b.HasIndex("BusinessUnitId", "Code")
+                        .IsUnique();
+
+                    b.ToTable("Supplier", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Tenancy.Account", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2833,6 +3307,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Erp.Core.Domain.Partners.Supplier", null)
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Erp.Core.Domain.Inventory.UnitOfMeasure", "Uom")
                         .WithMany()
                         .HasForeignKey("UomId")
@@ -2956,6 +3435,15 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
                         .WithMany()
                         .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Locations.Thana", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Locations.District", null)
+                        .WithMany()
+                        .HasForeignKey("DistrictId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -3117,6 +3605,61 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Partners.Customer", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Locations.District", null)
+                        .WithMany()
+                        .HasForeignKey("DistrictId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Identity.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("SalesRepresentativeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Locations.Thana", null)
+                        .WithMany()
+                        .HasForeignKey("ThanaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Partners.Supplier", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Locations.District", null)
+                        .WithMany()
+                        .HasForeignKey("DistrictId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Locations.Thana", null)
+                        .WithMany()
+                        .HasForeignKey("ThanaId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Tenancy.AccountFeature", b =>

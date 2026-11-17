@@ -273,21 +273,59 @@ Left open:
   with `RateLimiting__LoginPerMinute` raised (`E2E.loginPerMinute`).
 - Panel history labels for user and role changes; ESLint skips Playwright output.
 
+## Done: phase 17 — Partner Management (2026-11-17)
+
+- Owner asked for System Setup › Partner Management with **Customer Profile** and **Supplier Profile**, two tables,
+  based on the legacy `Partner` table script. Only the profile columns were taken; balances, loyalty points,
+  e-commerce, approval and HMS columns stay out until a module needs them.
+- Migration `PartnerProfiles`: tables `Customer` and `Supplier` (business unit owned, `CustomData`, unique code per
+  unit). Shared columns live on `PartnerRecord` (`MapPartner` in `PartnerConfigurations.cs`); Customer adds price
+  type, territory, sales representative (employee), date of birth, gender, profession, marriage date; Supplier adds
+  receive tolerance.
+- `Erp.Api/PartnerManagement`: menu (`system-setup.customer-profile`, `system-setup.supplier-profile`, actions view,
+  create, edit, export), manifests built from `PartnerFields` (tabs General, Sales & credit / Purchase terms,
+  Tax & legal, and Personal for customers), lookup lists `customer-group`, `supplier-group`, `price-type`,
+  `district` (64 districts), `thana` and `territory` (empty, fields hidden by default). API
+  `/api/erp/partner-management/customers|suppliers` (list with group, price type, district filters; get; create;
+  update; bulk status). Empty code gives `CUS-00001` / `SUP-00001`. `PartnerData` holds the shared rules.
+  Customer view permission also reads employee options (sales representative).
+- ERP: `system-setup/partner-management` with list, form and view pages for both; the form and view are the shared
+  `PartnerForm` and `PartnerView` (profile card with click-to-call and email, place and credit summary).
+- Checked with `PartnerManagementTests` (code, unit scope, wrong list, used code, hidden field kept, required field,
+  custom field, bulk status), typecheck, lint, web tests and a Playwright run that created both in Chrome.
+
+Follow-up the same day (owner asked):
+
+- Migration `DistrictsThanasAndItemSupplier`: reference tables `District` (64) and `Thana` (545: the 495
+  upazilas of the open `bangladesh-geocode` dataset plus the 50 Dhaka Metropolitan Police thanas), English and
+  Bangla, shared by every account. Partner `DistrictID` / `ThanaID` now point to them (existing districts were
+  remapped by name). API `/api/erp/locations/districts` and `/thanas` (`LocationEndpoints`); the partner Thana
+  field has `ParentField = districtId`, so the engine narrows it by district. The `district` and `thana` lookup
+  lists are gone.
+- Item Profile: `supplierName` became `supplierId`, a dropdown of the unit's suppliers
+  (`/partner-management/suppliers/options`); `Item.SupplierName` keeps the chosen supplier's name and
+  `Item.SupplierID` has a foreign key to `Supplier`.
+
+Left open:
+
+- Thanas of other city corporations (Chattogram, Khulna and so on) are not in the list yet.
+
 Still open for later, ask the owner:
 
 1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
 2. **Read-only history in the ERP** for account admins.
-3. **The next business module** (for example suppliers or VAT setup) built as a configurable screen (skill pattern E).
+3. **The next business module** (for example VAT setup) built as a configurable screen (skill pattern E).
 
 ## Where we are
 
-Last updated 2026-11-15. Phases 0 to 16 are done: account editing, user access (sessions, username and reset codes,
-Panel ERP users, ERP roles, users and employees) and drafts on create forms. The plan is in
-[user-access-plan.md](user-access-plan.md). Next work is in "Still open for later".
+Last updated 2026-11-17. Phases 0 to 17 are done: account editing, user access (sessions, username and reset codes,
+Panel ERP users, ERP roles, users and employees), drafts on create forms and Partner Management (customer and
+supplier profiles). Next work is in "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
-`AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`.
+`AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
+`DistrictsThanasAndItemSupplier`.
 
 ## Working on another machine
 

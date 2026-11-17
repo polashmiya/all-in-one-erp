@@ -11,6 +11,9 @@ import { uomResources } from '@/modules/system-setup/item-management/uom/i18n';
 import { employeeResources } from '@/modules/system-setup/user-management/employee/i18n';
 import { userRoleResources } from '@/modules/system-setup/user-management/user-role/i18n';
 import { userResources } from '@/modules/system-setup/user-management/user/i18n';
+import { partnerResources } from '@/modules/system-setup/partner-management/i18n';
+import { customerProfileResources } from '@/modules/system-setup/partner-management/customer-profile/i18n';
+import { supplierProfileResources } from '@/modules/system-setup/partner-management/supplier-profile/i18n';
 
 const commonErpResources: AppResources = {
   en: {
@@ -58,4 +61,7 @@ export const erpResources = mergeResources(
   userResources,
   employeeResources,
   userRoleResources,
+  partnerResources,
+  customerProfileResources,
+  supplierProfileResources,
 );

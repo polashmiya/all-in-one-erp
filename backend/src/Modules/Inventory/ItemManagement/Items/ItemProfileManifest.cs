@@ -128,10 +128,10 @@ public sealed class ItemProfileManifest : IFeatureManifestProvider
             new("lastCostPrice", FieldTypes.Money, new("Last cost price", "সর্বশেষ ক্রয় মূল্য"), "prices", 10) { Min = 0m },
             new("averageCostPrice", FieldTypes.Money, new("Average cost price", "গড় ক্রয় মূল্য"), "prices", 20) { Min = 0m },
             new("salesPrice", FieldTypes.Money, new("Sales price", "বিক্রয় মূল্য"), "prices", 30) { Min = 0m, ListOrder = 60, Sort = true },
-            new("supplierName", FieldTypes.Text, new("Supplier", "সরবরাহকারী"), "prices", 40)
+            new("supplierId", FieldTypes.Lookup, new("Supplier", "সরবরাহকারী"), "prices", 40)
             {
-                MaxLength = 100,
-                Help = new("Free text until supplier records are available.", "সরবরাহকারীর রেকর্ড চালু না হওয়া পর্যন্ত মুক্ত লেখা।"),
+                Lookup = ItemLookups.Supplier,
+                Help = new("Suppliers of this business unit, from Supplier Profile.", "সরবরাহকারী প্রোফাইল থেকে এই বিজনেস ইউনিটের সরবরাহকারী।"),
             },
 
             new("purchaseSupplyTypeId", FieldTypes.Lookup, new("Purchase supply type", "ক্রয় সাপ্লাই টাইপ"), "vat", 10)

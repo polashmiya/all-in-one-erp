@@ -36,6 +36,8 @@ export interface ItemDetail {
   /** @nullable */
   masterItemName: string | null;
   /** @nullable */
+  supplierId: number | null;
+  /** @nullable */
   supplierName: string | null;
   uomId: number;
   uomName: string;

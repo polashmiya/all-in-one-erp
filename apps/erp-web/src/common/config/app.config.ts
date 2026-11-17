@@ -9,4 +9,5 @@ export const appConfig = {
   defaultPageSize: 25,
   queryStaleMs: 30_000,
   sessionStaleMs: 5 * 60_000,
+  referenceStaleMs: 60 * 60_000,
 };

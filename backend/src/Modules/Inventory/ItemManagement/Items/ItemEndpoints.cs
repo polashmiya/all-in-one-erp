@@ -113,6 +113,7 @@ internal static class ItemEndpoints
             MasterItemId = i.MasterItemId,
             MasterItemCode = db.Items.Where(m => m.Id == i.MasterItemId).Select(m => m.Code).FirstOrDefault(),
             MasterItemName = db.Items.Where(m => m.Id == i.MasterItemId).Select(m => m.Name).FirstOrDefault(),
+            SupplierId = i.SupplierId,
             SupplierName = i.SupplierName,
             UomId = i.UomId,
             UomName = i.UomName,
@@ -306,6 +307,12 @@ internal static class ItemEndpoints
         var purchaseSupplyName = Choice("purchaseSupplyTypeId", request.PurchaseSupplyTypeId, item.PurchaseSupplyTypeId, ItemLookups.SupplyType);
         var salesSupplyName = Choice("salesSupplyTypeId", request.SalesSupplyTypeId, item.SalesSupplyTypeId, ItemLookups.SupplyType);
 
+        var supplier = request.SupplierId is { } supplierId
+            ? await db.Suppliers.Where(s => s.Id == supplierId).Select(s => new { s.Name, s.IsActive }).SingleOrDefaultAsync(ct)
+            : null;
+        if (request.SupplierId is not null && (supplier is null || (!supplier.IsActive && request.SupplierId != item.SupplierId)))
+            errors["supplierId"] = ["Choose an active supplier of this business unit."];
+
         if (MasterData.Invalid(errors) is { } invalid) return invalid;
 
         item.Code = code ?? await NextCodeAsync(db, minor!.CategoryCode, minor.CategoryId, ct);
@@ -318,7 +325,8 @@ internal static class ItemEndpoints
         item.CategoryId = minor.CategoryId;
         item.SubCategoryId = minor.SubCategoryId;
         item.MinorCategoryId = request.MinorCategoryId;
-        item.SupplierName = Trimmed(request.SupplierName);
+        item.SupplierId = request.SupplierId;
+        item.SupplierName = supplier?.Name;
         item.UomId = request.UomId;
         item.UomName = uom!.Name;
         item.AltUomId = altUom?.Id;

@@ -52,7 +52,7 @@ export function toRequest(values: ItemFormValues): SaveItemRequest {
     barCode: values.isAutoBarcode ? null : trimmed(values.barCode),
     isChildBarcode: !!values.isChildBarcode,
     masterItemId: values.isChildBarcode ? (values.masterItemId ?? null) : null,
-    supplierName: trimmed(values.supplierName),
+    supplierId: values.supplierId ?? null,
     uomId: values.uomId,
     altUomId: hasAltUom ? values.altUomId : null,
     altUomConversionQty: hasAltUom ? (values.altUomConversionQty ?? null) : null,

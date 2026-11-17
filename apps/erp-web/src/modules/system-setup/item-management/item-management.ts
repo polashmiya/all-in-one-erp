@@ -20,6 +20,7 @@ export const ITEM_LOOKUPS = {
   uom: 'uom',
   itemType: 'item-type',
   supplyType: 'vat-supply-type',
+  supplier: 'supplier',
 } as const;
 
 export const itemManagementPaths = {

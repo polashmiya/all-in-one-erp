@@ -8,6 +8,8 @@ import { uomRoutes } from './item-management/uom/routes';
 import { employeeRoutes } from './user-management/employee/routes';
 import { userRoleRoutes } from './user-management/user-role/routes';
 import { userRoutes } from './user-management/user/routes';
+import { customerProfileRoutes } from './partner-management/customer-profile/routes';
+import { supplierProfileRoutes } from './partner-management/supplier-profile/routes';
 
 export const systemSetupRoutes: RouteObject[] = [
   ...itemProfileRoutes,
@@ -19,4 +21,6 @@ export const systemSetupRoutes: RouteObject[] = [
   ...userRoutes,
   ...employeeRoutes,
   ...userRoleRoutes,
+  ...customerProfileRoutes,
+  ...supplierProfileRoutes,
 ];

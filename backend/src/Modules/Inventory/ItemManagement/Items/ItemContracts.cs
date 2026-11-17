@@ -45,6 +45,7 @@ public sealed record ItemDetail
     public required int? MasterItemId { get; init; }
     public required string? MasterItemCode { get; init; }
     public required string? MasterItemName { get; init; }
+    public required int? SupplierId { get; init; }
     public required string? SupplierName { get; init; }
     public required int UomId { get; init; }
     public required string UomName { get; init; }
@@ -89,7 +90,7 @@ public sealed record SaveItemRequest
     public required string? BarCode { get; init; }
     public required bool IsChildBarcode { get; init; }
     public required int? MasterItemId { get; init; }
-    public required string? SupplierName { get; init; }
+    public required int? SupplierId { get; init; }
     public required int UomId { get; init; }
     public required int? AltUomId { get; init; }
     public required decimal? AltUomConversionQty { get; init; }
@@ -125,7 +126,6 @@ internal sealed class SaveItemRequestValidator : AbstractValidator<SaveItemReque
         RuleFor(x => x.BarCode).NotEmpty().WithMessage("Enter a barcode or turn on auto barcode.").MaximumLength(50)
             .When(x => !x.IsAutoBarcode);
         RuleFor(x => x.MasterItemId).NotNull().WithMessage("Choose the master item.").When(x => x.IsChildBarcode);
-        RuleFor(x => x.SupplierName).MaximumLength(100);
         RuleFor(x => x.UomId).GreaterThan(0).WithMessage("Choose a unit of measure.");
         RuleFor(x => x.AltUomId).NotEqual(x => x.UomId).WithMessage("Choose a unit other than the main unit.")
             .When(x => x.AltUomId is not null);

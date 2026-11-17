@@ -1,6 +1,7 @@
 using Erp.Core.Domain;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Domain.Metadata;
+using Erp.Core.Domain.Partners;
 using Erp.Core.Domain.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -225,6 +226,7 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.HasOne(x => x.MinorCategory).WithMany().HasForeignKey(x => x.MinorCategoryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Uom).WithMany().HasForeignKey(x => x.UomId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.AltUom).WithMany().HasForeignKey(x => x.AltUomId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Supplier>().WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.ItemTypeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.PurchaseSupplyTypeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.SalesSupplyTypeId).OnDelete(DeleteBehavior.Restrict);

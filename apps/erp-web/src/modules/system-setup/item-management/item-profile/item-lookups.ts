@@ -4,12 +4,14 @@ import {
   getGetItemMinorCategoryOptionsQueryKey,
   getGetItemSubCategoryOptionsQueryKey,
   getGetLookupValuesQueryKey,
+  getGetSupplierOptionsQueryKey,
   getGetUomOptionsQueryKey,
   useGetItemCategoryOptions,
   useGetItemDepartmentOptions,
   useGetItemMinorCategoryOptions,
   useGetItemSubCategoryOptions,
   useGetLookupValues,
+  useGetSupplierOptions,
   useGetUomOptions,
 } from '@erp/api-client';
 import type { LookupSources } from '@erp/metadata-engine';
@@ -38,6 +40,9 @@ export function useItemLookups(enabled = true) {
   const supplyTypes = useGetLookupValues(ITEM_LOOKUPS.supplyType, {
     query: { queryKey: getGetLookupValuesQueryKey(ITEM_LOOKUPS.supplyType), enabled },
   });
+  const suppliers = useGetSupplierOptions({
+    query: { queryKey: useUnitKey(getGetSupplierOptionsQueryKey()), enabled },
+  });
 
   return {
     [ITEM_LOOKUPS.department]: departments.data,
@@ -47,6 +52,7 @@ export function useItemLookups(enabled = true) {
     [ITEM_LOOKUPS.uom]: uoms.data,
     [ITEM_LOOKUPS.itemType]: itemTypes.data,
     [ITEM_LOOKUPS.supplyType]: supplyTypes.data,
+    [ITEM_LOOKUPS.supplier]: suppliers.data,
   } satisfies LookupSources;
 }
 

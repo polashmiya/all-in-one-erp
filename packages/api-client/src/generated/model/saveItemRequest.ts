@@ -25,7 +25,7 @@ export interface SaveItemRequest {
   /** @nullable */
   masterItemId: number | null;
   /** @nullable */
-  supplierName: string | null;
+  supplierId: number | null;
   uomId: number;
   /** @nullable */
   altUomId: number | null;

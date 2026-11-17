@@ -2,8 +2,10 @@ using System.Linq.Expressions;
 using Erp.Core.Domain;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Inventory;
+using Erp.Core.Domain.Locations;
 using Erp.Core.Domain.Metadata;
 using Erp.Core.Domain.Navigation;
+using Erp.Core.Domain.Partners;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -123,6 +125,14 @@ public class ErpDbContext : DbContext
     public DbSet<PasswordResetCode> PasswordResetCodes => Set<PasswordResetCode>();
 
     public DbSet<Employee> Employees => Set<Employee>();
+
+    public DbSet<Customer> Customers => Set<Customer>();
+
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+
+    public DbSet<District> Districts => Set<District>();
+
+    public DbSet<Thana> Thanas => Set<Thana>();
 
     public DbSet<UserBusinessUnit> UserBusinessUnits => Set<UserBusinessUnit>();
 

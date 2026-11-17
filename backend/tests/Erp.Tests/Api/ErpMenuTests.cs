@@ -36,7 +36,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
 
         var module = Assert.Single(catalog!);
         Assert.Equal(("system-setup", "System Setup", "সিস্টেম সেটআপ"), (module.Key, module.Label.En, module.Label.Bn));
-        Assert.Equal(["Item Management", "User Management"], module.SubModules.Select(s => s.Label.En));
+        Assert.Equal(["Item Management", "User Management", "Partner Management"], module.SubModules.Select(s => s.Label.En));
         var subModule = module.SubModules[0];
         Assert.Equal("Item Management", subModule.Label.En);
         Assert.Equal(
@@ -50,7 +50,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
     {
         var menu = await ErpMenuAsync(factory.Seed.ErpAdmin.Email, factory.Seed.ErpAdmin.Password, factory.DhakaId);
 
-        Assert.Equal(9, FeatureCodes(menu).Count());
+        Assert.Equal(11, FeatureCodes(menu).Count());
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
         var viewer = await ErpMenuAsync(ApiFactory.ViewerEmail, ApiFactory.TestPassword, factory.DhakaId);
         var newUser = await ErpMenuAsync(ApiFactory.NewUserEmail, ApiFactory.TestPassword, factory.DhakaId);
 
-        Assert.Equal(9, FeatureCodes(viewer).Count());
+        Assert.Equal(11, FeatureCodes(viewer).Count());
         Assert.Empty(newUser);
     }
 

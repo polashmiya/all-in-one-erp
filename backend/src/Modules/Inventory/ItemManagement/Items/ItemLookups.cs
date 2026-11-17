@@ -6,6 +6,7 @@ public sealed class ItemLookups : ILookupProvider
 {
     public const string ItemType = "item-type";
     public const string SupplyType = "vat-supply-type";
+    public const string Supplier = "supplier";
 
     public IEnumerable<LookupDef> GetLookups() =>
     [

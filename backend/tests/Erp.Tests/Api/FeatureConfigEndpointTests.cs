@@ -65,14 +65,14 @@ public sealed class FeatureConfigEndpointTests(ApiFactory factory)
 
         await using var settings = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile,
             ("hsCode", s => s.IsVisible = false),
-            ("supplierName", s => (s.IsRequired, s.LabelBn) = (true, "ঔষধ সরবরাহকারী")));
+            ("supplierId", s => (s.IsRequired, s.LabelBn) = (true, "ঔষধ সরবরাহকারী")));
 
         var config = await client.GetFromJsonAsync<FeatureConfig>(ItemProfileConfig);
 
         Assert.Equal(before + 1, config!.Version);
         Assert.Equal(before + 1, await ItemProfileVersionAsync(client));
         Assert.DoesNotContain(Fields(config), f => f.Key == "hsCode");
-        var supplier = Fields(config).Single(f => f.Key == "supplierName");
+        var supplier = Fields(config).Single(f => f.Key == "supplierId");
         Assert.Equal((true, "ঔষধ সরবরাহকারী"), (supplier.Required, supplier.Label.Bn));
     }
 
