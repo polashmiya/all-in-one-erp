@@ -87,6 +87,7 @@ public sealed record PurchaseReceiveLineDetail(
     int UomId,
     string UomName,
     decimal Quantity,
+    decimal ReturnedQuantity,
     decimal Price,
     decimal TotalAmount,
     decimal Discount,
@@ -127,6 +128,7 @@ public sealed record PurchaseReceiveDetail
     public required decimal ItemTotalAmount { get; init; }
     public required decimal TotalVatAmount { get; init; }
     public required decimal NetAmount { get; init; }
+    public required decimal ReturnAmount { get; init; }
     public required IReadOnlyList<PurchaseReceiveLineDetail> Lines { get; init; }
     public required Dictionary<string, JsonElement>? CustomData { get; init; }
     public required DateTime? CreatedAt { get; init; }

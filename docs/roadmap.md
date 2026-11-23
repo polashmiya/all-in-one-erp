@@ -426,6 +426,30 @@ Left open:
 - Stock posting waits for the inventory (stock ledger) tables.
 - An order that is fully received is not closed automatically.
 
+## Done: phase 22 — Purchase Return (2026-11-23)
+
+- No table script was given. The legacy system keeps returns in `PurchaseReceive` (`PurchaseOrReturn = 'Return'`,
+  `PurchaseReceiveRefId`); here they get their own typed tables (decision "Typed tables stay"), with the same
+  columns as the GRN. Migration `PurchaseReturn`: `PurchaseReturn` (number, return date, GRN, purchase order and
+  supplier from the GRN, warehouse, reason, VAT inclusive, remarks, quantity, item total, VAT, net, status,
+  review, `CustomData`), `PurchaseReturnLine` (item, UOM, quantity, price, total, line discount, VAT %, VAT, net,
+  batch), and on the GRN `PurchaseReceiveLine.ReturnedQuantity` and `PurchaseReceive.ReturnAmount`.
+- A return is always against an approved GRN and only for its items, up to what was received minus other returns.
+  Saving, rejecting or deleting a return recounts the GRN's returned quantity and return amount. The purchase
+  order's received quantity is not reduced (the goods did arrive). No stock posting yet.
+- Lookup list `return-reason` (Damaged, Wrong item, Expired, Poor quality, Excess quantity). API
+  `/api/erp/procurement/purchase-returns`: list with supplier, warehouse and reason filters; approved GRNs with
+  what can go back (`/receives`); get; create; update; approval; approve; reject; delete. Empty number gives
+  `RTN-00001`. Multi-level approval and My Approvals include returns.
+- ERP: `purchase/purchase-return` (list, form, view). `SourcePicker` replaces the requisition and order pickers
+  (pick a source document, fill the form). `PricedLines` can hide header discount and charges. The GRN view
+  shows a Returned column and the amount returned to the supplier.
+- Checked with `PurchaseReturnTests`, typecheck, lint, web tests and a Playwright run in Chrome.
+
+Left open:
+
+- Ask the owner whether the legacy return table differs; the screen follows the GRN columns for now.
+
 Still open for later, ask the owner:
 
 1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
@@ -434,15 +458,17 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-23. Phases 0 to 21 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-23. Phases 0 to 22 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
-supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive) and multi-level approval.
-Next: Purchase Return or Purchase Payment (need their table scripts), then "Still open for later".
+supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return) and
+multi-level approval.
+Next: Purchase Payment (needs its table script), then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
-`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`.
+`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
+`PurchaseReturn`.
 
 ## Working on another machine
 

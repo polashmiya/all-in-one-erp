@@ -188,6 +188,7 @@ internal sealed class PurchaseReceiveConfiguration : IEntityTypeConfiguration<Pu
         builder.Property(x => x.OtherCharge).HasPrecision(18, 2);
         builder.Property(x => x.TotalQuantity).HasPrecision(18, 4);
         builder.Property(x => x.TotalLineDiscount).HasPrecision(18, 2);
+        builder.Property(x => x.ReturnAmount).HasPrecision(18, 2);
         builder.Property(x => x.ItemTotalAmount).HasPrecision(18, 2);
         builder.Property(x => x.TotalVatAmount).HasPrecision(18, 2);
         builder.Property(x => x.NetAmount).HasPrecision(18, 2);
@@ -214,11 +215,13 @@ internal sealed class PurchaseReceiveConfiguration : IEntityTypeConfiguration<Pu
             nameof(PurchaseReceive.Remarks), nameof(PurchaseReceive.HeaderDiscount), nameof(PurchaseReceive.DeliveryCharge),
             nameof(PurchaseReceive.LaborCharge), nameof(PurchaseReceive.OtherCharge), nameof(PurchaseReceive.TotalQuantity),
             nameof(PurchaseReceive.TotalLineDiscount), nameof(PurchaseReceive.ItemTotalAmount), nameof(PurchaseReceive.TotalVatAmount),
-            nameof(PurchaseReceive.NetAmount), nameof(PurchaseReceive.Status), nameof(PurchaseReceive.ReviewedAt),
+            nameof(PurchaseReceive.NetAmount), nameof(PurchaseReceive.Status),
+            nameof(PurchaseReceive.ReviewedAt),
             nameof(PurchaseReceive.ReviewedById), nameof(PurchaseReceive.ReviewComment), nameof(PurchaseReceive.AccountId),
             nameof(PurchaseReceive.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
             nameof(PurchaseReceive.CustomData),
+            nameof(PurchaseReceive.ReturnAmount),
         ]);
     }
 }
@@ -231,6 +234,79 @@ internal sealed class PurchaseReceiveLineConfiguration : IEntityTypeConfiguratio
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasColumnName("PurchaseReceiveLineID").UseIdentityColumn();
         builder.Property(x => x.PurchaseReceiveId).HasColumnName("PurchaseReceiveID");
+        builder.Property(x => x.ItemId).HasColumnName("ItemID");
+        builder.Property(x => x.UomId).HasColumnName("UomID");
+        builder.Property(x => x.Quantity).HasPrecision(18, 4);
+        builder.Property(x => x.ReturnedQuantity).HasPrecision(18, 4);
+        builder.Property(x => x.Price).HasPrecision(18, 6);
+        builder.Property(x => x.TotalAmount).HasPrecision(18, 2);
+        builder.Property(x => x.Discount).HasColumnName("LineDiscount").HasPrecision(18, 2);
+        builder.Property(x => x.VatPercentage).HasPrecision(18, 4);
+        builder.Property(x => x.VatAmount).HasPrecision(18, 2);
+        builder.Property(x => x.NetAmount).HasPrecision(18, 2);
+        builder.Property(x => x.Batch).HasMaxLength(100);
+
+        builder.HasOne(x => x.Item).WithMany().HasForeignKey(x => x.ItemId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Uom).WithMany().HasForeignKey(x => x.UomId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class PurchaseReturnConfiguration : IEntityTypeConfiguration<PurchaseReturn>
+{
+    public void Configure(EntityTypeBuilder<PurchaseReturn> builder)
+    {
+        builder.MapRecord("PurchaseReturn", "PurchaseReturnID");
+        builder.Property(x => x.BusinessUnitId).HasColumnName("BusinessUnitID");
+        builder.Property(x => x.Code).HasColumnName("PurchaseReturnCode").HasMaxLength(100);
+        builder.Property(x => x.PurchaseReceiveId).HasColumnName("PurchaseReceiveID");
+        builder.Property(x => x.PurchaseOrderId).HasColumnName("PurchaseOrderID");
+        builder.Property(x => x.SupplierId).HasColumnName("SupplierID");
+        builder.Property(x => x.WarehouseId).HasColumnName("WarehouseID");
+        builder.Property(x => x.ReasonId).HasColumnName("ReturnReasonID");
+        builder.Property(x => x.IsVatInclusive).HasColumnName("isInclusive");
+        builder.Property(x => x.Remarks).HasMaxLength(1000);
+        builder.Property(x => x.TotalQuantity).HasPrecision(18, 4);
+        builder.Property(x => x.ItemTotalAmount).HasPrecision(18, 2);
+        builder.Property(x => x.TotalVatAmount).HasPrecision(18, 2);
+        builder.Property(x => x.NetAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ReviewedAt).HasColumnType("datetime").HasConversion(MasterRecordMapping.Utc);
+        builder.Property(x => x.ReviewedById).HasColumnName("ReviewedByID");
+        builder.Property(x => x.ReviewComment).HasMaxLength(500);
+
+        builder.HasIndex(x => new { x.BusinessUnitId, x.Code }).IsUnique();
+        builder.HasIndex(x => new { x.BusinessUnitId, x.IsActive, x.Status, x.ReturnDate });
+
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<PurchaseReceive>().WithMany().HasForeignKey(x => x.PurchaseReceiveId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<PurchaseOrder>().WithMany().HasForeignKey(x => x.PurchaseOrderId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Supplier>().WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Warehouse>().WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.ReasonId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.PurchaseReturnId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.ColumnOrder(
+        [
+            nameof(PurchaseReturn.Id), nameof(PurchaseReturn.Code), nameof(PurchaseReturn.ReturnDate),
+            nameof(PurchaseReturn.PurchaseReceiveId), nameof(PurchaseReturn.PurchaseOrderId), nameof(PurchaseReturn.SupplierId),
+            nameof(PurchaseReturn.WarehouseId), nameof(PurchaseReturn.ReasonId), nameof(PurchaseReturn.IsVatInclusive),
+            nameof(PurchaseReturn.Remarks), nameof(PurchaseReturn.TotalQuantity), nameof(PurchaseReturn.ItemTotalAmount),
+            nameof(PurchaseReturn.TotalVatAmount), nameof(PurchaseReturn.NetAmount), nameof(PurchaseReturn.Status),
+            nameof(PurchaseReturn.ReviewedAt), nameof(PurchaseReturn.ReviewedById), nameof(PurchaseReturn.ReviewComment),
+            nameof(PurchaseReturn.AccountId), nameof(PurchaseReturn.BusinessUnitId),
+            .. MasterRecordMapping.AuditColumns,
+            nameof(PurchaseReturn.CustomData),
+        ]);
+    }
+}
+
+internal sealed class PurchaseReturnLineConfiguration : IEntityTypeConfiguration<PurchaseReturnLine>
+{
+    public void Configure(EntityTypeBuilder<PurchaseReturnLine> builder)
+    {
+        builder.ToTable("PurchaseReturnLine");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasColumnName("PurchaseReturnLineID").UseIdentityColumn();
+        builder.Property(x => x.PurchaseReturnId).HasColumnName("PurchaseReturnID");
         builder.Property(x => x.ItemId).HasColumnName("ItemID");
         builder.Property(x => x.UomId).HasColumnName("UomID");
         builder.Property(x => x.Quantity).HasPrecision(18, 4);

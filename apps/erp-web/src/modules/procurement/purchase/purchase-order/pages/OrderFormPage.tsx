@@ -15,9 +15,16 @@ import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { DocumentForm } from '../../../components/DocumentForm';
 import { OrderLines } from '../components/OrderLines';
-import { RequisitionPicker } from '../components/RequisitionPicker';
+import { SourcePicker } from '../../../components/SourcePicker';
 import { ORDER_FEATURE, ORDER_LOOKUPS, orderPaths } from '../constants';
-import { fromDetail, newOrder, toRequest, useOrderLookups, type OrderValues } from '../order-form';
+import {
+  fromDetail,
+  fromRequisition,
+  newOrder,
+  toRequest,
+  useOrderLookups,
+  type OrderValues,
+} from '../order-form';
 
 export function OrderFormPage() {
   const { t } = useTranslation();
@@ -66,7 +73,9 @@ export function OrderFormPage() {
             lookups,
             widgets: {
               requisitionId: (_, placeholder) => (
-                <RequisitionPicker
+                <SourcePicker<OrderRequisitionOption, OrderValues>
+                  allowClear
+                  toValues={fromRequisition}
                   options={requisitions}
                   current={
                     record?.requisitionId

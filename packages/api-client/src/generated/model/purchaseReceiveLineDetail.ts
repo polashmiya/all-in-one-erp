@@ -14,6 +14,7 @@ export interface PurchaseReceiveLineDetail {
   uomId: number;
   uomName: string;
   quantity: number;
+  returnedQuantity: number;
   price: number;
   totalAmount: number;
   discount: number;

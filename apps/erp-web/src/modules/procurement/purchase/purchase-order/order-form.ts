@@ -9,6 +9,7 @@ import {
   getPurchaseOrderApproval,
   useGetOrderRequisitionOptions,
   useGetSupplierOptions,
+  type OrderRequisitionOption,
   type PurchaseOrderDetail,
   type SavePurchaseOrderLine,
   type SavePurchaseOrderRequest,
@@ -115,3 +116,20 @@ export const orderCalls: ApprovalCalls = {
   progress: (id) => getPurchaseOrderApproval(id),
   progressKey: (id) => getGetPurchaseOrderApprovalQueryKey(id),
 };
+
+export function fromRequisition(requisition: OrderRequisitionOption): Partial<OrderValues> {
+  return {
+    warehouseId: requisition.warehouseId,
+    lines: requisition.lines.map((line) => ({
+      itemId: line.itemId,
+      itemCode: line.itemCode,
+      itemName: line.itemName,
+      uomName: line.uomName,
+      quantity: line.quantity,
+      price: line.rate,
+      discount: null,
+      vatPercentage: line.vatPercentage,
+      specification: line.remarks,
+    })),
+  };
+}

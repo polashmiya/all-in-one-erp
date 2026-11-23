@@ -111,6 +111,12 @@ export function ReceiveViewPage() {
               render: (_, line) => formatMoney(line.netAmount),
             },
             {
+              key: 'returned',
+              title: t('receive.lines.returned'),
+              align: 'end',
+              render: (_, line) => formatNumber(line.returnedQuantity, QUANTITY_DECIMALS_SHOWN),
+            },
+            {
               key: 'batch',
               title: t('receive.lines.batch'),
               render: (_, line) => line.batch ?? '—',
@@ -144,6 +150,15 @@ export function ReceiveViewPage() {
               value: formatMoney(receive.netAmount),
               strong: true,
             },
+            ...(receive.returnAmount
+              ? [
+                  {
+                    key: 'returned',
+                    label: t('receive.totals.returned'),
+                    value: formatMoney(receive.returnAmount),
+                  },
+                ]
+              : []),
           ]}
         />
       }

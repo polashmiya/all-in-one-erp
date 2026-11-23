@@ -49,6 +49,8 @@ public class PurchaseReceive : MasterRecord, IBusinessUnitOwned, IApprovalDocume
 
     public decimal NetAmount { get; set; }
 
+    public decimal ReturnAmount { get; set; }
+
     public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
     public DateTime? ReviewedAt { get; set; }
@@ -79,6 +81,8 @@ public class PurchaseReceiveLine
     public UnitOfMeasure? Uom { get; set; }
 
     public decimal Quantity { get; set; }
+
+    public decimal ReturnedQuantity { get; set; }
 
     public decimal Price { get; set; }
 

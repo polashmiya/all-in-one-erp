@@ -12,6 +12,7 @@ export function PricedLines<L extends BaseLine & PricedLine>({
   newLine,
   onPick,
   fixed,
+  headerCharges = true,
   columns = [],
 }: {
   description: string;
@@ -19,6 +20,7 @@ export function PricedLines<L extends BaseLine & PricedLine>({
   newLine: () => Partial<L>;
   onPick: (option: ProcurementItemOption) => Partial<L>;
   fixed?: boolean;
+  headerCharges?: boolean;
   columns?: LineColumn<L>[];
 }) {
   const { t } = useTranslation();
@@ -99,12 +101,20 @@ export function PricedLines<L extends BaseLine & PricedLine>({
             label: t('procurement.totals.items'),
             value: formatMoney(totals.itemTotal),
           },
-          {
-            key: 'discount',
-            label: t('procurement.totals.discount'),
-            value: formatMoney(headerDiscount),
-          },
-          { key: 'charges', label: t('procurement.totals.charges'), value: formatMoney(charges) },
+          ...(headerCharges
+            ? [
+                {
+                  key: 'discount',
+                  label: t('procurement.totals.discount'),
+                  value: formatMoney(headerDiscount),
+                },
+                {
+                  key: 'charges',
+                  label: t('procurement.totals.charges'),
+                  value: formatMoney(charges),
+                },
+              ]
+            : []),
           {
             key: 'net',
             label: t('procurement.totals.net'),

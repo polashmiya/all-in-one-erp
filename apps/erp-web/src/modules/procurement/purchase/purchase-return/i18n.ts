@@ -1,0 +1,48 @@
+import type { AppResources } from '@erp/ui';
+
+export const purchaseReturnResources: AppResources = {
+  en: {
+    'return.title': 'Purchase Return',
+    'return.subtitle': 'Goods sent back to suppliers from approved receives in {{unit}}.',
+    'return.new': 'New return',
+    'return.search': 'Search return, GRN, supplier, item…',
+    'return.searchLabel': 'Search returns',
+    'return.emptyTitle': 'Nothing returned yet',
+    'return.emptyText':
+      'Send damaged or wrong goods back. Pick an approved GRN and enter what goes back.',
+    'return.exportFile': 'purchase-returns',
+    'return.notFound': 'This return does not exist.',
+    'return.backToList': 'Back to returns',
+    'return.form.newTitle': 'New return',
+    'return.form.editTitle': 'Edit return',
+    'return.form.save': 'Save return',
+    'return.form.saved': 'Return {{code}} saved',
+    'return.lines.description': 'Items come from the GRN. Enter how much goes back.',
+    'return.lines.left': 'Can return',
+    'return.lines.batch': 'Batch',
+    'return.lines.batchPlaceholder': 'Batch or lot no.',
+    'return.meta.returned': 'Returned {{date}}',
+  },
+  bn: {
+    'return.title': 'ক্রয় ফেরত',
+    'return.subtitle': '{{unit}}-এ অনুমোদিত গ্রহণ থেকে সরবরাহকারীকে ফেরত পাঠানো মাল।',
+    'return.new': 'নতুন ফেরত',
+    'return.search': 'ফেরত, জিআরএন, সরবরাহকারী, আইটেম খুঁজুন…',
+    'return.searchLabel': 'ফেরত খুঁজুন',
+    'return.emptyTitle': 'এখনও কিছু ফেরত দেওয়া হয়নি',
+    'return.emptyText':
+      'ক্ষতিগ্রস্ত বা ভুল মাল ফেরত পাঠান। অনুমোদিত জিআরএন বেছে নিয়ে যা ফেরত যাবে তা লিখুন।',
+    'return.exportFile': 'purchase-returns',
+    'return.notFound': 'এই ফেরত নেই।',
+    'return.backToList': 'ফেরতের তালিকায় ফিরুন',
+    'return.form.newTitle': 'নতুন ফেরত',
+    'return.form.editTitle': 'ফেরত সম্পাদনা',
+    'return.form.save': 'ফেরত সংরক্ষণ',
+    'return.form.saved': 'ফেরত {{code}} সংরক্ষিত হয়েছে',
+    'return.lines.description': 'আইটেম জিআরএন থেকে আসে। কতটুকু ফেরত যাবে তা লিখুন।',
+    'return.lines.left': 'ফেরত দেওয়া যাবে',
+    'return.lines.batch': 'ব্যাচ',
+    'return.lines.batchPlaceholder': 'ব্যাচ বা লট নম্বর',
+    'return.meta.returned': 'ফেরত {{date}}',
+  },
+};

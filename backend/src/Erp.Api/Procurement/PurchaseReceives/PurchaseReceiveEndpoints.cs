@@ -432,8 +432,10 @@ internal static class PurchaseReceiveEndpoints
             ItemTotalAmount = r.ItemTotalAmount,
             TotalVatAmount = r.TotalVatAmount,
             NetAmount = r.NetAmount,
+            ReturnAmount = r.ReturnAmount,
             Lines = [.. r.Lines.OrderBy(l => l.Sequence).Select(l => new PurchaseReceiveLineDetail(
-                l.Id, l.ItemId, l.Item!.Code, l.Item.Name, l.UomId, l.Uom!.Name, l.Quantity, l.Price, l.TotalAmount, l.Discount,
+                l.Id, l.ItemId, l.Item!.Code, l.Item.Name, l.UomId, l.Uom!.Name, l.Quantity, l.ReturnedQuantity, l.Price,
+                l.TotalAmount, l.Discount,
                 l.VatPercentage, l.VatAmount, l.NetAmount, l.Batch))],
             CustomData = CustomFieldData.Parse(r.CustomData),
             CreatedAt = r.CreatedAt,

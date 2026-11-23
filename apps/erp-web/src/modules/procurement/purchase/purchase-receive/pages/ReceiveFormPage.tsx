@@ -3,6 +3,7 @@ import {
   useCreatePurchaseReceive,
   useGetPurchaseReceive,
   useUpdatePurchaseReceive,
+  type ReceiveOrderOption,
 } from '@erp/api-client';
 import { defaultValues } from '@erp/metadata-engine';
 import { ForbiddenResult, PageState } from '@erp/ui';
@@ -13,11 +14,12 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { DocumentForm } from '../../../components/DocumentForm';
-import { OrderPicker } from '../components/OrderPicker';
+import { SourcePicker } from '../../../components/SourcePicker';
 import { ReceiveLines } from '../components/ReceiveLines';
 import { RECEIVE_FEATURE, receivePaths } from '../constants';
 import {
   fromDetail,
+  fromOrder,
   newReceive,
   toRequest,
   useReceiveLookups,
@@ -71,7 +73,8 @@ export function ReceiveFormPage() {
             behaviors: { supplierId: { watch: [], state: () => ({ disabled: true }) } },
             widgets: {
               purchaseOrderId: (_, placeholder) => (
-                <OrderPicker
+                <SourcePicker<ReceiveOrderOption, ReceiveValues>
+                  toValues={fromOrder}
                   options={orders}
                   disabled={!!record}
                   current={

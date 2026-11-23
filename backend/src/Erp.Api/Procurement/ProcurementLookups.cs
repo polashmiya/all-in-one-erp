@@ -7,6 +7,7 @@ public sealed class ProcurementLookups : ILookupProvider
     public const string RequestType = "requisition-type";
     public const string PurchaseMethod = "purchase-method";
     public const string PaymentType = "payment-type";
+    public const string ReturnReason = "return-reason";
 
     public IEnumerable<LookupDef> GetLookups() =>
     [
@@ -30,6 +31,14 @@ public sealed class ProcurementLookups : ILookupProvider
             new("CHEQUE", new("Cheque", "চেক")),
             new("BANK", new("Bank transfer", "ব্যাংক ট্রান্সফার")),
             new("MFS", new("Mobile banking", "মোবাইল ব্যাংকিং")),
+        ]),
+        new(ReturnReason, new("Return reason", "ফেরতের কারণ"),
+        [
+            new("DAMAGED", new("Damaged", "ক্ষতিগ্রস্ত"), IsDefault: true),
+            new("WRONG", new("Wrong item", "ভুল আইটেম")),
+            new("EXPIRED", new("Expired", "মেয়াদোত্তীর্ণ")),
+            new("QUALITY", new("Poor quality", "নিম্নমানের")),
+            new("EXCESS", new("Excess quantity", "অতিরিক্ত পরিমাণ")),
         ]),
     ];
 }

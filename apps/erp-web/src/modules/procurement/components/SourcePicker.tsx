@@ -1,25 +1,33 @@
-import type { ReceiveOrderOption } from '@erp/api-client';
 import { Form, Select } from 'antd';
-import { fromOrder, type ReceiveValues } from '../receive-form';
 
-export function OrderPicker({
+interface SourceOption {
+  id: number;
+  code: string;
+  supplierName?: string | null;
+}
+
+export function SourcePicker<O extends SourceOption, V extends object>({
   id,
   options,
   current,
   placeholder,
   disabled,
+  allowClear,
+  toValues,
   value,
   onChange,
 }: {
   id?: string;
-  options?: ReceiveOrderOption[];
+  options?: O[];
   current?: { id: number; name: string };
   placeholder?: string;
   disabled?: boolean;
+  allowClear?: boolean;
+  toValues: (option: O) => Partial<V>;
   value?: number | null;
   onChange?: (value: number | null) => void;
 }) {
-  const form = Form.useFormInstance<ReceiveValues>();
+  const form = Form.useFormInstance<V>();
   const items = (options ?? []).map((o) => ({
     value: o.id,
     label: o.supplierName ? `${o.code} · ${o.supplierName}` : o.code,
@@ -30,14 +38,15 @@ export function OrderPicker({
 
   const pick = (next?: number) => {
     onChange?.(next ?? null);
-    const order = options?.find((o) => o.id === next);
-    if (order) form.setFieldsValue(fromOrder(order));
+    const option = options?.find((o) => o.id === next);
+    if (option) form.setFieldsValue(toValues(option) as never);
   };
 
   return (
     <Select<number>
       id={id}
       showSearch
+      allowClear={allowClear}
       optionFilterProp="label"
       placeholder={placeholder}
       disabled={disabled}
