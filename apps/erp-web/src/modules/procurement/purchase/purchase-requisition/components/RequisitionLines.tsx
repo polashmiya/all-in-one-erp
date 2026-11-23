@@ -1,5 +1,5 @@
 import { formatMoney, formatNumber, MoneyInput, usePlaceholder } from '@erp/ui';
-import { Form, Input } from 'antd';
+import { Form } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { LineGrid } from '../../../components/LineGrid';
 import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
@@ -17,6 +17,11 @@ export function RequisitionLines() {
       description={t('requisition.lines.description')}
       newLine={emptyLine}
       onPick={(option) => ({ rate: option.rate })}
+      note={{
+        name: 'remarks',
+        placeholder: t('requisition.lines.remarksPlaceholder'),
+        maxLength: LINE_REMARKS_MAX,
+      }}
       columns={[
         {
           key: 'rate',
@@ -26,6 +31,7 @@ export function RequisitionLines() {
           render: (field) => (
             <Form.Item name={[field.name, 'rate']}>
               <MoneyInput
+                compact
                 className="erp-w-full"
                 placeholder={placeholder('enter', t('requisition.lines.rate'))}
               />
@@ -38,19 +44,6 @@ export function RequisitionLines() {
           className: 'erp-lines__amount',
           align: 'end',
           render: (_, line) => formatMoney(lineAmount(line)),
-        },
-        {
-          key: 'remarks',
-          title: t('requisition.lines.remarks'),
-          className: 'erp-lines__text',
-          render: (field) => (
-            <Form.Item name={[field.name, 'remarks']}>
-              <Input
-                maxLength={LINE_REMARKS_MAX}
-                placeholder={t('requisition.lines.remarksPlaceholder')}
-              />
-            </Form.Item>
-          ),
         },
       ]}
       totals={(lines) => [

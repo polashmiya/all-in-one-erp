@@ -72,6 +72,7 @@ internal sealed class PurchaseRequisitionRowConfiguration : IEntityTypeConfigura
         builder.Property(x => x.ItemId).HasColumnName("ItemID");
         builder.Property(x => x.UomId).HasColumnName("UomID");
         builder.Property(x => x.Quantity).HasPrecision(18, 4);
+        builder.Property(x => x.OrderedQuantity).HasPrecision(18, 4);
         builder.Property(x => x.Rate).HasPrecision(18, 4);
         builder.Property(x => x.Amount).HasPrecision(18, 2);
         builder.Property(x => x.Remarks).HasMaxLength(300);

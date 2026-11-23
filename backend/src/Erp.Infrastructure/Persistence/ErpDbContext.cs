@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Erp.Core.Domain;
+using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Domain.Locations;
@@ -152,6 +153,10 @@ public class ErpDbContext : DbContext
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
 
     public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
+
+    public DbSet<ApprovalLevel> ApprovalLevels => Set<ApprovalLevel>();
+
+    public DbSet<ApprovalStep> ApprovalSteps => Set<ApprovalStep>();
 
     // Read by the query filters. EF parameterises these per context instance, so each request sees its own tenant.
     public Guid? CurrentAccountId => _current.AccountId;

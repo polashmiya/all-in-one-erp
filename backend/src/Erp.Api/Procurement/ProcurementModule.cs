@@ -1,3 +1,4 @@
+using Erp.Api.Approvals;
 using Erp.Api.Procurement.PurchaseOrders;
 using Erp.Api.Procurement.PurchaseRequisitions;
 using Erp.Core.Authorization;
@@ -18,6 +19,8 @@ public static class ProcurementModule
         services.AddSingleton<IFeatureManifestProvider, PurchaseRequisitionManifest>();
         services.AddSingleton<IFeatureManifestProvider, PurchaseOrderManifest>();
         services.AddSingleton<ILookupProvider, ProcurementLookups>();
+        services.AddSingleton<IApprovalSource, RequisitionApprovalSource>();
+        services.AddSingleton<IApprovalSource, OrderApprovalSource>();
         return services;
     }
 }

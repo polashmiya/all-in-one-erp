@@ -1,3 +1,4 @@
+using Erp.Api.Approvals;
 using Erp.Api.Auth;
 using Erp.Api.Drafts;
 using Erp.Api.Endpoints;
@@ -5,6 +6,7 @@ using Erp.Api.Hosting;
 using Erp.Api.Metadata;
 using Erp.Api.Navigation;
 using Erp.Api.Panel.Accounts;
+using Erp.Api.Panel.Approvals;
 using Erp.Api.Locations;
 using Erp.Api.Lookups;
 using Erp.Api.Panel.Configuration;
@@ -43,6 +45,7 @@ builder.Services.AddInventoryModule();
 builder.Services.AddUserManagementModule();
 builder.Services.AddPartnerManagementModule();
 builder.Services.AddProcurementModule();
+builder.Services.AddApprovalModule();
 builder.Services.AddDraftsModule(builder.Configuration);
 builder.Services.AddScoped<AccountSetupService>();
 builder.Services.AddScoped<AccountFeatureService>();
@@ -79,6 +82,7 @@ panel.MapLookupListEndpoints();
 panel.MapConfigurationHistoryEndpoints();
 panel.MapPanelErpUserEndpoints();
 panel.MapUnitFeatureEndpoints();
+panel.MapApprovalLevelEndpoints();
 foreach (var endpoints in app.Services.GetServices<IPanelEndpoints>()) endpoints.Map(panel);
 
 var erp = app.MapErpApi();

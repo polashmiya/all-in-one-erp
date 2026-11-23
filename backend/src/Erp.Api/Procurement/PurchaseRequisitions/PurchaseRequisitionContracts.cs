@@ -60,6 +60,7 @@ public sealed record RequisitionLine(
     int UomId,
     string UomName,
     decimal Quantity,
+    decimal OrderedQuantity,
     decimal Rate,
     decimal Amount,
     string? Remarks);

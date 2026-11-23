@@ -14,6 +14,7 @@ export interface RequisitionLine {
   uomId: number;
   uomName: string;
   quantity: number;
+  orderedQuantity: number;
   rate: number;
   amount: number;
   /** @nullable */

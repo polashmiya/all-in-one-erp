@@ -1,5 +1,6 @@
 import {
   ArrowRightOutlined,
+  AuditOutlined,
   BgColorsOutlined,
   HistoryOutlined,
   LayoutOutlined,
@@ -25,6 +26,7 @@ const TOOLS: Tool[] = [
   { key: 'layout', icon: <LayoutOutlined />, tint: 'violet', path: ACCOUNT_PATHS.layout },
   { key: 'lookups', icon: <UnorderedListOutlined />, tint: 'blue', path: ACCOUNT_PATHS.lookups },
   { key: 'theme', icon: <BgColorsOutlined />, tint: 'amber', path: ACCOUNT_PATHS.theme },
+  { key: 'approvals', icon: <AuditOutlined />, tint: 'green', path: ACCOUNT_PATHS.approvals },
   { key: 'history', icon: <HistoryOutlined />, tint: 'slate', path: ACCOUNT_PATHS.history },
 ];
 

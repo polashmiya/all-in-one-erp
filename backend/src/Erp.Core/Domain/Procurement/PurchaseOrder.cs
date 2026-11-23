@@ -1,3 +1,4 @@
+using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Inventory;
 
 namespace Erp.Core.Domain.Procurement;

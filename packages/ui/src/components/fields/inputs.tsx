@@ -15,7 +15,11 @@ const grouped = (value: number | string | undefined) => {
 
 const ungroup = (value: string | undefined) => (value ?? '').replace(/,/g, '');
 
-export function MoneyInput({ currency = 'BDT', ...props }: NumberProps & { currency?: string }) {
+export function MoneyInput({
+  currency = 'BDT',
+  compact,
+  ...props
+}: NumberProps & { currency?: string; compact?: boolean }) {
   return (
     <InputNumber<number>
       min={0}
@@ -24,7 +28,7 @@ export function MoneyInput({ currency = 'BDT', ...props }: NumberProps & { curre
       formatter={grouped}
       parser={(v) => Number(ungroup(v))}
       prefix={<span className="erp-affix is-strong">{CURRENCY_SYMBOL}</span>}
-      suffix={<span className="erp-affix">{currency}</span>}
+      suffix={compact ? undefined : <span className="erp-affix">{currency}</span>}
       className="erp-number is-money"
       {...props}
     />

@@ -1,6 +1,8 @@
+using Erp.Api.Approvals;
 using Erp.Api.PartnerManagement;
 using Erp.Api.UserManagement.Employees;
 using Erp.Core.Authorization;
+using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Procurement;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
@@ -47,6 +49,12 @@ internal static class PurchaseRequisitionEndpoints
             .Validate<SaveRequisitionRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
+
+        requisitions.MapGet("/{id:int}/approval", Approval)
+            .WithName("GetPurchaseRequisitionApproval")
+            .WithSummary("Approval steps of a requisition and whether the current user can act on the current one")
+            .RequirePermission($"{Feature}.view")
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         requisitions.MapPost("/{id:int}/approve", Approve)
             .WithName("ApprovePurchaseRequisition")
@@ -142,7 +150,7 @@ internal static class PurchaseRequisitionEndpoints
         return new RequisitionList(
             rows.Select(r => new RequisitionRow(
                 r.Id, r.Code, r.RequestDate, r.DueDate, r.WarehouseId, r.WarehouseName, r.RequestTypeId, r.RequestTypeName,
-                r.DepartmentId, r.DepartmentName, r.EmployeeId, r.EmployeeName, ProcurementData.StatusKey(r.Status), r.ItemCount,
+                r.DepartmentId, r.DepartmentName, r.EmployeeId, r.EmployeeName, ApprovalFlow.StatusKey(r.Status), r.ItemCount,
                 r.TotalQuantity, r.TotalAmount, r.CreatedAt, r.ModifiedAt)).ToList(),
             total,
             counts);
@@ -171,40 +179,50 @@ internal static class PurchaseRequisitionEndpoints
         var requisition = await db.PurchaseRequisitions.Include(r => r.Rows)
             .SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
         if (requisition is null) return TypedResults.NotFound();
-        if (requisition.Status != ApprovalStatus.Pending) return ProcurementData.NotPending("changed");
+        if (requisition.Status != ApprovalStatus.Pending) return ApprovalFlow.NotPending("changed");
         return await SaveAsync(requisition, request, current, db, configs, cancellationToken);
     }
 
     private static Task<Results<Ok<RequisitionDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Approve(
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
-        ChangeAsync(id, db, r => ProcurementData.Review(r, ApprovalStatus.Approved, request.Comment, current.UserId), cancellationToken);
+        ChangeAsync(id, db, r => ApprovalFlow.ActAsync(db, current, Feature, r, true, request.Comment, cancellationToken), cancellationToken);
 
     private static async Task<Results<Ok<RequisitionDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Reject(
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
-        ProcurementData.MissingReason(request) is { } missing
+        ApprovalFlow.MissingReason(request) is { } missing
             ? missing
-            : await ChangeAsync(id, db, r => ProcurementData.Review(r, ApprovalStatus.Rejected, request.Comment, current.UserId),
+            : await ChangeAsync(id, db, r => ApprovalFlow.ActAsync(db, current, Feature, r, false, request.Comment, cancellationToken),
                 cancellationToken);
 
     private static Task<Results<Ok<RequisitionDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Close(
         int id, ErpDbContext db, CancellationToken cancellationToken) =>
-        ChangeAsync(id, db, ProcurementData.Close, cancellationToken);
+        ChangeAsync(id, db, r => Task.FromResult(ProcurementData.Close(r)), cancellationToken);
+
+    private static async Task<Results<Ok<ApprovalProgress>, NotFound>> Approval(
+        int id, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
+    {
+        var requisition = await db.PurchaseRequisitions.AsNoTracking().SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
+        return requisition is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(await ApprovalFlow.ProgressAsync(db, current, Feature, requisition, cancellationToken));
+    }
 
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var requisition = await db.PurchaseRequisitions.SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
         if (requisition is null) return TypedResults.NotFound();
         if (ProcurementData.Delete(requisition) is { } problem) return problem;
+        await ApprovalFlow.RemoveAsync(db, Feature, id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.NoContent();
     }
 
     private static async Task<Results<Ok<RequisitionDetail>, NotFound, ValidationProblem, ProblemHttpResult>> ChangeAsync(
-        int id, ErpDbContext db, Func<PurchaseRequisition, ProblemHttpResult?> change, CancellationToken cancellationToken)
+        int id, ErpDbContext db, Func<PurchaseRequisition, Task<ProblemHttpResult?>> change, CancellationToken cancellationToken)
     {
         var requisition = await db.PurchaseRequisitions.SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
         if (requisition is null) return TypedResults.NotFound();
-        if (change(requisition) is { } problem) return problem;
+        if (await change(requisition) is { } problem) return problem;
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
     }
@@ -269,6 +287,8 @@ internal static class PurchaseRequisitionEndpoints
         requisition.TotalQuantity = requisition.Rows.Sum(r => r.Quantity);
         requisition.TotalAmount = requisition.Rows.Sum(r => r.Amount);
 
+        await db.SaveChangesAsync(cancellationToken);
+        await ApprovalFlow.StartAsync(db, current, Feature, requisition.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, requisition.Id, cancellationToken))!);
     }
@@ -355,14 +375,15 @@ internal static class PurchaseRequisitionEndpoints
             BuyerName = Person(r.BuyerId),
             ProjectName = r.ProjectName,
             Remarks = r.Remarks,
-            Status = ProcurementData.StatusKey(r.Status),
+            Status = ApprovalFlow.StatusKey(r.Status),
             ReviewedAt = r.ReviewedAt,
             ReviewedByName = await ProcurementData.ReviewerNameAsync(db, r.ReviewedById, cancellationToken),
             ReviewComment = r.ReviewComment,
             TotalQuantity = r.TotalQuantity,
             TotalAmount = r.TotalAmount,
             Lines = [.. r.Rows.OrderBy(l => l.Sequence).Select(l => new RequisitionLine(
-                l.Id, l.ItemId, l.Item!.Code, l.Item.Name, l.UomId, l.Uom!.Name, l.Quantity, l.Rate, l.Amount, l.Remarks))],
+                l.Id, l.ItemId, l.Item!.Code, l.Item.Name, l.UomId, l.Uom!.Name, l.Quantity, l.OrderedQuantity, l.Rate, l.Amount,
+                l.Remarks))],
             CustomData = CustomFieldData.Parse(r.CustomData),
             CreatedAt = r.CreatedAt,
             ModifiedAt = r.ModifiedAt,

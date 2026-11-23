@@ -1,5 +1,5 @@
 import { formatMoney, formatNumber, MoneyInput, PercentInput, usePlaceholder } from '@erp/ui';
-import { Form, Input } from 'antd';
+import { Form } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { LineGrid } from '../../../components/LineGrid';
 import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
@@ -22,6 +22,11 @@ export function OrderLines() {
       description={t('order.lines.description')}
       newLine={emptyLine}
       onPick={(option) => ({ price: option.rate, vatPercentage: option.vatPercentage })}
+      note={{
+        name: 'specification',
+        placeholder: t('order.lines.specificationPlaceholder'),
+        maxLength: SPECIFICATION_MAX,
+      }}
       columns={[
         {
           key: 'price',
@@ -31,6 +36,7 @@ export function OrderLines() {
           render: (field) => (
             <Form.Item name={[field.name, 'price']}>
               <MoneyInput
+                compact
                 className="erp-w-full"
                 placeholder={placeholder('enter', t('order.lines.price'))}
               />
@@ -45,6 +51,7 @@ export function OrderLines() {
           render: (field) => (
             <Form.Item name={[field.name, 'discount']}>
               <MoneyInput
+                compact
                 className="erp-w-full"
                 placeholder={placeholder('enter', t('order.lines.discount'))}
               />
@@ -72,19 +79,6 @@ export function OrderLines() {
           className: 'erp-lines__amount',
           align: 'end',
           render: (_, line) => formatMoney(priced(line, vatInclusive).net),
-        },
-        {
-          key: 'specification',
-          title: t('order.lines.specification'),
-          className: 'erp-lines__text',
-          render: (field) => (
-            <Form.Item name={[field.name, 'specification']}>
-              <Input
-                maxLength={SPECIFICATION_MAX}
-                placeholder={t('order.lines.specificationPlaceholder')}
-              />
-            </Form.Item>
-          ),
         },
       ]}
       totals={(lines) => {

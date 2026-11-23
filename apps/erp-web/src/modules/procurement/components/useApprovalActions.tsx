@@ -4,14 +4,15 @@ import {
   DeleteOutlined,
   LockOutlined,
 } from '@ant-design/icons';
-import { problemMessage, type ReviewRequest } from '@erp/api-client';
+import { problemMessage, type ApprovalProgress, type ReviewRequest } from '@erp/api-client';
 import type { RowAction } from '@erp/ui';
+import type { QueryKey } from '@tanstack/react-query';
 import { App } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ReviewModal, type ReviewMode } from '@/common/approval/ReviewModal';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useRefreshProcurement } from '../procurement';
-import { ReviewModal, type ReviewMode } from './ReviewModal';
 
 interface Target {
   id: number;
@@ -24,6 +25,8 @@ export interface ApprovalCalls {
   reject: (id: number, data: ReviewRequest) => Promise<unknown>;
   close: (id: number) => Promise<unknown>;
   remove: (id: number) => Promise<unknown>;
+  progress: (id: number) => Promise<ApprovalProgress>;
+  progressKey: (id: number) => QueryKey;
 }
 
 export function useApprovalActions(
@@ -49,19 +52,19 @@ export function useApprovalActions(
     }
   };
 
-  const actions = (target: Target): RowAction[] => [
+  const actions = (target: Target, canAct = false): RowAction[] => [
     {
       key: 'approve',
-      label: t('procurement.approve'),
+      label: t('approval.approve'),
       icon: <CheckCircleOutlined />,
-      hidden: !access.approve || target.status !== 'pending',
+      hidden: !access.approve || !canAct,
       onClick: () => setReview({ target, mode: 'approve' }),
     },
     {
       key: 'reject',
-      label: t('procurement.reject'),
+      label: t('approval.reject'),
       icon: <CloseCircleOutlined />,
-      hidden: !access.approve || target.status !== 'pending',
+      hidden: !access.approve || !canAct,
       onClick: () => setReview({ target, mode: 'reject' }),
     },
     {

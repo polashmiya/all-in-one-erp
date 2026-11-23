@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Erp.Api.Approvals;
 using Erp.Api.Procurement;
 using Erp.Api.Procurement.PurchaseOrders;
 using Erp.Api.Procurement.PurchaseRequisitions;
@@ -100,6 +101,33 @@ public sealed class PurchaseOrderTests(ApiFactory factory)
         Assert.Equal("approved", approved.Status);
         Assert.Equal(HttpStatusCode.Conflict, edit.StatusCode);
         Assert.Equal("closed", closed.Status);
+    }
+
+    [Fact]
+    public async Task Ordering_from_a_requisition_counts_what_is_ordered_and_offers_only_the_rest()
+    {
+        var admin = await AdminAsync(factory.DhakaId);
+        var item = await ItemAsync(factory.DhakaId, 10m);
+        var requisition = await ReadAsync<RequisitionDetail>(await admin.PostAsJsonAsync(RequisitionsUrl, await RequisitionAsync(item)));
+        await ReadAsync<RequisitionDetail>(
+            await admin.PostAsJsonAsync($"{RequisitionsUrl}/{requisition.Id}/approve", new ReviewRequest(null)));
+        var request = await OrderAsync(factory.DhakaId) with { RequisitionId = requisition.Id };
+
+        var first = await ReadAsync<PurchaseOrderDetail>(await admin.PostAsJsonAsync(Url, request with { Lines = [Line(item, 3)] }));
+        var ordered = await admin.GetFromJsonAsync<RequisitionDetail>($"{RequisitionsUrl}/{requisition.Id}");
+        var offered = (await admin.GetFromJsonAsync<List<OrderRequisitionOption>>($"{Url}/requisitions"))!.Single(r => r.Id == requisition.Id);
+        var tooMuch = await admin.PostAsJsonAsync(Url, request with { Lines = [Line(item, 2)] });
+        var rest = await ReadAsync<PurchaseOrderDetail>(await admin.PostAsJsonAsync(Url, request with { Lines = [Line(item, 1)] }));
+        var full = await admin.GetFromJsonAsync<List<OrderRequisitionOption>>($"{Url}/requisitions");
+        await admin.DeleteAsync($"{Url}/{first.Id}");
+        var afterDelete = await admin.GetFromJsonAsync<RequisitionDetail>($"{RequisitionsUrl}/{requisition.Id}");
+
+        Assert.Equal(3m, Assert.Single(ordered!.Lines).OrderedQuantity);
+        Assert.Equal(1m, Assert.Single(offered.Lines).Quantity);
+        Assert.Equal(["lines"], await ErrorsAsync(tooMuch));
+        Assert.Equal(1m, rest.TotalQuantity);
+        Assert.DoesNotContain(full!, r => r.Id == requisition.Id);
+        Assert.Equal(1m, Assert.Single(afterDelete!.Lines).OrderedQuantity);
     }
 
     private async Task<HttpClient> AdminAsync(Guid unitId)

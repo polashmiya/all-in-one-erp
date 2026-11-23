@@ -366,6 +366,39 @@ Left open:
 - Ordered quantities are not tracked on the requisition yet; an approved requisition stays offered until closed.
 - Received quantities stay 0 until Purchase Receive is built.
 
+## Done: phase 20 — multi-level approval, ordered quantities (2026-11-23)
+
+- Owner chose: multi-level approval, each level approved by a role or a user, set up in the Panel per account and
+  business unit; Purchase Receive waits for its table script.
+- Migration `Approvals`: `ApprovalLevels` (account, optional business unit, feature, level, name, role or user)
+  and `ApprovalSteps` (one row per level of a record: status, who acted, when, comment), plus
+  `PurchaseRequisitionRow.OrderedQuantity` (backfilled from existing orders).
+- `ApprovalFlow` (`Erp.Api/Approvals`): a unit's own levels win over the account's; no levels means one step for
+  anyone with `{feature}.approve`. Steps are copied when a record is saved and start again after every change.
+  Only the current level's role or user (or an account admin) can act; the last approval approves the record, any
+  rejection rejects it. `ApprovalStatus` and `IApprovalDocument` moved to `Erp.Core.Domain.Approvals`.
+- API: `/purchase-requisitions/{id}/approval` and `/purchase-orders/{id}/approval` (steps and `canAct`);
+  `/api/erp/approvals` (waiting for me, approved by me, rejected by me; sources are `IApprovalSource`, one per
+  screen). Panel: `/accounts/{id}/approval-features`, `/approvers`, `GET`/`PUT /approval-levels` (history area
+  `approval`).
+- New ERP menu Approval › Approvals › **My Approvals** (`approval.my-approvals`, view only): summary cards, views,
+  document filter, approve and reject from the list. Record pages show an approval timeline
+  (`common/approval/ApprovalSteps`); Approve shows only when it is the user's turn.
+- Panel: Screen configuration → **Approval levels** (`/accounts/{id}/approvals`): screen and business unit
+  pickers, ordered level cards (name, role or user), "Use account levels" for a unit.
+- Ordered quantities: saving, rejecting or deleting a purchase order recounts the requisition's ordered quantity.
+  Order users see only requisitions with something left, with the remaining quantity; ordering more is refused.
+  The requisition view shows an Ordered column.
+- Item grids: the remarks / specification input sits under the item, the grid money inputs are `compact` (new
+  `MoneyInput` option), so the purchase order grid fits without scrolling.
+- Checked with `ApprovalTests`, the ordered quantity test in `PurchaseOrderTests`, typecheck, lint, web tests and
+  a Playwright run in Chrome (Panel levels, timeline, My Approvals two-level approval, PO grid width).
+
+Left open:
+
+- Purchase Receive (received quantities) needs the owner's table script.
+- Requisition line remarks are not copied to the purchase order specification.
+
 Still open for later, ask the owner:
 
 1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
@@ -374,15 +407,15 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-23. Phases 0 to 19 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-23. Phases 0 to 20 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
-supplier profiles) and Procurement: Purchase Requisition and Purchase Order. Next: Purchase Receive, then "Still
-open for later".
+supplier profiles), Procurement (Purchase Requisition, Purchase Order) and multi-level approval. Next: Purchase
+Receive (needs the table script), then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
-`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`.
+`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`.
 
 ## Working on another machine
 

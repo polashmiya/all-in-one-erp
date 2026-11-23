@@ -1,3 +1,4 @@
+export * from './approvals/approvals.ts';
 export * from './drafts/drafts.ts';
 export * from './erp-auth/erp-auth.ts';
 export * from './erp-navigation/erp-navigation.ts';
@@ -10,6 +11,7 @@ export * from './items/items.ts';
 export * from './locations/locations.ts';
 export * from './lookups/lookups.ts';
 export * from './panel-accounts/panel-accounts.ts';
+export * from './panel-approvals/panel-approvals.ts';
 export * from './panel-auth/panel-auth.ts';
 export * from './panel-drafts/panel-drafts.ts';
 export * from './panel-erp-menu/panel-erp-menu.ts';

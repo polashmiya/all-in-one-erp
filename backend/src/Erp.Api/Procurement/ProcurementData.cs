@@ -1,6 +1,5 @@
-using Erp.Core.Domain.Procurement;
+using Erp.Core.Domain.Approvals;
 using Erp.Infrastructure.Persistence;
-using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,18 +7,8 @@ namespace Erp.Api.Procurement;
 
 public sealed record ApprovalCounts(int All, int Pending, int Approved, int Rejected, int Closed);
 
-public sealed record ReviewRequest(string? Comment);
-
 public sealed record ProcurementItemOption(
     int Id, string Code, string Name, int UomId, string UomName, decimal Rate, decimal VatPercentage, bool IsActive);
-
-internal sealed class ReviewRequestValidator : AbstractValidator<ReviewRequest>
-{
-    public ReviewRequestValidator()
-    {
-        RuleFor(x => x.Comment).MaximumLength(500);
-    }
-}
 
 internal static class ProcurementData
 {
@@ -29,8 +18,6 @@ internal static class ProcurementData
     public const string ChooseFromList = "Choose an active value from the list.";
     private const int CodeDigits = 5;
     private const int ItemOptionLimit = 20;
-
-    public static string StatusKey(ApprovalStatus status) => status.ToString().ToLowerInvariant();
 
     public static async Task<(IQueryable<T> Documents, ApprovalCounts Counts)> ByStatusAsync<T>(
         IQueryable<T> documents, string? status, CancellationToken cancellationToken) where T : class, IApprovalDocument
@@ -78,23 +65,6 @@ internal static class ProcurementData
         return $"{prefix}{(last + 1).ToString($"D{CodeDigits}")}";
     }
 
-    public static ProblemHttpResult NotPending(string action) =>
-        TypedResults.Problem(detail: $"Only a pending record can be {action}.", statusCode: StatusCodes.Status409Conflict);
-
-    public static ValidationProblem? MissingReason(ReviewRequest request) =>
-        Trimmed(request.Comment) is null
-            ? TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["comment"] = ["Write the reason for rejecting."] })
-            : null;
-
-    public static ProblemHttpResult? Review(IApprovalDocument document, ApprovalStatus decision, string? comment, Guid? userId)
-    {
-        if (document.Status != ApprovalStatus.Pending) return NotPending("reviewed");
-        document.Status = decision;
-        document.ReviewedAt = DateTime.UtcNow;
-        document.ReviewedById = userId;
-        document.ReviewComment = Trimmed(comment);
-        return null;
-    }
 
     public static ProblemHttpResult? Close(IApprovalDocument document)
     {

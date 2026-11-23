@@ -1,7 +1,7 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProcurementItemOption } from '@erp/api-client';
 import { DetailSection, usePlaceholder } from '@erp/ui';
-import { Button, Form, InputNumber, Table, type TableColumnsType } from 'antd';
+import { Button, Form, Input, InputNumber, Table, type TableColumnsType } from 'antd';
 import type { FormListFieldData } from 'antd/es/form/FormList';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,12 +31,14 @@ export function LineGrid<L extends BaseLine>({
   newLine,
   onPick,
   totals,
+  note,
 }: {
   description: string;
   columns: LineColumn<L>[];
   newLine: () => Partial<L>;
   onPick: (option: ProcurementItemOption) => Partial<L>;
   totals: (lines: L[]) => LineTotal[];
+  note: { name: Extract<keyof L, string>; placeholder: string; maxLength: number };
 }) {
   const { t } = useTranslation();
   const placeholder = usePlaceholder();
@@ -51,37 +53,47 @@ export function LineGrid<L extends BaseLine>({
       render: (_, field) => {
         const line = lines[field.name];
         return (
-          <Form.Item
-            name={[field.name, 'itemId']}
-            rules={[
-              { required: true, message: t('procurement.lines.itemRequired') },
-              {
-                validator: async (_, value) => {
-                  const others = lines.filter((l, i) => i !== field.name && l?.itemId === value);
-                  if (value && others.length) throw new Error(t('procurement.lines.duplicate'));
+          <div className="erp-lines__cell">
+            <Form.Item
+              name={[field.name, 'itemId']}
+              rules={[
+                { required: true, message: t('procurement.lines.itemRequired') },
+                {
+                  validator: async (_, value) => {
+                    const others = lines.filter((l, i) => i !== field.name && l?.itemId === value);
+                    if (value && others.length) throw new Error(t('procurement.lines.duplicate'));
+                  },
                 },
-              },
-            ]}
-          >
-            <ItemSelect
-              picked={
-                line?.itemId
-                  ? { id: line.itemId, code: line.itemCode, name: line.itemName }
-                  : undefined
-              }
-              placeholder={t('procurement.lines.itemPlaceholder')}
-              onPick={(option) =>
-                form.setFieldValue(['lines', field.name], {
-                  ...line,
-                  itemId: option.id,
-                  itemCode: option.code,
-                  itemName: option.name,
-                  uomName: option.uomName,
-                  ...onPick(option),
-                })
-              }
-            />
-          </Form.Item>
+              ]}
+            >
+              <ItemSelect
+                picked={
+                  line?.itemId
+                    ? { id: line.itemId, code: line.itemCode, name: line.itemName }
+                    : undefined
+                }
+                placeholder={t('procurement.lines.itemPlaceholder')}
+                onPick={(option) =>
+                  form.setFieldValue(['lines', field.name], {
+                    ...line,
+                    itemId: option.id,
+                    itemCode: option.code,
+                    itemName: option.name,
+                    uomName: option.uomName,
+                    ...onPick(option),
+                  })
+                }
+              />
+            </Form.Item>
+            <Form.Item name={[field.name, note.name]}>
+              <Input
+                size="small"
+                variant="filled"
+                maxLength={note.maxLength}
+                placeholder={note.placeholder}
+              />
+            </Form.Item>
+          </div>
         );
       },
     },

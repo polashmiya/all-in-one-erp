@@ -1,7 +1,7 @@
 import { Field, FormModal } from '@erp/ui';
 import { Input } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { REVIEW_COMMENT_MAX } from '../procurement';
+import { REVIEW_COMMENT_MAX } from './approval';
 
 export type ReviewMode = 'approve' | 'reject';
 
@@ -23,24 +23,24 @@ export function ReviewModal({
     <FormModal<{ comment?: string }>
       open={!!mode}
       onClose={onClose}
-      title={t(rejecting ? 'procurement.review.rejectTitle' : 'procurement.review.approveTitle', {
+      title={t(rejecting ? 'approval.review.rejectTitle' : 'approval.review.approveTitle', {
         code,
       })}
-      subtitle={t(rejecting ? 'procurement.review.rejectText' : 'procurement.review.approveText')}
-      submitText={t(rejecting ? 'procurement.reject' : 'procurement.approve')}
+      subtitle={t(rejecting ? 'approval.review.rejectText' : 'approval.review.approveText')}
+      submitText={t(rejecting ? 'approval.reject' : 'approval.approve')}
       danger={rejecting}
       onSubmit={(values) => onSubmit(values.comment?.trim() || null)}
     >
       <Field
         name="comment"
-        label={t(rejecting ? 'procurement.review.reason' : 'procurement.review.comment')}
+        label={t(rejecting ? 'approval.review.reason' : 'approval.review.comment')}
         rules={
           rejecting
             ? [
                 {
                   required: true,
                   whitespace: true,
-                  message: t('procurement.review.reasonRequired'),
+                  message: t('approval.review.reasonRequired'),
                 },
               ]
             : []
@@ -51,9 +51,7 @@ export function ReviewModal({
           maxLength={REVIEW_COMMENT_MAX}
           showCount
           placeholder={t(
-            rejecting
-              ? 'procurement.review.reasonPlaceholder'
-              : 'procurement.review.commentPlaceholder',
+            rejecting ? 'approval.review.reasonPlaceholder' : 'approval.review.commentPlaceholder',
           )}
         />
       </Field>

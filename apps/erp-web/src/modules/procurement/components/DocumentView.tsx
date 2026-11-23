@@ -2,11 +2,13 @@ import { EditOutlined } from '@ant-design/icons';
 import type { FeatureConfig } from '@erp/api-client';
 import { useViewTabs } from '@erp/metadata-engine';
 import { DetailsPageLayout, StatusTag, type RecordMeta } from '@erp/ui';
+import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useCustomLookups } from '@/common/hooks/useCustomLookups';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
+import { useUnitKey } from '@/common/master-data';
 import type { DocumentPaths } from '../procurement';
 import { ApprovalStatusTag } from './ApprovalStatusTag';
 import { useApprovalActions, type ApprovalCalls } from './useApprovalActions';
@@ -16,9 +18,6 @@ interface ViewDocument {
   id: number;
   code: string;
   status: string;
-  reviewedAt: string | null;
-  reviewedByName: string | null;
-  reviewComment: string | null;
   createdAt: string | null;
   modifiedAt: string | null;
 }
@@ -48,11 +47,15 @@ export function DocumentView<T extends ViewDocument>({
   const navigate = useNavigate();
   const access = useFeatureAccess(feature);
   const tabs = useViewTabs(config, document, {}, useCustomLookups(config));
-  const sections = useDocumentSections(document);
+  const progress = useQuery({
+    queryKey: useUnitKey(calls.progressKey(document.id)),
+    queryFn: () => calls.progress(document.id),
+  });
+  const sections = useDocumentSections(document, progress.data);
   const { actions, modal } = useApprovalActions(feature, calls, (action) => {
     if (action === 'deleted') void navigate(paths.list, { replace: true });
   });
-  const [approve, ...more] = actions(document);
+  const [approve, ...more] = actions(document, !!progress.data?.canAct);
   const extra = [{ key: 'lines', content: lines }, ...sections];
 
   return (

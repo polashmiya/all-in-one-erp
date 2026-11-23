@@ -9,6 +9,7 @@ export const ACCOUNT_PATHS = {
   layout: (id: string) => `/accounts/${id}/layout`,
   history: (id: string) => `/accounts/${id}/history`,
   lookups: (id: string) => `/accounts/${id}/lookups`,
+  approvals: (id: string) => `/accounts/${id}/approvals`,
 };
 
 export const SCREEN_PARAMS = { feature: 'feature', unit: 'unit' };

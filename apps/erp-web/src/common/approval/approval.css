@@ -1,0 +1,97 @@
+.erp-steps {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.erp-steps__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--erp-space-md);
+  padding-bottom: var(--erp-space-lg);
+}
+
+.erp-steps__item:last-child {
+  padding-bottom: 0;
+}
+
+.erp-steps__item:not(:last-child)::after {
+  position: absolute;
+  top: var(--erp-space-xxl);
+  bottom: 0;
+  left: var(--erp-space-md);
+  width: 2px;
+  background: var(--erp-border);
+  content: '';
+}
+
+.erp-steps__item.is-approved:not(:last-child)::after {
+  background: var(--erp-tone-success-dot);
+}
+
+.erp-steps__marker {
+  display: grid;
+  place-items: center;
+  width: var(--erp-space-xxl);
+  height: var(--erp-space-xxl);
+  border: 2px solid var(--erp-border);
+  border-radius: 50%;
+  background: var(--erp-tone-neutral-bg);
+  color: var(--erp-text-muted);
+  font-size: var(--erp-font-sm);
+  font-weight: 600;
+}
+
+.erp-steps__item.is-approved .erp-steps__marker {
+  border-color: var(--erp-tone-success-dot);
+  background: var(--erp-tone-success-bg);
+  color: var(--erp-tone-success-fg);
+}
+
+.erp-steps__item.is-rejected .erp-steps__marker {
+  border-color: var(--erp-tone-danger-dot);
+  background: var(--erp-tone-danger-bg);
+  color: var(--erp-tone-danger-fg);
+}
+
+.erp-steps__item.is-current .erp-steps__marker {
+  border-color: var(--erp-tone-warning-dot);
+  background: var(--erp-tone-warning-bg);
+  color: var(--erp-tone-warning-fg);
+}
+
+.erp-steps__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--erp-space-xs);
+  min-width: 0;
+}
+
+.erp-steps__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--erp-space-sm);
+}
+
+.erp-steps__title {
+  color: var(--erp-text-strong);
+  font-weight: 600;
+}
+
+.erp-steps__meta {
+  color: var(--erp-text-muted);
+  font-size: var(--erp-font-sm);
+}
+
+.erp-steps__comment {
+  margin: var(--erp-space-xs) 0 0;
+  padding: var(--erp-space-sm) var(--erp-space-md);
+  border-radius: var(--erp-radius-md);
+  background: var(--erp-tone-neutral-bg);
+  color: var(--erp-text);
+}

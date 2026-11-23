@@ -9,7 +9,7 @@
 }
 
 .erp-lines__item {
-  min-width: 240px;
+  min-width: 280px;
 }
 
 .erp-lines__number {
@@ -17,11 +17,7 @@
 }
 
 .erp-lines__money {
-  width: 170px;
-}
-
-.erp-lines__text {
-  min-width: 160px;
+  width: 140px;
 }
 
 .erp-lines__amount {
@@ -66,4 +62,10 @@
 
 .erp-line-totals > .is-strong dt {
   color: var(--erp-text-strong);
+}
+
+.erp-lines__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--erp-space-xs);
 }

@@ -1,5 +1,6 @@
 import { mergeResources, type AppResources } from '@erp/ui';
 import { authResources } from '@/modules/auth/i18n';
+import { accountApprovalResources } from '@/modules/accounts/account-approvals/i18n';
 import { erpUserResources } from '@/modules/erp-users/i18n';
 
 const commonPanelResources: AppResources = {
@@ -157,6 +158,8 @@ const commonPanelResources: AppResources = {
     'workspace.hint.lookups': 'Dropdown values such as item types.',
     'workspace.hint.theme': 'Colours, sidebar and mode for the account’s users.',
     'workspace.hint.history': 'Who changed what, and when.',
+    'workspace.tool.approvals': 'Approval levels',
+    'workspace.hint.approvals': 'Who approves requisitions and orders, level by level.',
 
     'config.action': 'Screen settings',
     'config.title': 'Screen settings · {{account}}',
@@ -615,6 +618,8 @@ const commonPanelResources: AppResources = {
     'workspace.hint.lookups': 'ড্রপডাউনের মান, যেমন আইটেমের ধরন।',
     'workspace.hint.theme': 'অ্যাকাউন্টের ইউজারদের রং, সাইডবার ও মোড।',
     'workspace.hint.history': 'কে, কখন, কী বদলেছে।',
+    'workspace.tool.approvals': 'অনুমোদনের ধাপ',
+    'workspace.hint.approvals': 'চাহিদাপত্র ও আদেশ কে, কোন ধাপে অনুমোদন করবেন।',
 
     'config.action': 'স্ক্রিন সেটিংস',
     'config.title': 'স্ক্রিন সেটিংস · {{account}}',
@@ -920,4 +925,9 @@ const commonPanelResources: AppResources = {
   },
 };
 
-export const panelResources = mergeResources(commonPanelResources, authResources, erpUserResources);
+export const panelResources = mergeResources(
+  commonPanelResources,
+  authResources,
+  erpUserResources,
+  accountApprovalResources,
+);

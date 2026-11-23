@@ -8,6 +8,7 @@ public static class ConfigurationAreas
     public const string CustomField = "custom-field";
     public const string LookupValue = "lookup-value";
     public const string Theme = "theme";
+    public const string Approval = "approval";
 }
 
 public class ConfigurationChange : BaseEntity, IAccountOwned

@@ -4,7 +4,14 @@ import {
   useGetPurchaseRequisition,
   type RequisitionLine,
 } from '@erp/api-client';
-import { DetailsPageLayout, ForbiddenResult, formatDate, formatMoney, formatNumber } from '@erp/ui';
+import {
+  DetailsPageLayout,
+  ForbiddenResult,
+  formatDate,
+  formatMoney,
+  formatNumber,
+  StatusTag,
+} from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
@@ -73,6 +80,16 @@ export function RequisitionViewPage() {
         <LinesView<RequisitionLine>
           rows={requisition.lines}
           columns={[
+            {
+              key: 'ordered',
+              title: t('requisition.lines.ordered'),
+              align: 'end',
+              render: (_, line) => (
+                <StatusTag tone={line.orderedQuantity >= line.quantity ? 'success' : 'neutral'}>
+                  {formatNumber(line.orderedQuantity, QUANTITY_DECIMALS_SHOWN)}
+                </StatusTag>
+              ),
+            },
             {
               key: 'rate',
               title: t('requisition.lines.rate'),

@@ -1,3 +1,4 @@
+using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Inventory;
 
 namespace Erp.Core.Domain.Procurement;
@@ -66,6 +67,8 @@ public class PurchaseRequisitionRow
     public UnitOfMeasure? Uom { get; set; }
 
     public decimal Quantity { get; set; }
+
+    public decimal OrderedQuantity { get; set; }
 
     public decimal Rate { get; set; }
 

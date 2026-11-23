@@ -3,6 +3,8 @@ import {
   closePurchaseRequisition,
   deletePurchaseRequisition,
   rejectPurchaseRequisition,
+  getGetPurchaseRequisitionApprovalQueryKey,
+  getPurchaseRequisitionApproval,
   getGetEmployeeOptionsQueryKey,
   useGetEmployeeOptions,
   type RequisitionDetail,
@@ -95,4 +97,6 @@ export const requisitionCalls: ApprovalCalls = {
   reject: (id, data) => rejectPurchaseRequisition(id, data),
   close: (id) => closePurchaseRequisition(id),
   remove: (id) => deletePurchaseRequisition(id),
+  progress: (id) => getPurchaseRequisitionApproval(id),
+  progressKey: (id) => getGetPurchaseRequisitionApprovalQueryKey(id),
 };

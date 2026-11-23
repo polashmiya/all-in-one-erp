@@ -5,6 +5,8 @@ import {
   getGetOrderRequisitionOptionsQueryKey,
   getGetSupplierOptionsQueryKey,
   rejectPurchaseOrder,
+  getGetPurchaseOrderApprovalQueryKey,
+  getPurchaseOrderApproval,
   useGetOrderRequisitionOptions,
   useGetSupplierOptions,
   type PurchaseOrderDetail,
@@ -134,4 +136,6 @@ export const orderCalls: ApprovalCalls = {
   reject: (id, data) => rejectPurchaseOrder(id, data),
   close: (id) => closePurchaseOrder(id),
   remove: (id) => deletePurchaseOrder(id),
+  progress: (id) => getPurchaseOrderApproval(id),
+  progressKey: (id) => getGetPurchaseOrderApprovalQueryKey(id),
 };

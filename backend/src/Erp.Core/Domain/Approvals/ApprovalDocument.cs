@@ -1,4 +1,4 @@
-namespace Erp.Core.Domain.Procurement;
+namespace Erp.Core.Domain.Approvals;
 
 public enum ApprovalStatus
 {

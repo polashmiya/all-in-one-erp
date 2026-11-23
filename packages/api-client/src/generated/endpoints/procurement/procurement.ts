@@ -22,6 +22,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApprovalProgress,
   GetProcurementItemOptionsParams,
   HttpValidationProblemDetails,
   ListPurchaseOrdersParams,
@@ -795,6 +796,145 @@ export const useDeletePurchaseRequisition = <
 > => {
   return useMutation(getDeletePurchaseRequisitionMutationOptions(options), queryClient);
 };
+export const getGetPurchaseRequisitionApprovalUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-requisitions/${id}/approval`;
+};
+
+/**
+ * @summary Approval steps of a requisition and whether the current user can act on the current one
+ */
+export const getPurchaseRequisitionApproval = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ApprovalProgress> => {
+  return customFetch<ApprovalProgress>(getGetPurchaseRequisitionApprovalUrl(id), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPurchaseRequisitionApprovalQueryKey = (id: number) => {
+  return [`/api/erp/procurement/purchase-requisitions/${id}/approval`] as const;
+};
+
+export const getGetPurchaseRequisitionApprovalQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPurchaseRequisitionApprovalQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>> = ({
+    signal,
+  }) => getPurchaseRequisitionApproval(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetPurchaseRequisitionApprovalQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>
+>;
+export type GetPurchaseRequisitionApprovalQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPurchaseRequisitionApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseRequisitionApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseRequisitionApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Approval steps of a requisition and whether the current user can act on the current one
+ */
+
+export function useGetPurchaseRequisitionApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseRequisitionApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPurchaseRequisitionApprovalQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 export const getApprovePurchaseRequisitionUrl = (id: number) => {
   return `/api/erp/procurement/purchase-requisitions/${id}/approve`;
 };
@@ -1359,7 +1499,7 @@ export const getGetOrderRequisitionOptionsUrl = () => {
 };
 
 /**
- * @summary Approved requisitions of the selected business unit with their items, to order from
+ * @summary Approved requisitions of the selected business unit with the quantity still to order
  */
 export const getOrderRequisitionOptions = async (
   options?: Parameters<typeof customFetch>[1],
@@ -1456,7 +1596,7 @@ export function useGetOrderRequisitionOptions<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Approved requisitions of the selected business unit with their items, to order from
+ * @summary Approved requisitions of the selected business unit with the quantity still to order
  */
 
 export function useGetOrderRequisitionOptions<
@@ -1796,6 +1936,143 @@ export const useDeletePurchaseOrder = <TError = ErrorType<ProblemDetails>, TCont
 > => {
   return useMutation(getDeletePurchaseOrderMutationOptions(options), queryClient);
 };
+export const getGetPurchaseOrderApprovalUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}/approval`;
+};
+
+/**
+ * @summary Approval steps of a purchase order and whether the current user can act on the current one
+ */
+export const getPurchaseOrderApproval = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ApprovalProgress> => {
+  return customFetch<ApprovalProgress>(getGetPurchaseOrderApprovalUrl(id), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPurchaseOrderApprovalQueryKey = (id: number) => {
+  return [`/api/erp/procurement/purchase-orders/${id}/approval`] as const;
+};
+
+export const getGetPurchaseOrderApprovalQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPurchaseOrderApprovalQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrderApproval>>> = ({
+    signal,
+  }) => getPurchaseOrderApproval(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderApproval>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetPurchaseOrderApprovalQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPurchaseOrderApproval>>
+>;
+export type GetPurchaseOrderApprovalQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPurchaseOrderApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderApproval>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderApproval>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseOrderApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderApproval>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrderApproval>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseOrderApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Approval steps of a purchase order and whether the current user can act on the current one
+ */
+
+export function useGetPurchaseOrderApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseOrderApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrderApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPurchaseOrderApprovalQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 export const getApprovePurchaseOrderUrl = (id: number) => {
   return `/api/erp/procurement/purchase-orders/${id}/approve`;
 };

@@ -1,46 +1,18 @@
+import type { ApprovalProgress } from '@erp/api-client';
 import { DescriptionList, DetailSection, formatDateTime, type DetailsSection } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
+import { ApprovalSteps } from '@/common/approval/ApprovalSteps';
 
-interface ReviewedDocument {
-  status: string;
-  reviewedAt: string | null;
-  reviewedByName: string | null;
-  reviewComment: string | null;
+interface RecordDates {
   createdAt: string | null;
   modifiedAt: string | null;
 }
 
-export function useDocumentSections(document: ReviewedDocument): DetailsSection[] {
+export function useDocumentSections(
+  document: RecordDates,
+  progress?: ApprovalProgress,
+): DetailsSection[] {
   const { t } = useTranslation();
-
-  const review: DetailsSection = {
-    key: 'review',
-    content: (
-      <DetailSection title={t('procurement.side.review')}>
-        <DescriptionList
-          columns={3}
-          items={[
-            { key: 'by', label: t('procurement.side.reviewedBy'), value: document.reviewedByName },
-            {
-              key: 'at',
-              label: t('procurement.side.reviewedAt'),
-              value: formatDateTime(document.reviewedAt),
-            },
-            {
-              key: 'comment',
-              label: t(
-                document.status === 'rejected'
-                  ? 'procurement.review.reason'
-                  : 'procurement.review.comment',
-              ),
-              value: document.reviewComment,
-              wide: true,
-            },
-          ]}
-        />
-      </DetailSection>
-    ),
-  };
 
   const record: DetailsSection = {
     key: 'record',
@@ -65,5 +37,7 @@ export function useDocumentSections(document: ReviewedDocument): DetailsSection[
     ),
   };
 
-  return document.reviewedAt ? [review, record] : [record];
+  return progress?.steps.length
+    ? [{ key: 'approval', content: <ApprovalSteps steps={progress.steps} /> }, record]
+    : [record];
 }

@@ -56,6 +56,13 @@ export const accountsRoutes: RouteObject[] = [
         }),
       },
       {
+        path: ':id/approvals',
+        lazy: async () => ({
+          Component: (await import('./account-approvals/pages/AccountApprovalsPage'))
+            .AccountApprovalsPage,
+        }),
+      },
+      {
         path: ':id/lookups',
         lazy: async () => ({
           Component: (await import('./account-lookups/pages/AccountLookupsPage'))
