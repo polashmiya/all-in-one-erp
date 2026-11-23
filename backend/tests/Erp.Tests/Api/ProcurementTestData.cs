@@ -59,12 +59,19 @@ internal static class ProcurementTestData
         return item.Id;
     }
 
-    public static async Task<int> SupplierAsync(Guid unitId)
+    public static async Task<int> SupplierAsync(Guid unitId, decimal? tolerance = null)
     {
         await using var db = ApiFactory.CreateDbContext();
         var accountId = await db.BusinessUnits.AcrossTenants().Where(u => u.Id == unitId).Select(u => u.AccountId).FirstAsync();
         var code = Unique();
-        var supplier = new Supplier { AccountId = accountId, BusinessUnitId = unitId, Code = code, Name = $"Supplier {code}" };
+        var supplier = new Supplier
+        {
+            AccountId = accountId,
+            BusinessUnitId = unitId,
+            Code = code,
+            Name = $"Supplier {code}",
+            Tolerance = tolerance,
+        };
         db.Suppliers.Add(supplier);
         await db.SaveChangesAsync();
         return supplier.Id;

@@ -1,12 +1,15 @@
 import {
   approvePurchaseOrder,
+  approvePurchaseReceive,
   approvePurchaseRequisition,
   rejectPurchaseOrder,
+  rejectPurchaseReceive,
   rejectPurchaseRequisition,
   type ReviewRequest,
 } from '@erp/api-client';
 import { featurePath } from '@/common/constants/routes';
 import { orderPaths } from '@/modules/procurement/purchase/purchase-order/constants';
+import { receivePaths } from '@/modules/procurement/purchase/purchase-receive/constants';
 import { requisitionPaths } from '@/modules/procurement/purchase/purchase-requisition/constants';
 
 export const MY_APPROVALS_FEATURE = 'approval.my-approvals';
@@ -34,5 +37,11 @@ export const APPROVAL_DOCUMENTS: Record<string, ApprovalDocument> = {
     path: orderPaths.view,
     approve: approvePurchaseOrder,
     reject: rejectPurchaseOrder,
+  },
+  'procurement.purchase-receive': {
+    label: 'myApprovals.document.receive',
+    path: receivePaths.view,
+    approve: approvePurchaseReceive,
+    reject: rejectPurchaseReceive,
   },
 };

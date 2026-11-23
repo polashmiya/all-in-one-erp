@@ -23,7 +23,7 @@ public sealed record PurchaseOrderRow(
 public sealed record PurchaseOrderList(IReadOnlyList<PurchaseOrderRow> Items, int Total, ApprovalCounts Counts);
 
 public sealed record OrderRequisitionLine(
-    int ItemId, string ItemCode, string ItemName, string UomName, decimal Quantity, decimal Rate, decimal VatPercentage);
+    int ItemId, string ItemCode, string ItemName, string UomName, decimal Quantity, decimal Rate, decimal VatPercentage, string? Remarks);
 
 public sealed record OrderRequisitionOption(
     int Id, string Code, string Name, DateOnly RequestDate, Guid WarehouseId, bool IsActive, IReadOnlyList<OrderRequisitionLine> Lines);

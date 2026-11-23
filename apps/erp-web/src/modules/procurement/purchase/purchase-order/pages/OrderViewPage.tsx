@@ -79,32 +79,32 @@ export function OrderViewPage() {
           columns={[
             {
               key: 'price',
-              title: t('order.lines.price'),
+              title: t('procurement.lines.price'),
               align: 'end',
               render: (_, line) => formatMoney(line.price),
             },
             {
               key: 'discount',
-              title: t('order.lines.discount'),
+              title: t('procurement.lines.discount'),
               align: 'end',
               render: (_, line) => formatMoney(line.discount),
             },
             {
               key: 'vat',
-              title: t('order.lines.vat'),
+              title: t('procurement.lines.vat'),
               align: 'end',
               render: (_, line) =>
                 `${formatPercent(line.vatPercentage)} · ${formatMoney(line.vatAmount)}`,
             },
             {
               key: 'net',
-              title: t('order.lines.net'),
+              title: t('procurement.lines.net'),
               align: 'end',
               render: (_, line) => formatMoney(line.netAmount),
             },
             {
               key: 'received',
-              title: t('order.lines.received'),
+              title: t('procurement.lines.received'),
               align: 'end',
               render: (_, line) => formatNumber(line.receivedQuantity, QUANTITY_DECIMALS_SHOWN),
             },
@@ -120,21 +120,25 @@ export function OrderViewPage() {
               label: t('procurement.lines.totalQuantity'),
               value: formatNumber(order.totalQuantity, QUANTITY_DECIMALS_SHOWN),
             },
-            { key: 'vat', label: t('order.totals.vat'), value: formatMoney(order.totalVatAmount) },
+            {
+              key: 'vat',
+              label: t('procurement.totals.vat'),
+              value: formatMoney(order.totalVatAmount),
+            },
             {
               key: 'items',
-              label: t('order.totals.items'),
+              label: t('procurement.totals.items'),
               value: formatMoney(order.itemTotalAmount),
             },
             {
               key: 'discount',
-              label: t('order.totals.discount'),
+              label: t('procurement.totals.discount'),
               value: formatMoney(order.headerDiscount),
             },
-            { key: 'charges', label: t('order.totals.charges'), value: formatMoney(charges) },
+            { key: 'charges', label: t('procurement.totals.charges'), value: formatMoney(charges) },
             {
               key: 'net',
-              label: t('order.totals.net'),
+              label: t('procurement.totals.net'),
               value: formatMoney(order.netAmount),
               strong: true,
             },

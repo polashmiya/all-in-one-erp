@@ -171,7 +171,7 @@ internal static class PurchaseOrderEndpoints
                 r.WarehouseId,
                 Lines = r.Rows.Where(l => l.Quantity > l.OrderedQuantity).OrderBy(l => l.Sequence).Select(l => new OrderRequisitionLine(
                     l.ItemId, l.Item!.Code, l.Item.Name, l.Uom!.Name, l.Quantity - l.OrderedQuantity, l.Rate,
-                    l.Item.PurchaseVatPercentage ?? 0)).ToList(),
+                    l.Item.PurchaseVatPercentage ?? 0, l.Remarks)).ToList(),
             })
             .ToListAsync(cancellationToken);
 
@@ -338,12 +338,8 @@ internal static class PurchaseOrderEndpoints
 
     private static PurchaseOrderLine Priced(PurchaseOrderLine line, bool vatInclusive)
     {
-        line.TotalAmount = Math.Round(line.Quantity * line.Price, 2);
-        var taxable = line.TotalAmount - line.Discount;
-        line.VatAmount = Math.Round(vatInclusive
-            ? taxable * line.VatPercentage / (100 + line.VatPercentage)
-            : taxable * line.VatPercentage / 100, 2);
-        line.NetAmount = vatInclusive ? taxable : taxable + line.VatAmount;
+        (line.TotalAmount, line.VatAmount, line.NetAmount) =
+            Pricing.Line(line.Quantity, line.Price, line.Discount, line.VatPercentage, vatInclusive);
         return line;
     }
 

@@ -23,7 +23,7 @@ interface Target {
 export interface ApprovalCalls {
   approve: (id: number, data: ReviewRequest) => Promise<unknown>;
   reject: (id: number, data: ReviewRequest) => Promise<unknown>;
-  close: (id: number) => Promise<unknown>;
+  close?: (id: number) => Promise<unknown>;
   remove: (id: number) => Promise<unknown>;
   progress: (id: number) => Promise<ApprovalProgress>;
   progressKey: (id: number) => QueryKey;
@@ -71,13 +71,13 @@ export function useApprovalActions(
       key: 'close',
       label: t('procurement.close'),
       icon: <LockOutlined />,
-      hidden: !access.edit || target.status !== 'approved',
+      hidden: !calls.close || !access.edit || target.status !== 'approved',
       confirm: {
         title: t('procurement.closeConfirm', { code: target.code }),
         description: t('procurement.closeHint'),
         okText: t('procurement.close'),
       },
-      onClick: () => run('closed', target, () => calls.close(target.id)),
+      onClick: () => run('closed', target, async () => calls.close?.(target.id)),
     },
     {
       key: 'delete',

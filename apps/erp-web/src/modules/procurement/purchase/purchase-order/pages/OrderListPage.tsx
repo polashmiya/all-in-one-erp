@@ -69,7 +69,7 @@ export function OrderListPage() {
       data={query.data}
       loading={query.isFetching || config.isPending}
       onRefresh={() => void query.refetch()}
-      amount={{ label: t('order.totals.net'), value: (row) => row.netAmount }}
+      amount={{ label: t('procurement.totals.net'), value: (row) => row.netAmount }}
       exportFile={t('order.exportFile')}
       fetchAll={() =>
         listPurchaseOrders({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)

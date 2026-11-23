@@ -165,3 +165,84 @@ internal sealed class PurchaseOrderLineConfiguration : IEntityTypeConfiguration<
         builder.HasOne(x => x.Uom).WithMany().HasForeignKey(x => x.UomId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+internal sealed class PurchaseReceiveConfiguration : IEntityTypeConfiguration<PurchaseReceive>
+{
+    public void Configure(EntityTypeBuilder<PurchaseReceive> builder)
+    {
+        builder.MapRecord("PurchaseReceive", "PurchaseReceiveID");
+        builder.Property(x => x.BusinessUnitId).HasColumnName("BusinessUnitID");
+        builder.Property(x => x.Code).HasColumnName("PurchaseReceiveCode").HasMaxLength(100);
+        builder.Property(x => x.PurchaseOrderId).HasColumnName("PurchaseOrderID");
+        builder.Property(x => x.SupplierId).HasColumnName("SupplierID");
+        builder.Property(x => x.WarehouseId).HasColumnName("WarehouseID");
+        builder.Property(x => x.ChallanNo).HasMaxLength(50);
+        builder.Property(x => x.VatChallanNo).HasColumnName("VATChallanNumber").HasMaxLength(250);
+        builder.Property(x => x.PaymentTypeId).HasColumnName("PaymentTypeID");
+        builder.Property(x => x.PaymentDays).HasColumnName("PaymentDaysAfterReceive");
+        builder.Property(x => x.IsVatInclusive).HasColumnName("isInclusive");
+        builder.Property(x => x.Remarks).HasMaxLength(1000);
+        builder.Property(x => x.HeaderDiscount).HasPrecision(18, 2);
+        builder.Property(x => x.DeliveryCharge).HasPrecision(18, 2);
+        builder.Property(x => x.LaborCharge).HasPrecision(18, 2);
+        builder.Property(x => x.OtherCharge).HasPrecision(18, 2);
+        builder.Property(x => x.TotalQuantity).HasPrecision(18, 4);
+        builder.Property(x => x.TotalLineDiscount).HasPrecision(18, 2);
+        builder.Property(x => x.ItemTotalAmount).HasPrecision(18, 2);
+        builder.Property(x => x.TotalVatAmount).HasPrecision(18, 2);
+        builder.Property(x => x.NetAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ReviewedAt).HasColumnType("datetime").HasConversion(MasterRecordMapping.Utc);
+        builder.Property(x => x.ReviewedById).HasColumnName("ReviewedByID");
+        builder.Property(x => x.ReviewComment).HasMaxLength(500);
+
+        builder.HasIndex(x => new { x.BusinessUnitId, x.Code }).IsUnique();
+        builder.HasIndex(x => new { x.BusinessUnitId, x.IsActive, x.Status, x.ReceiveDate });
+
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<PurchaseOrder>().WithMany().HasForeignKey(x => x.PurchaseOrderId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Supplier>().WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Warehouse>().WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.PaymentTypeId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.PurchaseReceiveId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.ColumnOrder(
+        [
+            nameof(PurchaseReceive.Id), nameof(PurchaseReceive.Code), nameof(PurchaseReceive.ReceiveDate),
+            nameof(PurchaseReceive.PurchaseOrderId), nameof(PurchaseReceive.SupplierId), nameof(PurchaseReceive.WarehouseId),
+            nameof(PurchaseReceive.ChallanNo), nameof(PurchaseReceive.ChallanDate), nameof(PurchaseReceive.VatChallanNo),
+            nameof(PurchaseReceive.PaymentTypeId), nameof(PurchaseReceive.PaymentDays), nameof(PurchaseReceive.IsVatInclusive),
+            nameof(PurchaseReceive.Remarks), nameof(PurchaseReceive.HeaderDiscount), nameof(PurchaseReceive.DeliveryCharge),
+            nameof(PurchaseReceive.LaborCharge), nameof(PurchaseReceive.OtherCharge), nameof(PurchaseReceive.TotalQuantity),
+            nameof(PurchaseReceive.TotalLineDiscount), nameof(PurchaseReceive.ItemTotalAmount), nameof(PurchaseReceive.TotalVatAmount),
+            nameof(PurchaseReceive.NetAmount), nameof(PurchaseReceive.Status), nameof(PurchaseReceive.ReviewedAt),
+            nameof(PurchaseReceive.ReviewedById), nameof(PurchaseReceive.ReviewComment), nameof(PurchaseReceive.AccountId),
+            nameof(PurchaseReceive.BusinessUnitId),
+            .. MasterRecordMapping.AuditColumns,
+            nameof(PurchaseReceive.CustomData),
+        ]);
+    }
+}
+
+internal sealed class PurchaseReceiveLineConfiguration : IEntityTypeConfiguration<PurchaseReceiveLine>
+{
+    public void Configure(EntityTypeBuilder<PurchaseReceiveLine> builder)
+    {
+        builder.ToTable("PurchaseReceiveLine");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasColumnName("PurchaseReceiveLineID").UseIdentityColumn();
+        builder.Property(x => x.PurchaseReceiveId).HasColumnName("PurchaseReceiveID");
+        builder.Property(x => x.ItemId).HasColumnName("ItemID");
+        builder.Property(x => x.UomId).HasColumnName("UomID");
+        builder.Property(x => x.Quantity).HasPrecision(18, 4);
+        builder.Property(x => x.Price).HasPrecision(18, 6);
+        builder.Property(x => x.TotalAmount).HasPrecision(18, 2);
+        builder.Property(x => x.Discount).HasColumnName("LineDiscount").HasPrecision(18, 2);
+        builder.Property(x => x.VatPercentage).HasPrecision(18, 4);
+        builder.Property(x => x.VatAmount).HasPrecision(18, 2);
+        builder.Property(x => x.NetAmount).HasPrecision(18, 2);
+        builder.Property(x => x.Batch).HasMaxLength(100);
+
+        builder.HasOne(x => x.Item).WithMany().HasForeignKey(x => x.ItemId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Uom).WithMany().HasForeignKey(x => x.UomId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

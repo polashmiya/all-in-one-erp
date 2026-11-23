@@ -14,4 +14,6 @@ export interface OrderRequisitionLine {
   quantity: number;
   rate: number;
   vatPercentage: number;
+  /** @nullable */
+  remarks: string | null;
 }

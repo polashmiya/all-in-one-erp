@@ -28,7 +28,7 @@ export const STATUS_TONES: Record<string, StatusTone> = {
 };
 
 export const QUANTITY_DECIMALS_SHOWN = 2;
-export const REVIEW_COMMENT_MAX = 500;
+export const VAT_MAX = 100;
 
 export const statusParam = (view?: ApprovalView) => (view && view !== 'all' ? view : undefined);
 

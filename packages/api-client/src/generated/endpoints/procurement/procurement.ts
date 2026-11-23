@@ -26,16 +26,21 @@ import type {
   GetProcurementItemOptionsParams,
   HttpValidationProblemDetails,
   ListPurchaseOrdersParams,
+  ListPurchaseReceivesParams,
   ListPurchaseRequisitionsParams,
   OrderRequisitionOption,
   ProblemDetails,
   ProcurementItemOption,
   PurchaseOrderDetail,
   PurchaseOrderList,
+  PurchaseReceiveDetail,
+  PurchaseReceiveList,
+  ReceiveOrderOption,
   RequisitionDetail,
   RequisitionList,
   ReviewRequest,
   SavePurchaseOrderRequest,
+  SavePurchaseReceiveRequest,
   SaveRequisitionRequest,
 } from '../../model';
 
@@ -2377,4 +2382,1057 @@ export const useClosePurchaseOrder = <
   TContext
 > => {
   return useMutation(getClosePurchaseOrderMutationOptions(options), queryClient);
+};
+export const getListPurchaseReceivesUrl = (params?: ListPurchaseReceivesParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/erp/procurement/purchase-receives?${stringifiedParams}`
+    : `/api/erp/procurement/purchase-receives`;
+};
+
+/**
+ * @summary Goods received (GRN) in the selected business unit with counts by status
+ */
+export const listPurchaseReceives = async (
+  params?: ListPurchaseReceivesParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveList> => {
+  return customFetch<PurchaseReceiveList>(getListPurchaseReceivesUrl(params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getListPurchaseReceivesQueryKey = (params?: ListPurchaseReceivesParams) => {
+  return [`/api/erp/procurement/purchase-receives`, ...(params ? [params] : [])] as const;
+};
+
+export const getListPurchaseReceivesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPurchaseReceives>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseReceivesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listPurchaseReceives>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPurchaseReceivesQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseReceives>>> = ({ signal }) =>
+    listPurchaseReceives(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPurchaseReceives>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ListPurchaseReceivesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPurchaseReceives>>
+>;
+export type ListPurchaseReceivesQueryError = ErrorType<ProblemDetails>;
+
+export function useListPurchaseReceives<
+  TData = Awaited<ReturnType<typeof listPurchaseReceives>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: undefined | ListPurchaseReceivesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listPurchaseReceives>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseReceives>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseReceives>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListPurchaseReceives<
+  TData = Awaited<ReturnType<typeof listPurchaseReceives>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseReceivesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listPurchaseReceives>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseReceives>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseReceives>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListPurchaseReceives<
+  TData = Awaited<ReturnType<typeof listPurchaseReceives>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseReceivesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listPurchaseReceives>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Goods received (GRN) in the selected business unit with counts by status
+ */
+
+export function useListPurchaseReceives<
+  TData = Awaited<ReturnType<typeof listPurchaseReceives>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseReceivesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listPurchaseReceives>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListPurchaseReceivesQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getCreatePurchaseReceiveUrl = () => {
+  return `/api/erp/procurement/purchase-receives`;
+};
+
+/**
+ * @summary Receive goods against an approved purchase order; an empty number gets the next GRN- number
+ */
+export const createPurchaseReceive = async (
+  savePurchaseReceiveRequest: SavePurchaseReceiveRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseReceiveDetail>(getCreatePurchaseReceiveUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(savePurchaseReceiveRequest),
+  });
+};
+
+export const getCreatePurchaseReceiveMutationKey = () => ['createPurchaseReceive'] as const;
+
+export const getCreatePurchaseReceiveMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPurchaseReceive>>,
+    TError,
+    CreatePurchaseReceiveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPurchaseReceive>>,
+  TError,
+  CreatePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreatePurchaseReceiveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPurchaseReceive>>,
+    CreatePurchaseReceiveMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPurchaseReceive(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePurchaseReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPurchaseReceive>>
+>;
+export type CreatePurchaseReceiveMutationBody = BodyType<SavePurchaseReceiveRequest>;
+export type CreatePurchaseReceiveMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails | void
+>;
+export type CreatePurchaseReceiveMutationVariables = { data: BodyType<SavePurchaseReceiveRequest> };
+
+/**
+ * @summary Receive goods against an approved purchase order; an empty number gets the next GRN- number
+ */
+export const useCreatePurchaseReceive = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createPurchaseReceive>>,
+      TError,
+      CreatePurchaseReceiveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createPurchaseReceive>>,
+  TError,
+  CreatePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreatePurchaseReceiveMutationOptions(options), queryClient);
+};
+export const getGetReceiveOrderOptionsUrl = () => {
+  return `/api/erp/procurement/purchase-receives/orders`;
+};
+
+/**
+ * @summary Approved purchase orders of the selected business unit with the quantity still to receive
+ */
+export const getReceiveOrderOptions = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ReceiveOrderOption[]> => {
+  return customFetch<ReceiveOrderOption[]>(getGetReceiveOrderOptionsUrl(), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetReceiveOrderOptionsQueryKey = () => {
+  return [`/api/erp/procurement/purchase-receives/orders`] as const;
+};
+
+export const getGetReceiveOrderOptionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getReceiveOrderOptions>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetReceiveOrderOptionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getReceiveOrderOptions>>> = ({ signal }) =>
+    getReceiveOrderOptions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetReceiveOrderOptionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getReceiveOrderOptions>>
+>;
+export type GetReceiveOrderOptionsQueryError = ErrorType<ProblemDetails>;
+
+export function useGetReceiveOrderOptions<
+  TData = Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getReceiveOrderOptions>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getReceiveOrderOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetReceiveOrderOptions<
+  TData = Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getReceiveOrderOptions>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getReceiveOrderOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetReceiveOrderOptions<
+  TData = Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getReceiveOrderOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Approved purchase orders of the selected business unit with the quantity still to receive
+ */
+
+export function useGetReceiveOrderOptions<
+  TData = Awaited<ReturnType<typeof getReceiveOrderOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getReceiveOrderOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetReceiveOrderOptionsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetPurchaseReceiveUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}`;
+};
+
+export const getPurchaseReceive = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveDetail> => {
+  return customFetch<PurchaseReceiveDetail>(getGetPurchaseReceiveUrl(id), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPurchaseReceiveQueryKey = (id: number) => {
+  return [`/api/erp/procurement/purchase-receives/${id}`] as const;
+};
+
+export const getGetPurchaseReceiveQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPurchaseReceive>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceive>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPurchaseReceiveQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseReceive>>> = ({ signal }) =>
+    getPurchaseReceive(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceive>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetPurchaseReceiveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPurchaseReceive>>
+>;
+export type GetPurchaseReceiveQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPurchaseReceive<
+  TData = Awaited<ReturnType<typeof getPurchaseReceive>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceive>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseReceive>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseReceive>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseReceive<
+  TData = Awaited<ReturnType<typeof getPurchaseReceive>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceive>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseReceive>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseReceive>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseReceive<
+  TData = Awaited<ReturnType<typeof getPurchaseReceive>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceive>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+export function useGetPurchaseReceive<
+  TData = Awaited<ReturnType<typeof getPurchaseReceive>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceive>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPurchaseReceiveQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getUpdatePurchaseReceiveUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}`;
+};
+
+/**
+ * @summary Change a pending receive
+ */
+export const updatePurchaseReceive = async (
+  id: number,
+  savePurchaseReceiveRequest: SavePurchaseReceiveRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseReceiveDetail>(getUpdatePurchaseReceiveUrl(id), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(savePurchaseReceiveRequest),
+  });
+};
+
+export const getUpdatePurchaseReceiveMutationKey = () => ['updatePurchaseReceive'] as const;
+
+export const getUpdatePurchaseReceiveMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePurchaseReceive>>,
+    TError,
+    UpdatePurchaseReceiveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePurchaseReceive>>,
+  TError,
+  UpdatePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdatePurchaseReceiveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePurchaseReceive>>,
+    UpdatePurchaseReceiveMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updatePurchaseReceive(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePurchaseReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePurchaseReceive>>
+>;
+export type UpdatePurchaseReceiveMutationBody = BodyType<SavePurchaseReceiveRequest>;
+export type UpdatePurchaseReceiveMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type UpdatePurchaseReceiveMutationVariables = {
+  id: number;
+  data: BodyType<SavePurchaseReceiveRequest>;
+};
+
+/**
+ * @summary Change a pending receive
+ */
+export const useUpdatePurchaseReceive = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updatePurchaseReceive>>,
+      TError,
+      UpdatePurchaseReceiveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updatePurchaseReceive>>,
+  TError,
+  UpdatePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdatePurchaseReceiveMutationOptions(options), queryClient);
+};
+export const getDeletePurchaseReceiveUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}`;
+};
+
+/**
+ * @summary Delete a pending or rejected receive
+ */
+export const deletePurchaseReceive = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  return customFetch<void>(getDeletePurchaseReceiveUrl(id), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getDeletePurchaseReceiveMutationKey = () => ['deletePurchaseReceive'] as const;
+
+export const getDeletePurchaseReceiveMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePurchaseReceive>>,
+    TError,
+    DeletePurchaseReceiveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePurchaseReceive>>,
+  TError,
+  DeletePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeletePurchaseReceiveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePurchaseReceive>>,
+    DeletePurchaseReceiveMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deletePurchaseReceive(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePurchaseReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePurchaseReceive>>
+>;
+
+export type DeletePurchaseReceiveMutationError = ErrorType<ProblemDetails>;
+export type DeletePurchaseReceiveMutationVariables = { id: number };
+
+/**
+ * @summary Delete a pending or rejected receive
+ */
+export const useDeletePurchaseReceive = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deletePurchaseReceive>>,
+      TError,
+      DeletePurchaseReceiveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deletePurchaseReceive>>,
+  TError,
+  DeletePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeletePurchaseReceiveMutationOptions(options), queryClient);
+};
+export const getGetPurchaseReceiveApprovalUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}/approval`;
+};
+
+/**
+ * @summary Approval steps of a receive and whether the current user can act on the current one
+ */
+export const getPurchaseReceiveApproval = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ApprovalProgress> => {
+  return customFetch<ApprovalProgress>(getGetPurchaseReceiveApprovalUrl(id), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPurchaseReceiveApprovalQueryKey = (id: number) => {
+  return [`/api/erp/procurement/purchase-receives/${id}/approval`] as const;
+};
+
+export const getGetPurchaseReceiveApprovalQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPurchaseReceiveApprovalQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>> = ({
+    signal,
+  }) => getPurchaseReceiveApproval(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetPurchaseReceiveApprovalQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPurchaseReceiveApproval>>
+>;
+export type GetPurchaseReceiveApprovalQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPurchaseReceiveApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseReceiveApproval>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseReceiveApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseReceiveApproval>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseReceiveApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Approval steps of a receive and whether the current user can act on the current one
+ */
+
+export function useGetPurchaseReceiveApproval<
+  TData = Awaited<ReturnType<typeof getPurchaseReceiveApproval>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReceiveApproval>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPurchaseReceiveApprovalQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getApprovePurchaseReceiveUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}/approve`;
+};
+
+export const approvePurchaseReceive = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseReceiveDetail>(getApprovePurchaseReceiveUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getApprovePurchaseReceiveMutationKey = () => ['approvePurchaseReceive'] as const;
+
+export const getApprovePurchaseReceiveMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof approvePurchaseReceive>>,
+    TError,
+    ApprovePurchaseReceiveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof approvePurchaseReceive>>,
+  TError,
+  ApprovePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getApprovePurchaseReceiveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof approvePurchaseReceive>>,
+    ApprovePurchaseReceiveMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return approvePurchaseReceive(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ApprovePurchaseReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof approvePurchaseReceive>>
+>;
+export type ApprovePurchaseReceiveMutationBody = BodyType<ReviewRequest>;
+export type ApprovePurchaseReceiveMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type ApprovePurchaseReceiveMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+export const useApprovePurchaseReceive = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof approvePurchaseReceive>>,
+      TError,
+      ApprovePurchaseReceiveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof approvePurchaseReceive>>,
+  TError,
+  ApprovePurchaseReceiveMutationVariables,
+  TContext
+> => {
+  return useMutation(getApprovePurchaseReceiveMutationOptions(options), queryClient);
+};
+export const getRejectPurchaseReceiveUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}/reject`;
+};
+
+/**
+ * @summary Reject a pending receive; the comment is the reason and is required
+ */
+export const rejectPurchaseReceive = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseReceiveDetail>(getRejectPurchaseReceiveUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getRejectPurchaseReceiveMutationKey = () => ['rejectPurchaseReceive'] as const;
+
+export const getRejectPurchaseReceiveMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rejectPurchaseReceive>>,
+    TError,
+    RejectPurchaseReceiveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof rejectPurchaseReceive>>,
+  TError,
+  RejectPurchaseReceiveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRejectPurchaseReceiveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof rejectPurchaseReceive>>,
+    RejectPurchaseReceiveMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return rejectPurchaseReceive(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RejectPurchaseReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof rejectPurchaseReceive>>
+>;
+export type RejectPurchaseReceiveMutationBody = BodyType<ReviewRequest>;
+export type RejectPurchaseReceiveMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type RejectPurchaseReceiveMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Reject a pending receive; the comment is the reason and is required
+ */
+export const useRejectPurchaseReceive = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof rejectPurchaseReceive>>,
+      TError,
+      RejectPurchaseReceiveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof rejectPurchaseReceive>>,
+  TError,
+  RejectPurchaseReceiveMutationVariables,
+  TContext
+> => {
+  return useMutation(getRejectPurchaseReceiveMutationOptions(options), queryClient);
 };

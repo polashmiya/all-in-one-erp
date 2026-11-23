@@ -1,6 +1,6 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProcurementItemOption } from '@erp/api-client';
-import { DetailSection, usePlaceholder } from '@erp/ui';
+import { DetailSection, TitleCell, usePlaceholder } from '@erp/ui';
 import { Button, Form, Input, InputNumber, Table, type TableColumnsType } from 'antd';
 import type { FormListFieldData } from 'antd/es/form/FormList';
 import type { ReactNode } from 'react';
@@ -32,6 +32,7 @@ export function LineGrid<L extends BaseLine>({
   onPick,
   totals,
   note,
+  fixed,
 }: {
   description: string;
   columns: LineColumn<L>[];
@@ -39,6 +40,7 @@ export function LineGrid<L extends BaseLine>({
   onPick: (option: ProcurementItemOption) => Partial<L>;
   totals: (lines: L[]) => LineTotal[];
   note: { name: Extract<keyof L, string>; placeholder: string; maxLength: number };
+  fixed?: boolean;
 }) {
   const { t } = useTranslation();
   const placeholder = usePlaceholder();
@@ -54,7 +56,9 @@ export function LineGrid<L extends BaseLine>({
         const line = lines[field.name];
         return (
           <div className="erp-lines__cell">
+            {fixed && <TitleCell title={line?.itemName} subtitle={line?.itemCode} />}
             <Form.Item
+              hidden={fixed}
               name={[field.name, 'itemId']}
               rules={[
                 { required: true, message: t('procurement.lines.itemRequired') },
@@ -173,9 +177,13 @@ export function LineGrid<L extends BaseLine>({
             />
             <Form.ErrorList errors={errors} />
             <div className="erp-lines__footer">
-              <Button type="dashed" icon={<PlusOutlined />} onClick={() => add(newLine())}>
-                {t('procurement.lines.add')}
-              </Button>
+              {fixed ? (
+                <span />
+              ) : (
+                <Button type="dashed" icon={<PlusOutlined />} onClick={() => add(newLine())}>
+                  {t('procurement.lines.add')}
+                </Button>
+              )}
               <LineTotals items={totals(lines)} />
             </div>
           </div>

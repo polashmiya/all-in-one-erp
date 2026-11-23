@@ -154,6 +154,10 @@ public class ErpDbContext : DbContext
 
     public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
 
+    public DbSet<PurchaseReceive> PurchaseReceives => Set<PurchaseReceive>();
+
+    public DbSet<PurchaseReceiveLine> PurchaseReceiveLines => Set<PurchaseReceiveLine>();
+
     public DbSet<ApprovalLevel> ApprovalLevels => Set<ApprovalLevel>();
 
     public DbSet<ApprovalStep> ApprovalSteps => Set<ApprovalStep>();

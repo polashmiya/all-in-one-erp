@@ -38,6 +38,7 @@ export function RequisitionPicker({
         price: line.rate,
         discount: null,
         vatPercentage: line.vatPercentage,
+        specification: line.remarks,
       })),
     });
   };

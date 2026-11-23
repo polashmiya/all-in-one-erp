@@ -15,4 +15,3 @@ export const ORDER_LOOKUPS = {
 export const ORDER_LOOKUP_LISTS = [ORDER_LOOKUPS.paymentType, ORDER_LOOKUPS.itemType];
 
 export const SPECIFICATION_MAX = 1000;
-export const VAT_MAX = 100;

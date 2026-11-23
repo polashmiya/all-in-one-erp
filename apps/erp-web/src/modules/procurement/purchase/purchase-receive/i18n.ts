@@ -1,0 +1,48 @@
+import type { AppResources } from '@erp/ui';
+
+export const purchaseReceiveResources: AppResources = {
+  en: {
+    'receive.title': 'Purchase Receive',
+    'receive.subtitle': 'Goods received (GRN) against approved purchase orders in {{unit}}.',
+    'receive.new': 'New receive',
+    'receive.search': 'Search GRN, order, supplier, challan…',
+    'receive.searchLabel': 'Search receives',
+    'receive.emptyTitle': 'Nothing received yet',
+    'receive.emptyText':
+      'Receive goods when they arrive. Pick an approved purchase order and enter what came in.',
+    'receive.exportFile': 'purchase-receives',
+    'receive.notFound': 'This receive does not exist.',
+    'receive.backToList': 'Back to receives',
+    'receive.form.newTitle': 'New receive',
+    'receive.form.editTitle': 'Edit receive',
+    'receive.form.save': 'Save receive',
+    'receive.form.saved': 'Receive {{code}} saved',
+    'receive.lines.description':
+      'Items come from the purchase order. Change the quantity to what actually arrived.',
+    'receive.lines.left': 'Left to receive',
+    'receive.lines.batch': 'Batch',
+    'receive.lines.batchPlaceholder': 'Batch or lot no.',
+    'receive.meta.received': 'Received {{date}}',
+  },
+  bn: {
+    'receive.title': 'ক্রয়কৃত মাল গ্রহণ',
+    'receive.subtitle': '{{unit}}-এ অনুমোদিত ক্রয় আদেশের বিপরীতে গৃহীত মাল (জিআরএন)।',
+    'receive.new': 'নতুন গ্রহণ',
+    'receive.search': 'জিআরএন, আদেশ, সরবরাহকারী, চালান খুঁজুন…',
+    'receive.searchLabel': 'গ্রহণ খুঁজুন',
+    'receive.emptyTitle': 'এখনও কিছু গ্রহণ করা হয়নি',
+    'receive.emptyText': 'মাল এলে গ্রহণ করুন। অনুমোদিত ক্রয় আদেশ বেছে নিয়ে যা এসেছে তা লিখুন।',
+    'receive.exportFile': 'purchase-receives',
+    'receive.notFound': 'এই গ্রহণ নেই।',
+    'receive.backToList': 'গ্রহণের তালিকায় ফিরুন',
+    'receive.form.newTitle': 'নতুন গ্রহণ',
+    'receive.form.editTitle': 'গ্রহণ সম্পাদনা',
+    'receive.form.save': 'গ্রহণ সংরক্ষণ',
+    'receive.form.saved': 'গ্রহণ {{code}} সংরক্ষিত হয়েছে',
+    'receive.lines.description': 'আইটেম ক্রয় আদেশ থেকে আসে। আসলে যতটুকু এসেছে সেই পরিমাণ দিন।',
+    'receive.lines.left': 'গ্রহণ বাকি',
+    'receive.lines.batch': 'ব্যাচ',
+    'receive.lines.batchPlaceholder': 'ব্যাচ বা লট নম্বর',
+    'receive.meta.received': 'গ্রহণ {{date}}',
+  },
+};

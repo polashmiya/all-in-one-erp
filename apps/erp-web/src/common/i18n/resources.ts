@@ -19,6 +19,7 @@ import { myApprovalsResources } from '@/modules/approval/my-approvals/i18n';
 import { procurementResources } from '@/modules/procurement/i18n';
 import { purchaseRequisitionResources } from '@/modules/procurement/purchase/purchase-requisition/i18n';
 import { purchaseOrderResources } from '@/modules/procurement/purchase/purchase-order/i18n';
+import { purchaseReceiveResources } from '@/modules/procurement/purchase/purchase-receive/i18n';
 
 const commonErpResources: AppResources = {
   en: {
@@ -74,4 +75,5 @@ export const erpResources = mergeResources(
   procurementResources,
   purchaseRequisitionResources,
   purchaseOrderResources,
+  purchaseReceiveResources,
 );

@@ -39,3 +39,21 @@ internal sealed class OrderApprovalSource : IApprovalSource
                 db.ErpUsers.Where(u => u.Id == o.CreatedById).Select(u => u.FullName).FirstOrDefault(),
                 o.CreatedAt));
 }
+
+internal sealed class ReceiveApprovalSource : IApprovalSource
+{
+    public string Feature => ProcurementMenu.PurchaseReceive;
+
+    public IQueryable<ApprovalDocumentInfo> Documents(ErpDbContext db, ApprovalStatus? status, IReadOnlyCollection<int>? ids) =>
+        db.PurchaseReceives
+            .Where(r => r.IsActive && (status == null || r.Status == status) && (ids == null || ids.Contains(r.Id)))
+            .Select(r => new ApprovalDocumentInfo(
+                r.Id,
+                r.Code,
+                r.ReceiveDate,
+                db.Suppliers.Where(s => s.Id == r.SupplierId).Select(s => s.Name).FirstOrDefault(),
+                r.NetAmount,
+                r.Status,
+                db.ErpUsers.Where(u => u.Id == r.CreatedById).Select(u => u.FullName).FirstOrDefault(),
+                r.CreatedAt));
+}

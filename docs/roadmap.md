@@ -399,6 +399,33 @@ Left open:
 - Purchase Receive (received quantities) needs the owner's table script.
 - Requisition line remarks are not copied to the purchase order specification.
 
+## Done: phase 21 — Purchase Receive (GRN) (2026-11-23)
+
+- Based on the legacy `PurchaseReceive` and `PurchaseReceiveLine` scripts. Migration `PurchaseReceive`: tables
+  `PurchaseReceive` (GRN no., receive date, purchase order, supplier from the order, warehouse, challan no. and date,
+  VAT challan no., payment type, payment days, VAT inclusive, header discount, delivery, labor and other charge,
+  quantity, line discount, item total, VAT, net, status, review, `CustomData`) and `PurchaseReceiveLine` (item, UOM,
+  quantity, price, total, line discount, VAT %, VAT, net, batch). LC, bill of entry, shipment, offer item, asset,
+  serial, loss, agro, payment, advance and bill columns stay out until Payment, Return or import screens need them.
+  There is no stock table yet, so receiving does not post stock.
+- A receive is always against an approved purchase order and only for its items. Saving, rejecting or deleting a
+  receive recounts the order's received quantity (lines and header). The quantity left is the ordered quantity
+  plus the supplier's receive tolerance, minus what other receives took; more is refused.
+- API `/api/erp/procurement/purchase-receives`: list with supplier, warehouse and payment type filters; approved
+  orders with the quantity left (`/orders`); get; create; update (pending only); approval progress; approve;
+  reject; delete. Empty number gives `GRN-00001`. Multi-level approval and My Approvals include receives.
+- Shared line pricing: `Pricing.Line` (API) and `pricing.ts` (ERP, unit tested); `PricedLines` holds the price,
+  discount, VAT and net columns and totals for orders and receives. `LineGrid` has a `fixed` mode (items from the
+  source document, no item picker or Add item). `ApprovalCalls.close` is optional (receives have no Close).
+- Requisition line remarks now fill the purchase order specification when ordering from a requisition.
+- Checked with `PurchaseReceiveTests` (pricing and received quantity, tolerance, item not on the order, reject and
+  delete give the quantity back, pending order refused), typecheck, lint, web tests and a Playwright run in Chrome.
+
+Left open:
+
+- Stock posting waits for the inventory (stock ledger) tables.
+- An order that is fully received is not closed automatically.
+
 Still open for later, ask the owner:
 
 1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
@@ -407,15 +434,15 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-23. Phases 0 to 20 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-23. Phases 0 to 21 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
-supplier profiles), Procurement (Purchase Requisition, Purchase Order) and multi-level approval. Next: Purchase
-Receive (needs the table script), then "Still open for later".
+supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive) and multi-level approval.
+Next: Purchase Return or Purchase Payment (need their table scripts), then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
-`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`.
+`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`.
 
 ## Working on another machine
 

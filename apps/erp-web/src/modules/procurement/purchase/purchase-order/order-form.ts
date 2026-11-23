@@ -107,30 +107,6 @@ export function toRequest(v: OrderValues): SavePurchaseOrderRequest {
   };
 }
 
-const round = (value: number) => Math.round(value * 100) / 100;
-
-export function priced(line: OrderLine | undefined, vatInclusive: boolean) {
-  const total = round((line?.quantity ?? 0) * (line?.price ?? 0));
-  const taxable = total - (line?.discount ?? 0);
-  const rate = line?.vatPercentage ?? 0;
-  const vat = round(vatInclusive ? (taxable * rate) / (100 + rate) : (taxable * rate) / 100);
-  return { total, vat, net: vatInclusive ? taxable : taxable + vat };
-}
-
-export function orderTotals(
-  lines: OrderLine[],
-  header: Pick<OrderValues, 'isVatInclusive' | 'headerDiscount'> & { charges: number },
-) {
-  const prices = lines.map((line) => priced(line, !!header.isVatInclusive));
-  const itemTotal = prices.reduce((sum, p) => sum + p.net, 0);
-  return {
-    quantity: lines.reduce((sum, line) => sum + (line?.quantity ?? 0), 0),
-    vat: prices.reduce((sum, p) => sum + p.vat, 0),
-    itemTotal,
-    net: itemTotal - (header.headerDiscount ?? 0) + header.charges,
-  };
-}
-
 export const orderCalls: ApprovalCalls = {
   approve: (id, data) => approvePurchaseOrder(id, data),
   reject: (id, data) => rejectPurchaseOrder(id, data),

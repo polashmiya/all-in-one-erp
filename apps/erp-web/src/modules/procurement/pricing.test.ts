@@ -1,4 +1,4 @@
-import { orderTotals, priced } from './order-form';
+import { pricedTotals, priced } from './pricing';
 
 describe('order pricing', () => {
   it('adds VAT on top of the discounted amount', () => {
@@ -22,7 +22,7 @@ describe('order pricing', () => {
       { quantity: 2, price: 100, discount: 20, vatPercentage: 10 },
       { quantity: 1, price: 50 },
     ];
-    expect(orderTotals(lines, { isVatInclusive: false, headerDiscount: 8, charges: 10 })).toEqual({
+    expect(pricedTotals(lines, { isVatInclusive: false, headerDiscount: 8, charges: 10 })).toEqual({
       quantity: 3,
       vat: 18,
       itemTotal: 248,

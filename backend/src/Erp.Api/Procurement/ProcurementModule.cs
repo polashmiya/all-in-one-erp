@@ -1,5 +1,6 @@
 using Erp.Api.Approvals;
 using Erp.Api.Procurement.PurchaseOrders;
+using Erp.Api.Procurement.PurchaseReceives;
 using Erp.Api.Procurement.PurchaseRequisitions;
 using Erp.Core.Authorization;
 using Erp.Core.Modules;
@@ -10,7 +11,8 @@ namespace Erp.Api.Procurement;
 
 public static class ProcurementModule
 {
-    public static readonly string[] Editors = [.. PurchaseRequisitionEndpoints.Editors, .. PurchaseOrderEndpoints.Editors];
+    public static readonly string[] Editors =
+        [.. PurchaseRequisitionEndpoints.Editors, .. PurchaseOrderEndpoints.Editors, .. PurchaseReceiveEndpoints.Editors];
 
     public static IServiceCollection AddProcurementModule(this IServiceCollection services)
     {
@@ -18,9 +20,11 @@ public static class ProcurementModule
         services.AddSingleton<IErpEndpoints, ProcurementEndpoints>();
         services.AddSingleton<IFeatureManifestProvider, PurchaseRequisitionManifest>();
         services.AddSingleton<IFeatureManifestProvider, PurchaseOrderManifest>();
+        services.AddSingleton<IFeatureManifestProvider, PurchaseReceiveManifest>();
         services.AddSingleton<ILookupProvider, ProcurementLookups>();
         services.AddSingleton<IApprovalSource, RequisitionApprovalSource>();
         services.AddSingleton<IApprovalSource, OrderApprovalSource>();
+        services.AddSingleton<IApprovalSource, ReceiveApprovalSource>();
         return services;
     }
 }
@@ -39,5 +43,6 @@ public sealed class ProcurementEndpoints : IErpEndpoints
 
         PurchaseRequisitionEndpoints.Map(group);
         PurchaseOrderEndpoints.Map(group);
+        PurchaseReceiveEndpoints.Map(group);
     }
 }
