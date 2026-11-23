@@ -1,36 +1,20 @@
-import {
-  CalendarOutlined,
-  EditOutlined,
-  FileTextOutlined,
-  HomeOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { CalendarOutlined, FileTextOutlined, HomeOutlined, UserOutlined } from '@ant-design/icons';
 import {
   getGetPurchaseRequisitionQueryKey,
   useGetPurchaseRequisition,
-  type FeatureConfig,
-  type RequisitionDetail,
+  type RequisitionLine,
 } from '@erp/api-client';
-import { useViewTabs } from '@erp/metadata-engine';
-import {
-  DescriptionList,
-  DetailSection,
-  DetailsPageLayout,
-  ForbiddenResult,
-  formatDate,
-  formatDateTime,
-  StatusTag,
-} from '@erp/ui';
+import { DetailsPageLayout, ForbiddenResult, formatDate, formatMoney, formatNumber } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router';
-import { useCustomLookups } from '@/common/hooks/useCustomLookups';
+import { useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { RequisitionLinesView } from '../components/RequisitionLinesView';
-import { RequisitionStatusTag } from '../components/RequisitionStatusTag';
-import { useRequisitionActions } from '../components/useRequisitionActions';
+import { DocumentView } from '../../../components/DocumentView';
+import { LinesView } from '../../../components/LinesView';
+import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
 import { REQUISITION_FEATURE, requisitionPaths } from '../constants';
+import { requisitionCalls } from '../requisition-form';
 
 export function RequisitionViewPage() {
   const { t } = useTranslation();
@@ -43,7 +27,8 @@ export function RequisitionViewPage() {
 
   if (!access.view) return <ForbiddenResult />;
 
-  if (!query.data || !config.data) {
+  const requisition = query.data;
+  if (!requisition || !config.data) {
     const loading = query.isPending || config.isPending;
     return (
       <DetailsPageLayout
@@ -57,139 +42,70 @@ export function RequisitionViewPage() {
     );
   }
 
-  return <RequisitionView requisition={query.data} config={config.data} />;
-}
-
-function RequisitionView({
-  requisition,
-  config,
-}: {
-  requisition: RequisitionDetail;
-  config: FeatureConfig;
-}) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const access = useFeatureAccess(REQUISITION_FEATURE);
-  const tabs = useViewTabs(config, requisition, {}, useCustomLookups(config));
-  const { actions, modal } = useRequisitionActions((action) => {
-    if (action === 'deleted') void navigate(requisitionPaths.list, { replace: true });
-  });
-  const [approve, ...more] = actions(requisition);
-
-  const review = requisition.reviewedAt && (
-    <DetailSection title={t('requisition.side.review')}>
-      <DescriptionList
-        columns={3}
-        items={[
-          {
-            key: 'by',
-            label: t('requisition.side.reviewedBy'),
-            value: requisition.reviewedByName,
-          },
-          {
-            key: 'at',
-            label: t('requisition.side.reviewedAt'),
-            value: formatDateTime(requisition.reviewedAt),
-          },
-          {
-            key: 'comment',
-            label: t(
-              requisition.status === 'rejected' ? 'requisition.reason' : 'requisition.comment',
-            ),
-            value: requisition.reviewComment,
-            wide: true,
-          },
-        ]}
-      />
-    </DetailSection>
-  );
-
-  const recordInfo = (
-    <DetailSection title={t('requisition.side.recordInfo')}>
-      <DescriptionList
-        columns={3}
-        items={[
-          {
-            key: 'created',
-            label: t('requisition.side.created'),
-            value: formatDateTime(requisition.createdAt),
-          },
-          {
-            key: 'updated',
-            label: t('requisition.side.updated'),
-            value: requisition.modifiedAt ? formatDateTime(requisition.modifiedAt) : null,
-          },
-        ]}
-      />
-    </DetailSection>
-  );
-
-  const extra = [
-    { key: 'lines', content: <RequisitionLinesView requisition={requisition} /> },
-    ...(review ? [{ key: 'review', content: review }] : []),
-    { key: 'record', content: recordInfo },
-  ];
-
   return (
-    <>
-      <DetailsPageLayout
-        crumbs={[requisition.code]}
-        header={{
-          backTo: requisitionPaths.list,
-          icon: <FileTextOutlined />,
-          tint: 'blue',
-          title: requisition.code,
-          tags: (
-            <>
-              <RequisitionStatusTag status={requisition.status} />
-              {requisition.requestTypeName && (
-                <StatusTag tone="violet">{requisition.requestTypeName}</StatusTag>
-              )}
-            </>
-          ),
-          meta: [
+    <DocumentView
+      document={requisition}
+      config={config.data}
+      feature={REQUISITION_FEATURE}
+      paths={requisitionPaths}
+      calls={requisitionCalls}
+      icon={<FileTextOutlined />}
+      tag={requisition.requestTypeName}
+      meta={[
+        {
+          key: 'dates',
+          icon: <CalendarOutlined />,
+          label: [
+            t('requisition.meta.requested', { date: formatDate(requisition.requestDate) }),
+            requisition.dueDate
+              ? t('requisition.meta.due', { date: formatDate(requisition.dueDate) })
+              : t('requisition.meta.noDue'),
+          ].join(' · '),
+        },
+        { key: 'warehouse', icon: <HomeOutlined />, label: requisition.warehouseName },
+        {
+          key: 'requester',
+          icon: <UserOutlined />,
+          label: [requisition.employeeName, requisition.departmentName].filter(Boolean).join(' · '),
+        },
+      ]}
+      lines={
+        <LinesView<RequisitionLine>
+          rows={requisition.lines}
+          columns={[
             {
-              key: 'dates',
-              icon: <CalendarOutlined />,
-              label: [
-                t('requisition.meta.requested', { date: formatDate(requisition.requestDate) }),
-                requisition.dueDate
-                  ? t('requisition.meta.due', { date: formatDate(requisition.dueDate) })
-                  : t('requisition.meta.noDue'),
-              ].join(' · '),
+              key: 'rate',
+              title: t('requisition.lines.rate'),
+              align: 'end',
+              render: (_, line) => formatMoney(line.rate),
             },
-            { key: 'warehouse', icon: <HomeOutlined />, label: requisition.warehouseName },
             {
-              key: 'requester',
-              icon: <UserOutlined />,
-              label: [requisition.employeeName, requisition.departmentName]
-                .filter(Boolean)
-                .join(' · '),
+              key: 'amount',
+              title: t('requisition.lines.amount'),
+              align: 'end',
+              render: (_, line) => formatMoney(line.amount),
             },
-          ].filter((item) => item.label),
-          actions: [
             {
-              key: 'edit',
-              label: t('master.edit'),
-              icon: <EditOutlined />,
-              variant: 'primary',
-              hidden: !access.edit || requisition.status !== 'pending',
-              to: requisitionPaths.edit(requisition.id),
+              key: 'remarks',
+              title: t('requisition.lines.remarks'),
+              render: (_, line) => line.remarks ?? '—',
             },
-            ...(approve ? [approve] : []),
+          ]}
+          totals={[
             {
-              key: 'more',
-              label: t('common.moreActions'),
-              hidden: more.every((action) => action.hidden),
-              menu: more,
+              key: 'quantity',
+              label: t('procurement.lines.totalQuantity'),
+              value: formatNumber(requisition.totalQuantity, QUANTITY_DECIMALS_SHOWN),
             },
-          ],
-        }}
-        tabs={tabs.map((tab, index) =>
-          index === tabs.length - 1 ? { ...tab, sections: [...tab.sections, ...extra] } : tab,
-        )}
-      />
-      {modal}
-    </>
+            {
+              key: 'amount',
+              label: t('requisition.col.amount'),
+              value: formatMoney(requisition.totalAmount),
+              strong: true,
+            },
+          ]}
+        />
+      }
+    />
   );
 }

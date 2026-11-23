@@ -1,7 +1,7 @@
 import {
-  getGetRequisitionItemOptionsQueryKey,
-  useGetRequisitionItemOptions,
-  type RequisitionItemOption,
+  getGetProcurementItemOptionsQueryKey,
+  useGetProcurementItemOptions,
+  type ProcurementItemOption,
 } from '@erp/api-client';
 import { useDebouncedValue } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ export interface PickedItem {
   name?: string;
 }
 
-export function RequisitionItemSelect({
+export function ItemSelect({
   id,
   picked,
   placeholder,
@@ -28,13 +28,13 @@ export function RequisitionItemSelect({
   placeholder?: string;
   value?: number | null;
   onChange?: (value: number | null) => void;
-  onPick: (option: RequisitionItemOption) => void;
+  onPick: (option: ProcurementItemOption) => void;
 }) {
   const [search, setSearch] = useState('');
   const params = { search: useDebouncedValue(search).trim() || undefined };
-  const query = useGetRequisitionItemOptions(params, {
+  const query = useGetProcurementItemOptions(params, {
     query: {
-      queryKey: useUnitKey(getGetRequisitionItemOptionsQueryKey(params)),
+      queryKey: useUnitKey(getGetProcurementItemOptionsQueryKey(params)),
       placeholderData: keepPreviousData,
     },
   });

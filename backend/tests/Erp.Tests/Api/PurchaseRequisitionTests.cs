@@ -3,12 +3,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Erp.Api.Procurement;
 using Erp.Api.Procurement.PurchaseRequisitions;
-using Erp.Core.Domain.Inventory;
-using Erp.Infrastructure.Persistence;
 using Erp.Metadata;
 using Erp.Tests.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using static Erp.Tests.Api.ProcurementTestData;
 
 namespace Erp.Tests.Api;
 
@@ -16,7 +13,6 @@ namespace Erp.Tests.Api;
 public sealed class PurchaseRequisitionTests(ApiFactory factory)
 {
     private const string Url = "/api/erp/procurement/purchase-requisitions";
-    private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.Today);
 
     [Fact]
     public async Task A_requisition_gets_the_next_number_and_totals_and_shows_only_in_its_unit()
@@ -67,7 +63,7 @@ public sealed class PurchaseRequisitionTests(ApiFactory factory)
         var created = await ReadAsync<RequisitionDetail>(await admin.PostAsJsonAsync(Url, request));
 
         var approved = await ReadAsync<RequisitionDetail>(
-            await admin.PostAsJsonAsync($"{Url}/{created.Id}/approve", new ReviewRequisitionRequest("Go ahead")));
+            await admin.PostAsJsonAsync($"{Url}/{created.Id}/approve", new ReviewRequest("Go ahead")));
         var edit = await admin.PutAsJsonAsync($"{Url}/{created.Id}", request);
         var delete = await admin.DeleteAsync($"{Url}/{created.Id}");
         var closed = await ReadAsync<RequisitionDetail>(await admin.PostAsync($"{Url}/{created.Id}/close", null));
@@ -86,9 +82,9 @@ public sealed class PurchaseRequisitionTests(ApiFactory factory)
         var request = await RequisitionAsync(factory.DhakaId) with { Lines = [Line(await ItemAsync(factory.DhakaId, 2m), 1)] };
         var created = await ReadAsync<RequisitionDetail>(await admin.PostAsJsonAsync(Url, request));
 
-        var noReason = await admin.PostAsJsonAsync($"{Url}/{created.Id}/reject", new ReviewRequisitionRequest(" "));
+        var noReason = await admin.PostAsJsonAsync($"{Url}/{created.Id}/reject", new ReviewRequest(" "));
         var rejected = await ReadAsync<RequisitionDetail>(
-            await admin.PostAsJsonAsync($"{Url}/{created.Id}/reject", new ReviewRequisitionRequest("Not in budget")));
+            await admin.PostAsJsonAsync($"{Url}/{created.Id}/reject", new ReviewRequest("Not in budget")));
         var deleted = await admin.DeleteAsync($"{Url}/{created.Id}");
 
         Assert.Equal(["comment"], await ErrorsAsync(noReason));
@@ -154,50 +150,4 @@ public sealed class PurchaseRequisitionTests(ApiFactory factory)
         Rate = null,
         Remarks = null,
     };
-
-    private static async Task<Guid> WarehouseAsync(Guid unitId)
-    {
-        await using var db = ApiFactory.CreateDbContext();
-        return await db.Warehouses.AcrossTenants().Where(w => w.BusinessUnitId == unitId && w.IsActive).Select(w => w.Id).FirstAsync();
-    }
-
-    private static async Task<int> ItemAsync(Guid unitId, decimal cost)
-    {
-        await using var db = ApiFactory.CreateDbContext();
-        var minor = await db.ItemMinorCategories.AcrossTenants()
-            .Where(m => m.BusinessUnitId == unitId && m.IsActive)
-            .Select(m => new { m.Id, m.AccountId, m.CategoryId, m.SubCategoryId, DepartmentId = db.ItemCategories.AcrossTenants().Where(c => c.Id == m.CategoryId).Select(c => c.DepartmentId).First() })
-            .FirstAsync();
-        var uom = await db.UnitsOfMeasure.AcrossTenants().Where(u => u.AccountId == minor.AccountId).FirstAsync();
-        var code = Unique();
-        var item = new Item
-        {
-            AccountId = minor.AccountId,
-            BusinessUnitId = unitId,
-            Code = code,
-            BarCode = code,
-            Name = $"Item {code}",
-            DepartmentId = minor.DepartmentId,
-            CategoryId = minor.CategoryId,
-            SubCategoryId = minor.SubCategoryId,
-            MinorCategoryId = minor.Id,
-            UomId = uom.Id,
-            UomName = uom.Name,
-            LastCostPrice = cost,
-        };
-        db.Items.Add(item);
-        await db.SaveChangesAsync();
-        return item.Id;
-    }
-
-    private static async Task<T> ReadAsync<T>(HttpResponseMessage response, HttpStatusCode expected = HttpStatusCode.OK)
-    {
-        Assert.Equal(expected, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<T>())!;
-    }
-
-    private static async Task<IEnumerable<string>> ErrorsAsync(HttpResponseMessage response) =>
-        (await ReadAsync<ValidationProblemDetails>(response, HttpStatusCode.BadRequest)).Errors.Keys;
-
-    private static string Unique() => Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
 }

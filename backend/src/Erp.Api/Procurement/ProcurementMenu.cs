@@ -8,8 +8,9 @@ public sealed class ProcurementMenu : IErpMenuProvider
     public const string Approve = "approve";
 
     public const string PurchaseRequisition = "procurement.purchase-requisition";
+    public const string PurchaseOrder = "procurement.purchase-order";
 
-    private static readonly string[] RequisitionActions =
+    private static readonly string[] ApprovalActions =
         [FeatureActions.View, FeatureActions.Create, FeatureActions.Edit, FeatureActions.Delete, FeatureActions.Export, Approve];
 
     private static readonly string[] ReportActions = [FeatureActions.View, FeatureActions.Export];
@@ -20,8 +21,8 @@ public sealed class ProcurementMenu : IErpMenuProvider
         [
             new("purchase", new("Purchase", "ক্রয়"), "shopping-cart", 10,
             [
-                new("purchase-requisition", new("Purchase Requisition", "ক্রয় চাহিদাপত্র"), 10, RequisitionActions),
-                new("purchase-order", new("Purchase Order", "ক্রয় আদেশ"), 20),
+                new("purchase-requisition", new("Purchase Requisition", "ক্রয় চাহিদাপত্র"), 10, ApprovalActions),
+                new("purchase-order", new("Purchase Order", "ক্রয় আদেশ"), 20, ApprovalActions),
                 new("purchase-receive", new("Purchase Receive", "ক্রয়কৃত মাল গ্রহণ"), 30),
                 new("purchase-return", new("Purchase Return", "ক্রয় ফেরত"), 40),
                 new("purchase-payment", new("Purchase Payment", "ক্রয় পরিশোধ"), 50),

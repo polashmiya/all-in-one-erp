@@ -336,7 +336,35 @@ Left open:
 Left open:
 
 - Ask the owner for the real row table script and whether attachments are needed (no file storage yet).
-- The item grid is feature-local; move it to `@erp/ui` when Purchase Order needs the same grid.
+- The item grid moved to `modules/procurement/components` with phase 19.
+
+## Done: phase 19 — Purchase Order (2026-11-23)
+
+- Based on the legacy `PurchaseOrder` and `PurchaseOrderLine` scripts. Migration `PurchaseOrder`: tables
+  `PurchaseOrder` (number, date, supplier, warehouse, requisition, payment type, payment days after receive,
+  expected delivery, item type, reference no., delivery address, VAT inclusive, header discount, delivery, labor
+  and other charge, quantity, received quantity, item total, VAT, net, status, review, `CustomData`) and
+  `PurchaseOrderLine` (item, UOM, quantity, received quantity, price, total, line discount, VAT %, VAT, net,
+  specification). LC, foreign currency, insurance, bank, indenting/customer, advance and payment, RFQ, shift and
+  agro columns stay out until Receive, Payment or an import screen needs them.
+- Pricing on the server: total = quantity × price; VAT on (total − line discount), taken out of the price when
+  VAT inclusive; net amount = item total − header discount + charges. The form shows the same numbers live
+  (`order-form.ts`, unit tested).
+- API `/api/erp/procurement/purchase-orders`: list with supplier, warehouse and payment type filters; approved
+  requisitions with their items (`/requisitions`); get; create; update (pending only); approve; reject; close;
+  delete. Empty number gives `PO-00001`. Lookup list `payment-type`. Supplier options open to order users.
+- Shared procurement code: `ApprovalStatus` and `IApprovalDocument` (domain), `ProcurementData` (counts by
+  status, numbers, review, close, delete, warehouse and item checks) and `/api/erp/procurement/items` (item search
+  with UOM, last cost and purchase VAT). In the ERP, `modules/procurement/components` holds `DocumentListPage`,
+  `DocumentForm`, `DocumentView`, `LineGrid`, `LinesView`, `LineTotals`, `ItemSelect`, `ReviewModal` and
+  `useApprovalActions`; requisition and order pages only add their own fields, columns and totals.
+- Checked with `PurchaseOrderTests`, typecheck, lint, web tests and a Playwright run in Chrome (order from an
+  approved requisition, live totals, save, approve, list).
+
+Left open:
+
+- Ordered quantities are not tracked on the requisition yet; an approved requisition stays offered until closed.
+- Received quantities stay 0 until Purchase Receive is built.
 
 Still open for later, ask the owner:
 
@@ -346,15 +374,15 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-23. Phases 0 to 18 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-23. Phases 0 to 19 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
-supplier profiles) and the Procurement menu with Purchase Requisition. Next: Purchase Order, then "Still open for
-later".
+supplier profiles) and Procurement: Purchase Requisition and Purchase Order. Next: Purchase Receive, then "Still
+open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
-`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`.
+`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`.
 
 ## Working on another machine
 

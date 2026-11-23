@@ -2,15 +2,7 @@ using Erp.Core.Domain.Inventory;
 
 namespace Erp.Core.Domain.Procurement;
 
-public enum RequisitionStatus
-{
-    Pending = 1,
-    Approved = 2,
-    Rejected = 3,
-    Closed = 4,
-}
-
-public class PurchaseRequisition : MasterRecord, IBusinessUnitOwned
+public class PurchaseRequisition : MasterRecord, IBusinessUnitOwned, IApprovalDocument
 {
     public Guid BusinessUnitId { get; set; }
 
@@ -40,7 +32,7 @@ public class PurchaseRequisition : MasterRecord, IBusinessUnitOwned
 
     public string? Remarks { get; set; }
 
-    public RequisitionStatus Status { get; set; } = RequisitionStatus.Pending;
+    public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
     public DateTime? ReviewedAt { get; set; }
 

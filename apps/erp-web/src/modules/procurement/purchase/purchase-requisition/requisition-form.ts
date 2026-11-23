@@ -1,8 +1,10 @@
 import {
+  approvePurchaseRequisition,
+  closePurchaseRequisition,
+  deletePurchaseRequisition,
+  rejectPurchaseRequisition,
   getGetEmployeeOptionsQueryKey,
-  getGetWarehouseOptionsQueryKey,
   useGetEmployeeOptions,
-  useGetWarehouseOptions,
   type RequisitionDetail,
   type SaveRequisitionLine,
   type SaveRequisitionRequest,
@@ -11,7 +13,8 @@ import type { LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
 import { useLookupLists } from '@/common/hooks/useLookupLists';
 import { trimmed, useUnitKey } from '@/common/master-data';
-import { useAuthStore } from '@/common/store/auth-store';
+import type { ApprovalCalls } from '../../components/useApprovalActions';
+import { useUnitWarehouses } from '../../procurement';
 import { REQUISITION_LOOKUP_LISTS, REQUISITION_LOOKUPS } from './constants';
 
 export interface RequisitionLineValue extends SaveRequisitionLine {
@@ -25,18 +28,15 @@ export type RequisitionValues = Omit<SaveRequisitionRequest, 'lines'> & {
 };
 
 export function useRequisitionLookups(enabled = true): LookupSources {
-  const unitId = useAuthStore((s) => s.currentBusinessUnitId);
   const lists = useLookupLists(REQUISITION_LOOKUP_LISTS, enabled);
-  const warehouses = useGetWarehouseOptions({
-    query: { queryKey: useUnitKey(getGetWarehouseOptionsQueryKey()), enabled },
-  });
+  const warehouses = useUnitWarehouses(enabled);
   const employees = useGetEmployeeOptions({
     query: { queryKey: useUnitKey(getGetEmployeeOptionsQueryKey()), enabled },
   });
 
   return {
     ...lists,
-    [REQUISITION_LOOKUPS.warehouse]: warehouses.data?.filter((w) => w.parentId === unitId),
+    [REQUISITION_LOOKUPS.warehouse]: warehouses,
     [REQUISITION_LOOKUPS.employee]: employees.data,
   };
 }
@@ -89,3 +89,10 @@ export function toRequest(v: RequisitionValues): SaveRequisitionRequest {
 
 export const lineAmount = (line?: Partial<RequisitionLineValue>) =>
   (line?.quantity ?? 0) * (line?.rate ?? 0);
+
+export const requisitionCalls: ApprovalCalls = {
+  approve: (id, data) => approvePurchaseRequisition(id, data),
+  reject: (id, data) => rejectPurchaseRequisition(id, data),
+  close: (id) => closePurchaseRequisition(id),
+  remove: (id) => deletePurchaseRequisition(id),
+};

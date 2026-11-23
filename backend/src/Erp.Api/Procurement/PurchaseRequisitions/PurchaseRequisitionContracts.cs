@@ -3,8 +3,6 @@ using FluentValidation;
 
 namespace Erp.Api.Procurement.PurchaseRequisitions;
 
-public sealed record RequisitionCounts(int All, int Pending, int Approved, int Rejected, int Closed);
-
 public sealed record RequisitionRow(
     int Id,
     string Code,
@@ -25,9 +23,7 @@ public sealed record RequisitionRow(
     DateTime? CreatedAt,
     DateTime? ModifiedAt);
 
-public sealed record RequisitionList(IReadOnlyList<RequisitionRow> Items, int Total, RequisitionCounts Counts);
-
-public sealed record RequisitionItemOption(int Id, string Code, string Name, int UomId, string UomName, decimal Rate, bool IsActive);
+public sealed record RequisitionList(IReadOnlyList<RequisitionRow> Items, int Total, ApprovalCounts Counts);
 
 public sealed record SaveRequisitionLine
 {
@@ -55,8 +51,6 @@ public sealed record SaveRequisitionRequest
     public required IReadOnlyList<SaveRequisitionLine> Lines { get; init; }
     public Dictionary<string, JsonElement>? CustomData { get; init; }
 }
-
-public sealed record ReviewRequisitionRequest(string? Comment);
 
 public sealed record RequisitionLine(
     int Id,
@@ -108,15 +102,13 @@ public sealed record RequisitionDetail
 
 internal sealed class SaveRequisitionRequestValidator : AbstractValidator<SaveRequisitionRequest>
 {
-    public const int MaxLines = 500;
-
     public SaveRequisitionRequestValidator()
     {
         RuleFor(x => x.WarehouseId).NotEmpty();
         RuleFor(x => x.DueDate).GreaterThanOrEqualTo(x => x.RequestDate).When(x => x.DueDate is not null)
             .WithMessage("Use a date on or after the request date.");
         RuleFor(x => x.Lines).NotEmpty().WithMessage("Add at least one item.");
-        RuleFor(x => x.Lines.Count).LessThanOrEqualTo(MaxLines).OverridePropertyName("lines");
+        RuleFor(x => x.Lines.Count).LessThanOrEqualTo(ProcurementData.MaxLines).OverridePropertyName("lines");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
             line.RuleFor(l => l.ItemId).GreaterThan(0);
@@ -127,10 +119,3 @@ internal sealed class SaveRequisitionRequestValidator : AbstractValidator<SaveRe
     }
 }
 
-internal sealed class ReviewRequisitionRequestValidator : AbstractValidator<ReviewRequisitionRequest>
-{
-    public ReviewRequisitionRequestValidator()
-    {
-        RuleFor(x => x.Comment).MaximumLength(500);
-    }
-}

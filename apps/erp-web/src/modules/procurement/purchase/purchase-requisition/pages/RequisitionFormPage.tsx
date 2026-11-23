@@ -1,4 +1,10 @@
-import { getGetPurchaseRequisitionQueryKey, useGetPurchaseRequisition } from '@erp/api-client';
+import {
+  getGetPurchaseRequisitionQueryKey,
+  useCreatePurchaseRequisition,
+  useGetPurchaseRequisition,
+  useUpdatePurchaseRequisition,
+} from '@erp/api-client';
+import { defaultValues } from '@erp/metadata-engine';
 import { ForbiddenResult, PageState } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
@@ -6,9 +12,16 @@ import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { RequisitionForm } from '../components/RequisitionForm';
+import { DocumentForm } from '../../../components/DocumentForm';
+import { RequisitionLines } from '../components/RequisitionLines';
 import { REQUISITION_FEATURE, requisitionPaths } from '../constants';
-import type { RequisitionValues } from '../requisition-form';
+import {
+  fromDetail,
+  newRequisition,
+  toRequest,
+  useRequisitionLookups,
+  type RequisitionValues,
+} from '../requisition-form';
 
 export function RequisitionFormPage() {
   const { t } = useTranslation();
@@ -23,6 +36,9 @@ export function RequisitionFormPage() {
       enabled: allowed && id > 0,
     },
   });
+  const lookups = useRequisitionLookups(allowed);
+  const create = useCreatePurchaseRequisition();
+  const update = useUpdatePurchaseRequisition();
 
   if (!allowed) return <ForbiddenResult />;
 
@@ -34,7 +50,7 @@ export function RequisitionFormPage() {
     <PageState
       loading={loading}
       missing={!loading && ((id > 0 && !record) || !config.data || locked)}
-      missingTitle={locked ? t('requisition.form.locked') : t('requisition.notFound')}
+      missingTitle={locked ? t('procurement.locked') : t('requisition.notFound')}
       missingActions={[
         record
           ? { key: 'back', label: record.code, to: requisitionPaths.view(record.id) }
@@ -42,7 +58,33 @@ export function RequisitionFormPage() {
       ]}
     >
       {config.data && (
-        <RequisitionForm key={id || 'new'} config={config.data} record={record} draft={draft} />
+        <DocumentForm<RequisitionValues>
+          key={id || 'new'}
+          config={config.data}
+          record={record}
+          draft={draft}
+          initialValues={
+            record
+              ? fromDetail(record)
+              : { ...defaultValues(config.data), ...newRequisition(), ...draft.values }
+          }
+          options={{ lookups }}
+          lines={<RequisitionLines />}
+          paths={requisitionPaths}
+          texts={{
+            newTitle: t('requisition.form.newTitle'),
+            editTitle: t('requisition.form.editTitle'),
+            save: t('requisition.form.save'),
+            saved: (code) => t('requisition.form.saved', { code }),
+          }}
+          saving={create.isPending || update.isPending}
+          onSave={(values, recordId) => {
+            const data = toRequest(values);
+            return recordId
+              ? update.mutateAsync({ id: recordId, data })
+              : create.mutateAsync({ data });
+          }}
+        />
       )}
     </PageState>
   );

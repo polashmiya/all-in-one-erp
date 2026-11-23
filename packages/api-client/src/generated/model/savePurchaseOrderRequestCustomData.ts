@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1
  */
 
-export type GetRequisitionItemOptionsParams = {
-  search?: string;
-};
+/**
+ * @nullable
+ */
+export type SavePurchaseOrderRequestCustomData = null | { [key: string]: unknown };

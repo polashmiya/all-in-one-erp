@@ -6,10 +6,13 @@
  * OpenAPI spec version: v1
  */
 
-export interface RequisitionCounts {
-  all: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  closed: number;
-}
+export type ListPurchaseOrdersParams = {
+  search?: string;
+  status?: string;
+  supplierId?: number;
+  warehouseId?: string;
+  paymentTypeId?: number;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+};

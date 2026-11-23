@@ -1,3 +1,4 @@
+using Erp.Api.Procurement.PurchaseOrders;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Partners;
 using Erp.Core.Tenancy;
@@ -29,10 +30,13 @@ internal static class SupplierEndpoints
             .WithName("GetSupplierOptions")
             .WithSummary("Suppliers of the selected business unit, for dropdowns")
             .RequireAnyPermission(
+            [
                 $"{Feature}.view",
                 $"{ItemManagementMenu.ItemProfile}.view",
                 $"{ItemManagementMenu.ItemProfile}.create",
-                $"{ItemManagementMenu.ItemProfile}.edit");
+                $"{ItemManagementMenu.ItemProfile}.edit",
+                .. PurchaseOrderEndpoints.Editors,
+            ]);
 
         suppliers.MapGet("/{id:int}", Get)
             .WithName("GetSupplier")

@@ -6,12 +6,21 @@
  * OpenAPI spec version: v1
  */
 
-export interface RequisitionItemOption {
+export interface PurchaseOrderLineDetail {
   id: number;
-  code: string;
-  name: string;
+  itemId: number;
+  itemCode: string;
+  itemName: string;
   uomId: number;
   uomName: string;
-  rate: number;
-  isActive: boolean;
+  quantity: number;
+  receivedQuantity: number;
+  price: number;
+  totalAmount: number;
+  discount: number;
+  vatPercentage: number;
+  vatAmount: number;
+  netAmount: number;
+  /** @nullable */
+  specification: string | null;
 }

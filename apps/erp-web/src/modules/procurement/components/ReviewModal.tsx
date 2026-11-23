@@ -1,7 +1,7 @@
 import { Field, FormModal } from '@erp/ui';
 import { Input } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { REVIEW_COMMENT_MAX } from '../constants';
+import { REVIEW_COMMENT_MAX } from '../procurement';
 
 export type ReviewMode = 'approve' | 'reject';
 
@@ -23,18 +23,26 @@ export function ReviewModal({
     <FormModal<{ comment?: string }>
       open={!!mode}
       onClose={onClose}
-      title={t(rejecting ? 'requisition.rejectTitle' : 'requisition.approveTitle', { code })}
-      subtitle={t(rejecting ? 'requisition.rejectText' : 'requisition.approveText')}
-      submitText={t(rejecting ? 'requisition.reject' : 'requisition.approve')}
+      title={t(rejecting ? 'procurement.review.rejectTitle' : 'procurement.review.approveTitle', {
+        code,
+      })}
+      subtitle={t(rejecting ? 'procurement.review.rejectText' : 'procurement.review.approveText')}
+      submitText={t(rejecting ? 'procurement.reject' : 'procurement.approve')}
       danger={rejecting}
       onSubmit={(values) => onSubmit(values.comment?.trim() || null)}
     >
       <Field
         name="comment"
-        label={t(rejecting ? 'requisition.reason' : 'requisition.comment')}
+        label={t(rejecting ? 'procurement.review.reason' : 'procurement.review.comment')}
         rules={
           rejecting
-            ? [{ required: true, whitespace: true, message: t('requisition.reasonRequired') }]
+            ? [
+                {
+                  required: true,
+                  whitespace: true,
+                  message: t('procurement.review.reasonRequired'),
+                },
+              ]
             : []
         }
       >
@@ -43,7 +51,9 @@ export function ReviewModal({
           maxLength={REVIEW_COMMENT_MAX}
           showCount
           placeholder={t(
-            rejecting ? 'requisition.reasonPlaceholder' : 'requisition.commentPlaceholder',
+            rejecting
+              ? 'procurement.review.reasonPlaceholder'
+              : 'procurement.review.commentPlaceholder',
           )}
         />
       </Field>

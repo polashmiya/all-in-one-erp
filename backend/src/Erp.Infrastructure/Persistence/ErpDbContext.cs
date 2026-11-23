@@ -149,6 +149,10 @@ public class ErpDbContext : DbContext
 
     public DbSet<PurchaseRequisitionRow> PurchaseRequisitionRows => Set<PurchaseRequisitionRow>();
 
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+
+    public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
+
     // Read by the query filters. EF parameterises these per context instance, so each request sees its own tenant.
     public Guid? CurrentAccountId => _current.AccountId;
 

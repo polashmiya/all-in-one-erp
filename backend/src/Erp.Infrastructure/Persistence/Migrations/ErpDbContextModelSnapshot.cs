@@ -2762,6 +2762,279 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("Supplier", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("PurchaseOrderID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(27);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(28);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("PurchaseOrderCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(31);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(32);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(35);
+
+                    b.Property<decimal>("DeliveryCharge")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(15);
+
+                    b.Property<DateOnly?>("ExpectedReceiveDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(8);
+
+                    b.Property<decimal>("HeaderDiscount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(14);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(29);
+
+                    b.Property<bool>("IsVatInclusive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isInclusive")
+                        .HasColumnOrder(13);
+
+                    b.Property<decimal>("ItemTotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(20);
+
+                    b.Property<int?>("ItemTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemTypeID")
+                        .HasColumnOrder(9);
+
+                    b.Property<decimal>("LaborCharge")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(34);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(33);
+
+                    b.Property<decimal>("NetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(22);
+
+                    b.Property<DateOnly>("OrderDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(2);
+
+                    b.Property<decimal>("OtherCharge")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(17);
+
+                    b.Property<int?>("PaymentDays")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentDaysAfterReceive")
+                        .HasColumnOrder(7);
+
+                    b.Property<int?>("PaymentTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTypeID")
+                        .HasColumnOrder(6);
+
+                    b.Property<decimal>("ReceivedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnOrder(19);
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnOrder(12);
+
+                    b.Property<int?>("RequisitionId")
+                        .HasColumnType("int")
+                        .HasColumnName("PurchaseRequisitionID")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("ReviewComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnOrder(26);
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(24);
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ReviewedByID")
+                        .HasColumnOrder(25);
+
+                    b.Property<string>("ShippingAddress")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(11);
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnOrder(23);
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("int")
+                        .HasColumnName("SupplierID")
+                        .HasColumnOrder(3);
+
+                    b.Property<decimal>("TotalQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnOrder(18);
+
+                    b.Property<decimal>("TotalVatAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(21);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(30);
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("WarehouseID")
+                        .HasColumnOrder(4);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ItemTypeId");
+
+                    b.HasIndex("PaymentTypeId");
+
+                    b.HasIndex("RequisitionId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.HasIndex("BusinessUnitId", "Code")
+                        .IsUnique();
+
+                    b.HasIndex("BusinessUnitId", "IsActive", "Status", "OrderDate");
+
+                    b.ToTable("PurchaseOrder", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseOrderLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("PurchaseOrderLineID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("LineDiscount");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemID");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("PurchaseOrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("PurchaseOrderID");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ReceivedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Specification")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomID");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("VatPercentage")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.HasIndex("UomId");
+
+                    b.ToTable("PurchaseOrderLine", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseRequisition", b =>
                 {
                     b.Property<int>("Id")
@@ -3885,6 +4158,73 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseOrder", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("ItemTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Procurement.PurchaseRequisition", null)
+                        .WithMany()
+                        .HasForeignKey("RequisitionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Partners.Supplier", null)
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Warehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseOrderLine", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Inventory.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Procurement.PurchaseOrder", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Inventory.UnitOfMeasure", "Uom")
+                        .WithMany()
+                        .HasForeignKey("UomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Uom");
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseRequisition", b =>
                 {
                     b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
@@ -4081,6 +4421,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Erp.Core.Domain.Navigation.PanelMenuItem", b =>
                 {
                     b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseOrder", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseRequisition", b =>

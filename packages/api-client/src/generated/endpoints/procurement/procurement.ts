@@ -22,14 +22,19 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  GetRequisitionItemOptionsParams,
+  GetProcurementItemOptionsParams,
   HttpValidationProblemDetails,
+  ListPurchaseOrdersParams,
   ListPurchaseRequisitionsParams,
+  OrderRequisitionOption,
   ProblemDetails,
+  ProcurementItemOption,
+  PurchaseOrderDetail,
+  PurchaseOrderList,
   RequisitionDetail,
-  RequisitionItemOption,
   RequisitionList,
-  ReviewRequisitionRequest,
+  ReviewRequest,
+  SavePurchaseOrderRequest,
   SaveRequisitionRequest,
 } from '../../model';
 
@@ -56,6 +61,152 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetProcurementItemOptionsUrl = (params?: GetProcurementItemOptionsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/erp/procurement/items?${stringifiedParams}`
+    : `/api/erp/procurement/items`;
+};
+
+/**
+ * @summary Up to 20 active items matching the search, with their UOM, last cost and purchase VAT
+ */
+export const getProcurementItemOptions = async (
+  params?: GetProcurementItemOptionsParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<ProcurementItemOption[]> => {
+  return customFetch<ProcurementItemOption[]>(getGetProcurementItemOptionsUrl(params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetProcurementItemOptionsQueryKey = (params?: GetProcurementItemOptionsParams) => {
+  return [`/api/erp/procurement/items`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetProcurementItemOptionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetProcurementItemOptionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetProcurementItemOptionsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProcurementItemOptions>>> = ({
+    signal,
+  }) => getProcurementItemOptions(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getProcurementItemOptions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetProcurementItemOptionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getProcurementItemOptions>>
+>;
+export type GetProcurementItemOptionsQueryError = ErrorType<ProblemDetails>;
+
+export function useGetProcurementItemOptions<
+  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: undefined | GetProcurementItemOptionsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProcurementItemOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getProcurementItemOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetProcurementItemOptions<
+  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetProcurementItemOptionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProcurementItemOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getProcurementItemOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetProcurementItemOptions<
+  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetProcurementItemOptionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Up to 20 active items matching the search, with their UOM, last cost and purchase VAT
+ */
+
+export function useGetProcurementItemOptions<
+  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetProcurementItemOptionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetProcurementItemOptionsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export const getListPurchaseRequisitionsUrl = (params?: ListPurchaseRequisitionsParams) => {
   const normalizedParams = new URLSearchParams();
@@ -313,152 +464,6 @@ export const useCreatePurchaseRequisition = <
 > => {
   return useMutation(getCreatePurchaseRequisitionMutationOptions(options), queryClient);
 };
-export const getGetRequisitionItemOptionsUrl = (params?: GetRequisitionItemOptionsParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value));
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/erp/procurement/purchase-requisitions/items?${stringifiedParams}`
-    : `/api/erp/procurement/purchase-requisitions/items`;
-};
-
-/**
- * @summary Up to 20 active items matching the search, with their UOM and last cost
- */
-export const getRequisitionItemOptions = async (
-  params?: GetRequisitionItemOptionsParams,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<RequisitionItemOption[]> => {
-  return customFetch<RequisitionItemOption[]>(getGetRequisitionItemOptionsUrl(params), {
-    ...options,
-    method: 'GET',
-  });
-};
-
-export const getGetRequisitionItemOptionsQueryKey = (params?: GetRequisitionItemOptionsParams) => {
-  return [`/api/erp/procurement/purchase-requisitions/items`, ...(params ? [params] : [])] as const;
-};
-
-export const getGetRequisitionItemOptionsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetRequisitionItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemOptions>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getGetRequisitionItemOptionsQueryKey(params);
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRequisitionItemOptions>>> = ({
-    signal,
-  }) => getRequisitionItemOptions(params, { signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetRequisitionItemOptionsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getRequisitionItemOptions>>
->;
-export type GetRequisitionItemOptionsQueryError = ErrorType<ProblemDetails>;
-
-export function useGetRequisitionItemOptions<
-  TData = Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params: undefined | GetRequisitionItemOptionsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemOptions>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-          TError,
-          Awaited<ReturnType<typeof getRequisitionItemOptions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetRequisitionItemOptions<
-  TData = Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetRequisitionItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemOptions>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-          TError,
-          Awaited<ReturnType<typeof getRequisitionItemOptions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetRequisitionItemOptions<
-  TData = Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetRequisitionItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemOptions>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-/**
- * @summary Up to 20 active items matching the search, with their UOM and last cost
- */
-
-export function useGetRequisitionItemOptions<
-  TData = Awaited<ReturnType<typeof getRequisitionItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetRequisitionItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRequisitionItemOptions>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetRequisitionItemOptionsQueryOptions(params, options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
 export const getGetPurchaseRequisitionUrl = (id: number) => {
   return `/api/erp/procurement/purchase-requisitions/${id}`;
 };
@@ -796,7 +801,7 @@ export const getApprovePurchaseRequisitionUrl = (id: number) => {
 
 export const approvePurchaseRequisition = async (
   id: number,
-  reviewRequisitionRequest: ReviewRequisitionRequest,
+  reviewRequest: ReviewRequest,
   options?: Parameters<typeof customFetch>[1],
 ): Promise<RequisitionDetail> => {
   const getHeaders = (
@@ -822,7 +827,7 @@ export const approvePurchaseRequisition = async (
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(reviewRequisitionRequest),
+    body: JSON.stringify(reviewRequest),
   });
 };
 
@@ -868,13 +873,13 @@ export const getApprovePurchaseRequisitionMutationOptions = <
 export type ApprovePurchaseRequisitionMutationResult = NonNullable<
   Awaited<ReturnType<typeof approvePurchaseRequisition>>
 >;
-export type ApprovePurchaseRequisitionMutationBody = BodyType<ReviewRequisitionRequest>;
+export type ApprovePurchaseRequisitionMutationBody = BodyType<ReviewRequest>;
 export type ApprovePurchaseRequisitionMutationError = ErrorType<
   HttpValidationProblemDetails | ProblemDetails
 >;
 export type ApprovePurchaseRequisitionMutationVariables = {
   id: number;
-  data: BodyType<ReviewRequisitionRequest>;
+  data: BodyType<ReviewRequest>;
 };
 
 export const useApprovePurchaseRequisition = <
@@ -908,7 +913,7 @@ export const getRejectPurchaseRequisitionUrl = (id: number) => {
  */
 export const rejectPurchaseRequisition = async (
   id: number,
-  reviewRequisitionRequest: ReviewRequisitionRequest,
+  reviewRequest: ReviewRequest,
   options?: Parameters<typeof customFetch>[1],
 ): Promise<RequisitionDetail> => {
   const getHeaders = (
@@ -934,7 +939,7 @@ export const rejectPurchaseRequisition = async (
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(reviewRequisitionRequest),
+    body: JSON.stringify(reviewRequest),
   });
 };
 
@@ -979,13 +984,13 @@ export const getRejectPurchaseRequisitionMutationOptions = <
 export type RejectPurchaseRequisitionMutationResult = NonNullable<
   Awaited<ReturnType<typeof rejectPurchaseRequisition>>
 >;
-export type RejectPurchaseRequisitionMutationBody = BodyType<ReviewRequisitionRequest>;
+export type RejectPurchaseRequisitionMutationBody = BodyType<ReviewRequest>;
 export type RejectPurchaseRequisitionMutationError = ErrorType<
   HttpValidationProblemDetails | ProblemDetails
 >;
 export type RejectPurchaseRequisitionMutationVariables = {
   id: number;
-  data: BodyType<ReviewRequisitionRequest>;
+  data: BodyType<ReviewRequest>;
 };
 
 /**
@@ -1033,7 +1038,7 @@ export const closePurchaseRequisition = async (
 export const getClosePurchaseRequisitionMutationKey = () => ['closePurchaseRequisition'] as const;
 
 export const getClosePurchaseRequisitionMutationOptions = <
-  TError = ErrorType<ProblemDetails>,
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1072,13 +1077,18 @@ export type ClosePurchaseRequisitionMutationResult = NonNullable<
   Awaited<ReturnType<typeof closePurchaseRequisition>>
 >;
 
-export type ClosePurchaseRequisitionMutationError = ErrorType<ProblemDetails>;
+export type ClosePurchaseRequisitionMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
 export type ClosePurchaseRequisitionMutationVariables = { id: number };
 
 /**
  * @summary Close an approved requisition so nothing more is bought against it
  */
-export const useClosePurchaseRequisition = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+export const useClosePurchaseRequisition = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof closePurchaseRequisition>>,
@@ -1096,4 +1106,998 @@ export const useClosePurchaseRequisition = <TError = ErrorType<ProblemDetails>, 
   TContext
 > => {
   return useMutation(getClosePurchaseRequisitionMutationOptions(options), queryClient);
+};
+export const getListPurchaseOrdersUrl = (params?: ListPurchaseOrdersParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/erp/procurement/purchase-orders?${stringifiedParams}`
+    : `/api/erp/procurement/purchase-orders`;
+};
+
+/**
+ * @summary Purchase orders of the selected business unit with counts by status
+ */
+export const listPurchaseOrders = async (
+  params?: ListPurchaseOrdersParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderList> => {
+  return customFetch<PurchaseOrderList>(getListPurchaseOrdersUrl(params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getListPurchaseOrdersQueryKey = (params?: ListPurchaseOrdersParams) => {
+  return [`/api/erp/procurement/purchase-orders`, ...(params ? [params] : [])] as const;
+};
+
+export const getListPurchaseOrdersQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPurchaseOrders>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseOrdersParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPurchaseOrdersQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseOrders>>> = ({ signal }) =>
+    listPurchaseOrders(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPurchaseOrders>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ListPurchaseOrdersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPurchaseOrders>>
+>;
+export type ListPurchaseOrdersQueryError = ErrorType<ProblemDetails>;
+
+export function useListPurchaseOrders<
+  TData = Awaited<ReturnType<typeof listPurchaseOrders>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: undefined | ListPurchaseOrdersParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseOrders>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListPurchaseOrders<
+  TData = Awaited<ReturnType<typeof listPurchaseOrders>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseOrdersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseOrders>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseOrders>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListPurchaseOrders<
+  TData = Awaited<ReturnType<typeof listPurchaseOrders>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseOrdersParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Purchase orders of the selected business unit with counts by status
+ */
+
+export function useListPurchaseOrders<
+  TData = Awaited<ReturnType<typeof listPurchaseOrders>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: ListPurchaseOrdersParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseOrders>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListPurchaseOrdersQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getCreatePurchaseOrderUrl = () => {
+  return `/api/erp/procurement/purchase-orders`;
+};
+
+/**
+ * @summary Create a pending purchase order; an empty number gets the next PO- number
+ */
+export const createPurchaseOrder = async (
+  savePurchaseOrderRequest: SavePurchaseOrderRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseOrderDetail>(getCreatePurchaseOrderUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(savePurchaseOrderRequest),
+  });
+};
+
+export const getCreatePurchaseOrderMutationKey = () => ['createPurchaseOrder'] as const;
+
+export const getCreatePurchaseOrderMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPurchaseOrder>>,
+    TError,
+    CreatePurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPurchaseOrder>>,
+  TError,
+  CreatePurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreatePurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPurchaseOrder>>,
+    CreatePurchaseOrderMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPurchaseOrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPurchaseOrder>>
+>;
+export type CreatePurchaseOrderMutationBody = BodyType<SavePurchaseOrderRequest>;
+export type CreatePurchaseOrderMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails | void
+>;
+export type CreatePurchaseOrderMutationVariables = { data: BodyType<SavePurchaseOrderRequest> };
+
+/**
+ * @summary Create a pending purchase order; an empty number gets the next PO- number
+ */
+export const useCreatePurchaseOrder = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createPurchaseOrder>>,
+      TError,
+      CreatePurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createPurchaseOrder>>,
+  TError,
+  CreatePurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreatePurchaseOrderMutationOptions(options), queryClient);
+};
+export const getGetOrderRequisitionOptionsUrl = () => {
+  return `/api/erp/procurement/purchase-orders/requisitions`;
+};
+
+/**
+ * @summary Approved requisitions of the selected business unit with their items, to order from
+ */
+export const getOrderRequisitionOptions = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<OrderRequisitionOption[]> => {
+  return customFetch<OrderRequisitionOption[]>(getGetOrderRequisitionOptionsUrl(), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetOrderRequisitionOptionsQueryKey = () => {
+  return [`/api/erp/procurement/purchase-orders/requisitions`] as const;
+};
+
+export const getGetOrderRequisitionOptionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisitionOptions>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetOrderRequisitionOptionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderRequisitionOptions>>> = ({
+    signal,
+  }) => getOrderRequisitionOptions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetOrderRequisitionOptionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOrderRequisitionOptions>>
+>;
+export type GetOrderRequisitionOptionsQueryError = ErrorType<ProblemDetails>;
+
+export function useGetOrderRequisitionOptions<
+  TData = Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisitionOptions>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderRequisitionOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetOrderRequisitionOptions<
+  TData = Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisitionOptions>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getOrderRequisitionOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetOrderRequisitionOptions<
+  TData = Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisitionOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Approved requisitions of the selected business unit with their items, to order from
+ */
+
+export function useGetOrderRequisitionOptions<
+  TData = Awaited<ReturnType<typeof getOrderRequisitionOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrderRequisitionOptions>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetOrderRequisitionOptionsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetPurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}`;
+};
+
+export const getPurchaseOrder = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  return customFetch<PurchaseOrderDetail>(getGetPurchaseOrderUrl(id), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPurchaseOrderQueryKey = (id: number) => {
+  return [`/api/erp/procurement/purchase-orders/${id}`] as const;
+};
+
+export const getGetPurchaseOrderQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPurchaseOrder>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPurchaseOrderQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseOrder>>> = ({ signal }) =>
+    getPurchaseOrder(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetPurchaseOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseOrder>>>;
+export type GetPurchaseOrderQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPurchaseOrder<
+  TData = Awaited<ReturnType<typeof getPurchaseOrder>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrder>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseOrder<
+  TData = Awaited<ReturnType<typeof getPurchaseOrder>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseOrder>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseOrder<
+  TData = Awaited<ReturnType<typeof getPurchaseOrder>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+export function useGetPurchaseOrder<
+  TData = Awaited<ReturnType<typeof getPurchaseOrder>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  id: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseOrder>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPurchaseOrderQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getUpdatePurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}`;
+};
+
+/**
+ * @summary Change a pending purchase order
+ */
+export const updatePurchaseOrder = async (
+  id: number,
+  savePurchaseOrderRequest: SavePurchaseOrderRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseOrderDetail>(getUpdatePurchaseOrderUrl(id), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(savePurchaseOrderRequest),
+  });
+};
+
+export const getUpdatePurchaseOrderMutationKey = () => ['updatePurchaseOrder'] as const;
+
+export const getUpdatePurchaseOrderMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePurchaseOrder>>,
+    TError,
+    UpdatePurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePurchaseOrder>>,
+  TError,
+  UpdatePurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdatePurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePurchaseOrder>>,
+    UpdatePurchaseOrderMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updatePurchaseOrder(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePurchaseOrder>>
+>;
+export type UpdatePurchaseOrderMutationBody = BodyType<SavePurchaseOrderRequest>;
+export type UpdatePurchaseOrderMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type UpdatePurchaseOrderMutationVariables = {
+  id: number;
+  data: BodyType<SavePurchaseOrderRequest>;
+};
+
+/**
+ * @summary Change a pending purchase order
+ */
+export const useUpdatePurchaseOrder = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updatePurchaseOrder>>,
+      TError,
+      UpdatePurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updatePurchaseOrder>>,
+  TError,
+  UpdatePurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdatePurchaseOrderMutationOptions(options), queryClient);
+};
+export const getDeletePurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}`;
+};
+
+/**
+ * @summary Delete a pending or rejected purchase order
+ */
+export const deletePurchaseOrder = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<void> => {
+  return customFetch<void>(getDeletePurchaseOrderUrl(id), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getDeletePurchaseOrderMutationKey = () => ['deletePurchaseOrder'] as const;
+
+export const getDeletePurchaseOrderMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePurchaseOrder>>,
+    TError,
+    DeletePurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePurchaseOrder>>,
+  TError,
+  DeletePurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeletePurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePurchaseOrder>>,
+    DeletePurchaseOrderMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deletePurchaseOrder(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePurchaseOrder>>
+>;
+
+export type DeletePurchaseOrderMutationError = ErrorType<ProblemDetails>;
+export type DeletePurchaseOrderMutationVariables = { id: number };
+
+/**
+ * @summary Delete a pending or rejected purchase order
+ */
+export const useDeletePurchaseOrder = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deletePurchaseOrder>>,
+      TError,
+      DeletePurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deletePurchaseOrder>>,
+  TError,
+  DeletePurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeletePurchaseOrderMutationOptions(options), queryClient);
+};
+export const getApprovePurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}/approve`;
+};
+
+export const approvePurchaseOrder = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseOrderDetail>(getApprovePurchaseOrderUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getApprovePurchaseOrderMutationKey = () => ['approvePurchaseOrder'] as const;
+
+export const getApprovePurchaseOrderMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof approvePurchaseOrder>>,
+    TError,
+    ApprovePurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof approvePurchaseOrder>>,
+  TError,
+  ApprovePurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getApprovePurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof approvePurchaseOrder>>,
+    ApprovePurchaseOrderMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return approvePurchaseOrder(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ApprovePurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof approvePurchaseOrder>>
+>;
+export type ApprovePurchaseOrderMutationBody = BodyType<ReviewRequest>;
+export type ApprovePurchaseOrderMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type ApprovePurchaseOrderMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+export const useApprovePurchaseOrder = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof approvePurchaseOrder>>,
+      TError,
+      ApprovePurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof approvePurchaseOrder>>,
+  TError,
+  ApprovePurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getApprovePurchaseOrderMutationOptions(options), queryClient);
+};
+export const getRejectPurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}/reject`;
+};
+
+/**
+ * @summary Reject a pending purchase order; the comment is the reason and is required
+ */
+export const rejectPurchaseOrder = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseOrderDetail>(getRejectPurchaseOrderUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getRejectPurchaseOrderMutationKey = () => ['rejectPurchaseOrder'] as const;
+
+export const getRejectPurchaseOrderMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rejectPurchaseOrder>>,
+    TError,
+    RejectPurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof rejectPurchaseOrder>>,
+  TError,
+  RejectPurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRejectPurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof rejectPurchaseOrder>>,
+    RejectPurchaseOrderMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return rejectPurchaseOrder(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RejectPurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof rejectPurchaseOrder>>
+>;
+export type RejectPurchaseOrderMutationBody = BodyType<ReviewRequest>;
+export type RejectPurchaseOrderMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type RejectPurchaseOrderMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Reject a pending purchase order; the comment is the reason and is required
+ */
+export const useRejectPurchaseOrder = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof rejectPurchaseOrder>>,
+      TError,
+      RejectPurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof rejectPurchaseOrder>>,
+  TError,
+  RejectPurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getRejectPurchaseOrderMutationOptions(options), queryClient);
+};
+export const getClosePurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}/close`;
+};
+
+/**
+ * @summary Close an approved purchase order so nothing more is received against it
+ */
+export const closePurchaseOrder = async (
+  id: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  return customFetch<PurchaseOrderDetail>(getClosePurchaseOrderUrl(id), {
+    ...options,
+    method: 'POST',
+  });
+};
+
+export const getClosePurchaseOrderMutationKey = () => ['closePurchaseOrder'] as const;
+
+export const getClosePurchaseOrderMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof closePurchaseOrder>>,
+    TError,
+    ClosePurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof closePurchaseOrder>>,
+  TError,
+  ClosePurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getClosePurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof closePurchaseOrder>>,
+    ClosePurchaseOrderMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return closePurchaseOrder(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClosePurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof closePurchaseOrder>>
+>;
+
+export type ClosePurchaseOrderMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type ClosePurchaseOrderMutationVariables = { id: number };
+
+/**
+ * @summary Close an approved purchase order so nothing more is received against it
+ */
+export const useClosePurchaseOrder = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof closePurchaseOrder>>,
+      TError,
+      ClosePurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof closePurchaseOrder>>,
+  TError,
+  ClosePurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getClosePurchaseOrderMutationOptions(options), queryClient);
 };

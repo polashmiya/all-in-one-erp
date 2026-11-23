@@ -6,7 +6,10 @@
  * OpenAPI spec version: v1
  */
 
-export interface ReviewRequisitionRequest {
-  /** @nullable */
-  comment: string | null;
+export interface ApprovalCounts {
+  all: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  closed: number;
 }

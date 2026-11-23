@@ -1,7 +1,7 @@
 using Erp.Api.Auth;
 using Erp.Api.Panel.Configuration;
 using Erp.Api.PartnerManagement;
-using Erp.Api.Procurement.PurchaseRequisitions;
+using Erp.Api.Procurement;
 using Erp.Api.Users;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
@@ -37,7 +37,7 @@ internal static class EmployeeEndpoints
         employees.MapGet("/options", Options)
             .WithName("GetEmployeeOptions")
             .WithSummary("Every employee of the account, for dropdowns")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.create", $"{UserManagementMenu.User}.edit", $"{PartnerManagementMenu.Customer}.view", .. PurchaseRequisitionEndpoints.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.create", $"{UserManagementMenu.User}.edit", $"{PartnerManagementMenu.Customer}.view", .. ProcurementModule.Editors]);
 
         employees.MapGet("/{id:int}", Get)
             .WithName("GetEmployee")
@@ -71,7 +71,7 @@ internal static class EmployeeEndpoints
         structure.MapGet("/warehouses", Warehouses)
             .WithName("GetWarehouseOptions")
             .WithSummary("Warehouses of the account, each with its business unit as parent")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. PurchaseRequisitionEndpoints.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors]);
     }
 
     private static async Task<EmployeeList> List(
