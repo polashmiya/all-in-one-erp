@@ -11,7 +11,7 @@ namespace Erp.Infrastructure.Persistence.Configurations;
 
 internal static class MasterRecordMapping
 {
-    private static readonly ValueConverter<DateTime, DateTime> Utc =
+    internal static readonly ValueConverter<DateTime, DateTime> Utc =
         new(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
     public static void MapRecord<T>(this EntityTypeBuilder<T> builder, string table, string idColumn) where T : MasterRecord

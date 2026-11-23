@@ -6,7 +6,8 @@ import {
 import type { LookupSources } from '@erp/metadata-engine';
 import { trimmed, useUnitKey } from '@/common/master-data';
 import { partnerRequest } from '../partner-form';
-import { PARTNER_LOOKUPS, useLocationLookups, useLookupLists } from '../partner-management';
+import { useLookupLists } from '@/common/hooks/useLookupLists';
+import { PARTNER_LOOKUPS, useLocationLookups } from '../partner-management';
 import { CUSTOMER_LOOKUP_LISTS } from './constants';
 
 export function useCustomerLookups(enabled = true): LookupSources {

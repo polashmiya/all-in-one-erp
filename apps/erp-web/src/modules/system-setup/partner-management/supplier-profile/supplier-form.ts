@@ -1,7 +1,8 @@
 import type { SaveSupplierRequest } from '@erp/api-client';
 import type { LookupSources } from '@erp/metadata-engine';
 import { partnerRequest } from '../partner-form';
-import { useLocationLookups, useLookupLists } from '../partner-management';
+import { useLookupLists } from '@/common/hooks/useLookupLists';
+import { useLocationLookups } from '../partner-management';
 import { SUPPLIER_LOOKUP_LISTS } from './constants';
 
 export function useSupplierLookups(enabled = true): LookupSources {

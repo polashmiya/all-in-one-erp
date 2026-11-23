@@ -310,6 +310,34 @@ Left open:
 
 - Thanas of other city corporations (Chattogram, Khulna and so on) are not in the list yet.
 
+## Done: phase 18 — Procurement menu and Purchase Requisition (2026-11-23)
+
+- Owner asked for a **Procurement** module: Procurement › Purchase (Purchase Requisition, Purchase Order, Purchase
+  Receive, Purchase Return, Purchase Payment) and Procurement › Reports (Purchase Report). `ProcurementMenu`
+  (`Erp.Api/Procurement`) declares all six; only the requisition has a screen, the others show the placeholder page.
+  The requisition has an extra `approve` action; the report has view and export only.
+- Migration `PurchaseRequisition`: `PurchaseRequisitionHeader` and `PurchaseRequisitionRow`, based on the legacy
+  `InventoryRequestHeader` script. Only the requisition columns were taken (number, dates, warehouse, type, purchase
+  method, item type, department, section, requested by, buyer, project, remarks, status, review, totals,
+  `CustomData`); transfer, production order, discount, charge and VAT columns stay out until a screen needs them.
+  The row table script the owner sent was a copy of the header, so the rows were designed here: item, UOM,
+  quantity, rate, amount, remarks.
+- Configurable screen (`PurchaseRequisitionManifest`, lookup lists `requisition-type` and `purchase-method`). API
+  `/api/erp/procurement/purchase-requisitions`: list with counts by status and warehouse, type and department
+  filters; item search with UOM and last cost; get; create; update (pending only); approve and reject (`approve`
+  permission, reject needs a reason); close (approved only); delete (pending or rejected, soft delete). Empty
+  number gives `PR-00001`. Employee and warehouse options also open to requisition users.
+- ERP: `modules/procurement/purchase/purchase-requisition` (list with status views, form with an item grid, view
+  with items, review and record info, approve/reject modal). `useLookupLists` and `useConfigFilters` moved to
+  `common/hooks`; `useFeatureAccess` has `approve`.
+- Checked with `PurchaseRequisitionTests`, typecheck, lint, web tests and a Playwright run in Chrome (create,
+  validation, approve, list, placeholder page).
+
+Left open:
+
+- Ask the owner for the real row table script and whether attachments are needed (no file storage yet).
+- The item grid is feature-local; move it to `@erp/ui` when Purchase Order needs the same grid.
+
 Still open for later, ask the owner:
 
 1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
@@ -318,14 +346,15 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-17. Phases 0 to 17 are done: account editing, user access (sessions, username and reset codes,
-Panel ERP users, ERP roles, users and employees), drafts on create forms and Partner Management (customer and
-supplier profiles). Next work is in "Still open for later".
+Last updated 2026-11-23. Phases 0 to 18 are done: account editing, user access (sessions, username and reset codes,
+Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
+supplier profiles) and the Procurement menu with Purchase Requisition. Next: Purchase Order, then "Still open for
+later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
-`DistrictsThanasAndItemSupplier`.
+`DistrictsThanasAndItemSupplier`, `PurchaseRequisition`.
 
 ## Working on another machine
 

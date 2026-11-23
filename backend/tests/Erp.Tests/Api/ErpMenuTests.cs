@@ -32,9 +32,10 @@ public sealed class ErpMenuTests(ApiFactory factory)
     {
         var client = await PanelClientAsync();
 
-        var catalog = await client.GetFromJsonAsync<List<ErpMenuModule>>("/api/panel/erp-menu");
+        var catalog = (await client.GetFromJsonAsync<List<ErpMenuModule>>("/api/panel/erp-menu"))!;
 
-        var module = Assert.Single(catalog!);
+        Assert.Equal(["system-setup", "procurement"], catalog.Select(m => m.Key));
+        var module = catalog[0];
         Assert.Equal(("system-setup", "System Setup", "সিস্টেম সেটআপ"), (module.Key, module.Label.En, module.Label.Bn));
         Assert.Equal(["Item Management", "User Management", "Partner Management"], module.SubModules.Select(s => s.Label.En));
         var subModule = module.SubModules[0];
@@ -50,7 +51,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
     {
         var menu = await ErpMenuAsync(factory.Seed.ErpAdmin.Email, factory.Seed.ErpAdmin.Password, factory.DhakaId);
 
-        Assert.Equal(11, FeatureCodes(menu).Count());
+        Assert.Equal(17, FeatureCodes(menu).Count());
     }
 
     [Fact]
@@ -59,7 +60,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
         var viewer = await ErpMenuAsync(ApiFactory.ViewerEmail, ApiFactory.TestPassword, factory.DhakaId);
         var newUser = await ErpMenuAsync(ApiFactory.NewUserEmail, ApiFactory.TestPassword, factory.DhakaId);
 
-        Assert.Equal(11, FeatureCodes(viewer).Count());
+        Assert.Equal(17, FeatureCodes(viewer).Count());
         Assert.Empty(newUser);
     }
 

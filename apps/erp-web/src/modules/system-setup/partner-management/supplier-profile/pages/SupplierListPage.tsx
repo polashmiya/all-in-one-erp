@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
+import { useConfigFilters } from '@/common/hooks/useConfigFilters';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import {
@@ -27,7 +28,6 @@ import {
   PARTNER_LOOKUPS,
   SUPPLIER_FEATURE,
   supplierPaths,
-  useConfigFilters,
   useRefreshPartners,
 } from '../../partner-management';
 import { useSupplierLookups } from '../supplier-form';

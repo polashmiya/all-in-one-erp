@@ -6,6 +6,7 @@ using Erp.Core.Domain.Locations;
 using Erp.Core.Domain.Metadata;
 using Erp.Core.Domain.Navigation;
 using Erp.Core.Domain.Partners;
+using Erp.Core.Domain.Procurement;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -143,6 +144,10 @@ public class ErpDbContext : DbContext
     public DbSet<Permission> Permissions => Set<Permission>();
 
     public DbSet<Draft> Drafts => Set<Draft>();
+
+    public DbSet<PurchaseRequisition> PurchaseRequisitions => Set<PurchaseRequisition>();
+
+    public DbSet<PurchaseRequisitionRow> PurchaseRequisitionRows => Set<PurchaseRequisitionRow>();
 
     // Read by the query filters. EF parameterises these per context instance, so each request sees its own tenant.
     public Guid? CurrentAccountId => _current.AccountId;

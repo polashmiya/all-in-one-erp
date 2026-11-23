@@ -7,6 +7,7 @@ export interface FeatureAccess {
   edit: boolean;
   delete: boolean;
   export: boolean;
+  approve: boolean;
 }
 
 export function useFeatureAccess(feature: string): FeatureAccess {
@@ -21,6 +22,7 @@ export function useFeatureAccess(feature: string): FeatureAccess {
       edit: has('edit'),
       delete: has('delete'),
       export: has('export'),
+      approve: has('approve'),
     };
   }, [permissions, feature]);
 }
