@@ -189,6 +189,7 @@ internal sealed class PurchaseReceiveConfiguration : IEntityTypeConfiguration<Pu
         builder.Property(x => x.TotalQuantity).HasPrecision(18, 4);
         builder.Property(x => x.TotalLineDiscount).HasPrecision(18, 2);
         builder.Property(x => x.ReturnAmount).HasPrecision(18, 2);
+        builder.Property(x => x.PaidAmount).HasPrecision(18, 2);
         builder.Property(x => x.ItemTotalAmount).HasPrecision(18, 2);
         builder.Property(x => x.TotalVatAmount).HasPrecision(18, 2);
         builder.Property(x => x.NetAmount).HasPrecision(18, 2);
@@ -222,6 +223,7 @@ internal sealed class PurchaseReceiveConfiguration : IEntityTypeConfiguration<Pu
             .. MasterRecordMapping.AuditColumns,
             nameof(PurchaseReceive.CustomData),
             nameof(PurchaseReceive.ReturnAmount),
+            nameof(PurchaseReceive.PaidAmount),
         ]);
     }
 }
@@ -320,5 +322,67 @@ internal sealed class PurchaseReturnLineConfiguration : IEntityTypeConfiguration
 
         builder.HasOne(x => x.Item).WithMany().HasForeignKey(x => x.ItemId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Uom).WithMany().HasForeignKey(x => x.UomId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+internal sealed class PurchasePaymentConfiguration : IEntityTypeConfiguration<PurchasePayment>
+{
+    public void Configure(EntityTypeBuilder<PurchasePayment> builder)
+    {
+        builder.MapRecord("PurchasePayment", "PurchasePaymentID");
+        builder.Property(x => x.BusinessUnitId).HasColumnName("BusinessUnitID");
+        builder.Property(x => x.Code).HasColumnName("PurchasePaymentCode").HasMaxLength(100);
+        builder.Property(x => x.SupplierId).HasColumnName("SupplierID");
+        builder.Property(x => x.PaymentMethodId).HasColumnName("PaymentMethodID");
+        builder.Property(x => x.PayeeName).HasMaxLength(100);
+        builder.Property(x => x.BankAccountNo).HasMaxLength(100);
+        builder.Property(x => x.InstrumentNo).HasMaxLength(200);
+        builder.Property(x => x.Remarks).HasMaxLength(1500);
+        builder.Property(x => x.PaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.Vds).HasColumnName("VDS").HasPrecision(18, 2);
+        builder.Property(x => x.Tds).HasColumnName("TDS").HasPrecision(18, 2);
+        builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+        builder.Property(x => x.ReviewedAt).HasColumnType("datetime").HasConversion(MasterRecordMapping.Utc);
+        builder.Property(x => x.ReviewedById).HasColumnName("ReviewedByID");
+        builder.Property(x => x.ReviewComment).HasMaxLength(500);
+
+        builder.HasIndex(x => new { x.BusinessUnitId, x.Code }).IsUnique();
+        builder.HasIndex(x => new { x.BusinessUnitId, x.IsActive, x.Status, x.PaymentDate });
+
+        builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Supplier>().WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.PaymentMethodId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.PurchasePaymentId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.ColumnOrder(
+        [
+            nameof(PurchasePayment.Id), nameof(PurchasePayment.Code), nameof(PurchasePayment.PaymentDate),
+            nameof(PurchasePayment.SupplierId), nameof(PurchasePayment.PaymentMethodId), nameof(PurchasePayment.PayeeName),
+            nameof(PurchasePayment.BankAccountNo), nameof(PurchasePayment.InstrumentNo), nameof(PurchasePayment.InstrumentDate),
+            nameof(PurchasePayment.Remarks), nameof(PurchasePayment.PaymentAmount), nameof(PurchasePayment.Vds),
+            nameof(PurchasePayment.Tds), nameof(PurchasePayment.DiscountAmount), nameof(PurchasePayment.Status),
+            nameof(PurchasePayment.ReviewedAt), nameof(PurchasePayment.ReviewedById), nameof(PurchasePayment.ReviewComment),
+            nameof(PurchasePayment.AccountId), nameof(PurchasePayment.BusinessUnitId),
+            .. MasterRecordMapping.AuditColumns,
+            nameof(PurchasePayment.CustomData),
+        ]);
+    }
+}
+
+internal sealed class PurchasePaymentLineConfiguration : IEntityTypeConfiguration<PurchasePaymentLine>
+{
+    public void Configure(EntityTypeBuilder<PurchasePaymentLine> builder)
+    {
+        builder.ToTable("PurchasePaymentLine");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasColumnName("PurchasePaymentLineID").UseIdentityColumn();
+        builder.Property(x => x.PurchasePaymentId).HasColumnName("PurchasePaymentID");
+        builder.Property(x => x.PurchaseReceiveId).HasColumnName("PurchaseReceiveID");
+        builder.Property(x => x.PaymentAmount).HasPrecision(18, 2);
+        builder.Property(x => x.Vds).HasColumnName("VDS").HasPrecision(18, 2);
+        builder.Property(x => x.Tds).HasColumnName("TDS").HasPrecision(18, 2);
+        builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+
+        builder.HasOne<PurchaseReceive>().WithMany().HasForeignKey(x => x.PurchaseReceiveId).OnDelete(DeleteBehavior.NoAction);
     }
 }

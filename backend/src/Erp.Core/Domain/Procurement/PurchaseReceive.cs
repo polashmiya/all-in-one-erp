@@ -51,6 +51,8 @@ public class PurchaseReceive : MasterRecord, IBusinessUnitOwned, IApprovalDocume
 
     public decimal ReturnAmount { get; set; }
 
+    public decimal PaidAmount { get; set; }
+
     public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
     public DateTime? ReviewedAt { get; set; }

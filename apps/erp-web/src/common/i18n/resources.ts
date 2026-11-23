@@ -20,6 +20,7 @@ import { procurementResources } from '@/modules/procurement/i18n';
 import { purchaseRequisitionResources } from '@/modules/procurement/purchase/purchase-requisition/i18n';
 import { purchaseOrderResources } from '@/modules/procurement/purchase/purchase-order/i18n';
 import { purchaseReceiveResources } from '@/modules/procurement/purchase/purchase-receive/i18n';
+import { purchasePaymentResources } from '@/modules/procurement/purchase/purchase-payment/i18n';
 import { purchaseReturnResources } from '@/modules/procurement/purchase/purchase-return/i18n';
 
 const commonErpResources: AppResources = {
@@ -78,4 +79,5 @@ export const erpResources = mergeResources(
   purchaseOrderResources,
   purchaseReceiveResources,
   purchaseReturnResources,
+  purchasePaymentResources,
 );

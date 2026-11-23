@@ -53,6 +53,7 @@ export interface PurchaseReceiveDetail {
   totalVatAmount: number;
   netAmount: number;
   returnAmount: number;
+  paidAmount: number;
   lines: PurchaseReceiveLineDetail[];
   /** @nullable */
   customData: PurchaseReceiveDetailCustomData;

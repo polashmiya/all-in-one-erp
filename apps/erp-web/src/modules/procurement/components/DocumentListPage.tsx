@@ -25,8 +25,8 @@ interface DocumentRow {
   id: number;
   code: string;
   status: string;
-  itemCount: number;
-  totalQuantity: number;
+  itemCount?: number;
+  totalQuantity?: number;
 }
 
 export interface DocumentListPageProps<T extends DocumentRow, F extends ListFilters> {
@@ -42,6 +42,7 @@ export interface DocumentListPageProps<T extends DocumentRow, F extends ListFilt
   loading: boolean;
   onRefresh: () => void;
   amount: { label: string; value: (row: T) => number };
+  lines?: { label: string; count: (row: T) => number; subtitle: (count: number) => string };
   exportFile: string;
   fetchAll: () => Promise<T[]>;
   empty: { title: string; description: string };
@@ -62,6 +63,7 @@ export function DocumentListPage<T extends DocumentRow, F extends ListFilters>({
   loading,
   onRefresh,
   amount,
+  lines,
   exportFile,
   fetchAll,
   empty,
@@ -79,13 +81,15 @@ export function DocumentListPage<T extends DocumentRow, F extends ListFilters>({
     access.view,
   );
   const { actions, modal } = useApprovalActions(feature, calls);
+  const lineInfo = lines ?? {
+    label: t('procurement.col.items'),
+    count: (row: T) => row.itemCount ?? 0,
+    subtitle: (count: number) => t('procurement.itemCount', { count }),
+  };
   const { columns: configColumns, csvColumns } = useConfigColumns<T>(config, {
     code: {
       render: (row) => (
-        <TitleCell
-          title={row.code}
-          subtitle={t('procurement.itemCount', { count: row.itemCount })}
-        />
+        <TitleCell title={row.code} subtitle={lineInfo.subtitle(lineInfo.count(row))} />
       ),
     },
   });
@@ -112,8 +116,10 @@ export function DocumentListPage<T extends DocumentRow, F extends ListFilters>({
     try {
       downloadCsv(exportFile, await fetchAll(), [
         ...csvColumns,
-        { header: t('procurement.col.items'), value: (r) => r.itemCount },
-        { header: t('procurement.col.quantity'), value: (r) => r.totalQuantity },
+        { header: lineInfo.label, value: lineInfo.count },
+        ...(lines
+          ? []
+          : [{ header: t('procurement.col.quantity'), value: (r: T) => r.totalQuantity }]),
         { header: amount.label, value: amount.value },
         { header: t('procurement.col.status'), value: status },
       ]);

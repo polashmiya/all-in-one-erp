@@ -1,4 +1,5 @@
 using Erp.Api.Procurement.PurchaseOrders;
+using Erp.Api.Procurement.PurchasePayments;
 using Erp.Api.Procurement.PurchaseReceives;
 using Erp.Api.Procurement.PurchaseReturns;
 using Erp.Core.Authorization;
@@ -40,6 +41,7 @@ internal static class SupplierEndpoints
                 .. PurchaseOrderEndpoints.Editors,
                 .. PurchaseReceiveEndpoints.Editors,
                 .. PurchaseReturnEndpoints.Editors,
+                .. PurchasePaymentEndpoints.Editors,
             ]);
 
         suppliers.MapGet("/{id:int}", Get)

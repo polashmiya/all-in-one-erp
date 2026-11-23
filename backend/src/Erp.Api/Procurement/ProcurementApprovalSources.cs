@@ -75,3 +75,21 @@ internal sealed class ReturnApprovalSource : IApprovalSource
                 db.ErpUsers.Where(u => u.Id == r.CreatedById).Select(u => u.FullName).FirstOrDefault(),
                 r.CreatedAt));
 }
+
+internal sealed class PaymentApprovalSource : IApprovalSource
+{
+    public string Feature => ProcurementMenu.PurchasePayment;
+
+    public IQueryable<ApprovalDocumentInfo> Documents(ErpDbContext db, ApprovalStatus? status, IReadOnlyCollection<int>? ids) =>
+        db.PurchasePayments
+            .Where(p => p.IsActive && (status == null || p.Status == status) && (ids == null || ids.Contains(p.Id)))
+            .Select(p => new ApprovalDocumentInfo(
+                p.Id,
+                p.Code,
+                p.PaymentDate,
+                db.Suppliers.Where(s => s.Id == p.SupplierId).Select(s => s.Name).FirstOrDefault(),
+                p.PaymentAmount,
+                p.Status,
+                db.ErpUsers.Where(u => u.Id == p.CreatedById).Select(u => u.FullName).FirstOrDefault(),
+                p.CreatedAt));
+}

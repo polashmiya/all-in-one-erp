@@ -8,6 +8,7 @@ public sealed class ProcurementLookups : ILookupProvider
     public const string PurchaseMethod = "purchase-method";
     public const string PaymentType = "payment-type";
     public const string ReturnReason = "return-reason";
+    public const string PaymentMethod = "payment-method";
 
     public IEnumerable<LookupDef> GetLookups() =>
     [
@@ -28,6 +29,13 @@ public sealed class ProcurementLookups : ILookupProvider
         [
             new("CASH", new("Cash", "নগদ"), IsDefault: true),
             new("CREDIT", new("Credit", "বাকি")),
+            new("CHEQUE", new("Cheque", "চেক")),
+            new("BANK", new("Bank transfer", "ব্যাংক ট্রান্সফার")),
+            new("MFS", new("Mobile banking", "মোবাইল ব্যাংকিং")),
+        ]),
+        new(PaymentMethod, new("Payment method", "পরিশোধ পদ্ধতি"),
+        [
+            new("CASH", new("Cash", "নগদ"), IsDefault: true),
             new("CHEQUE", new("Cheque", "চেক")),
             new("BANK", new("Bank transfer", "ব্যাংক ট্রান্সফার")),
             new("MFS", new("Mobile banking", "মোবাইল ব্যাংকিং")),

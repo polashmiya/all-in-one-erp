@@ -13,14 +13,13 @@ public sealed class PurchaseReturnTests(ApiFactory factory)
 {
     private const string Url = "/api/erp/procurement/purchase-returns";
     private const string ReceivesUrl = "/api/erp/procurement/purchase-receives";
-    private const string OrdersUrl = "/api/erp/procurement/purchase-orders";
 
     [Fact]
     public async Task A_return_prices_its_lines_and_updates_what_the_receive_has_returned()
     {
         var admin = await AdminAsync();
         var item = await ItemAsync(factory.DhakaId, 100m, 10m);
-        var receive = await ApprovedReceiveAsync(admin, item, 5);
+        var receive = await ApprovedReceiveAsync(factory, admin, item, 5);
 
         var created = await ReadAsync<PurchaseReturnDetail>(await admin.PostAsJsonAsync(Url, await ReturnAsync(receive.Id) with
         {
@@ -45,9 +44,9 @@ public sealed class PurchaseReturnTests(ApiFactory factory)
         var admin = await AdminAsync();
         var item = await ItemAsync(factory.DhakaId, 10m);
         var other = await ItemAsync(factory.DhakaId, 10m);
-        var receive = await ApprovedReceiveAsync(admin, item, 4);
-        var pending = await ReadAsync<PurchaseReceiveDetail>(await admin.PostAsJsonAsync(ReceivesUrl, await ReceiveAsync(
-            (await ApprovedOrderAsync(admin, item, 2)).Id, item, 1)));
+        var receive = await ApprovedReceiveAsync(factory, admin, item, 4);
+        var pending = await ReadAsync<PurchaseReceiveDetail>(await admin.PostAsJsonAsync(ReceivesUrl, await ReceiveAsync(factory,
+            (await ApprovedOrderAsync(factory, admin, item, 2)).Id, item, 1)));
 
         var tooMuch = await admin.PostAsJsonAsync(Url, await ReturnAsync(receive.Id) with { Lines = [Line(item, 5)] });
         var notOnReceive = await admin.PostAsJsonAsync(Url, await ReturnAsync(receive.Id) with { Lines = [Line(other, 1)] });
@@ -63,7 +62,7 @@ public sealed class PurchaseReturnTests(ApiFactory factory)
     {
         var admin = await AdminAsync();
         var item = await ItemAsync(factory.DhakaId, 10m);
-        var receive = await ApprovedReceiveAsync(admin, item, 3);
+        var receive = await ApprovedReceiveAsync(factory, admin, item, 3);
 
         var created = await ReadAsync<PurchaseReturnDetail>(await admin.PostAsJsonAsync(Url, await ReturnAsync(receive.Id) with { Lines = [Line(item, 3)] }));
         await ReadAsync<PurchaseReturnDetail>(await admin.PostAsJsonAsync($"{Url}/{created.Id}/reject", new ReviewRequest("Supplier refused")));
@@ -78,75 +77,6 @@ public sealed class PurchaseReturnTests(ApiFactory factory)
         var login = await factory.ErpAdminLoginAsync();
         return factory.CreateClient(login.AccessToken, factory.DhakaId);
     }
-
-    private async Task<PurchaseOrderDetail> ApprovedOrderAsync(HttpClient admin, int itemId, decimal quantity)
-    {
-        var order = await ReadAsync<PurchaseOrderDetail>(await admin.PostAsJsonAsync(OrdersUrl, new SavePurchaseOrderRequest
-        {
-            Code = null,
-            OrderDate = Today,
-            SupplierId = await SupplierAsync(factory.DhakaId),
-            WarehouseId = await WarehouseAsync(factory.DhakaId),
-            RequisitionId = null,
-            ReferenceNo = null,
-            ExpectedReceiveDate = null,
-            PaymentTypeId = null,
-            PaymentDays = null,
-            IsVatInclusive = false,
-            ItemTypeId = null,
-            ShippingAddress = null,
-            HeaderDiscount = null,
-            DeliveryCharge = null,
-            LaborCharge = null,
-            OtherCharge = null,
-            Remarks = null,
-            Lines = [new SavePurchaseOrderLine
-            {
-                ItemId = itemId,
-                Quantity = quantity,
-                Price = null,
-                Discount = null,
-                VatPercentage = null,
-                Specification = null,
-            }],
-        }));
-        return await ReadAsync<PurchaseOrderDetail>(await admin.PostAsJsonAsync($"{OrdersUrl}/{order.Id}/approve", new ReviewRequest(null)));
-    }
-
-    private async Task<PurchaseReceiveDetail> ApprovedReceiveAsync(HttpClient admin, int itemId, decimal quantity)
-    {
-        var order = await ApprovedOrderAsync(admin, itemId, quantity);
-        var receive = await ReadAsync<PurchaseReceiveDetail>(await admin.PostAsJsonAsync(ReceivesUrl, await ReceiveAsync(order.Id, itemId, quantity)));
-        return await ReadAsync<PurchaseReceiveDetail>(await admin.PostAsJsonAsync($"{ReceivesUrl}/{receive.Id}/approve", new ReviewRequest(null)));
-    }
-
-    private async Task<SavePurchaseReceiveRequest> ReceiveAsync(int orderId, int itemId, decimal quantity) => new()
-    {
-        Code = null,
-        ReceiveDate = Today,
-        PurchaseOrderId = orderId,
-        WarehouseId = await WarehouseAsync(factory.DhakaId),
-        ChallanNo = null,
-        ChallanDate = null,
-        VatChallanNo = null,
-        PaymentTypeId = null,
-        PaymentDays = null,
-        IsVatInclusive = false,
-        HeaderDiscount = null,
-        DeliveryCharge = null,
-        LaborCharge = null,
-        OtherCharge = null,
-        Remarks = null,
-        Lines = [new SavePurchaseReceiveLine
-        {
-            ItemId = itemId,
-            Quantity = quantity,
-            Price = null,
-            Discount = null,
-            VatPercentage = null,
-            Batch = null,
-        }],
-    };
 
     private async Task<SavePurchaseReturnRequest> ReturnAsync(int receiveId) => new()
     {

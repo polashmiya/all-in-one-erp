@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using Erp.Api.Approvals;
+using Erp.Api.Procurement.PurchaseOrders;
+using Erp.Api.Procurement.PurchaseReceives;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Domain.Partners;
@@ -14,6 +17,9 @@ namespace Erp.Tests.Api;
 
 internal static class ProcurementTestData
 {
+    public const string ProcurementOrdersUrl = "/api/erp/procurement/purchase-orders";
+    public const string ProcurementReceivesUrl = "/api/erp/procurement/purchase-receives";
+
     public static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.Today);
 
     public static async Task<Guid> WarehouseAsync(Guid unitId)
@@ -113,5 +119,76 @@ internal static class ProcurementTestData
             return (user.Id, role.Id, factory.CreateClient(login.AccessToken, unitId));
         }
     }
+    public static async Task<PurchaseOrderDetail> ApprovedOrderAsync(
+        ApiFactory factory, HttpClient admin, int itemId, decimal quantity, int? supplierId = null)
+    {
+        var order = await ReadAsync<PurchaseOrderDetail>(await admin.PostAsJsonAsync(ProcurementOrdersUrl, new SavePurchaseOrderRequest
+        {
+            Code = null,
+            OrderDate = Today,
+            SupplierId = supplierId ?? await SupplierAsync(factory.DhakaId),
+            WarehouseId = await WarehouseAsync(factory.DhakaId),
+            RequisitionId = null,
+            ReferenceNo = null,
+            ExpectedReceiveDate = null,
+            PaymentTypeId = null,
+            PaymentDays = null,
+            IsVatInclusive = false,
+            ItemTypeId = null,
+            ShippingAddress = null,
+            HeaderDiscount = null,
+            DeliveryCharge = null,
+            LaborCharge = null,
+            OtherCharge = null,
+            Remarks = null,
+            Lines = [new SavePurchaseOrderLine
+            {
+                ItemId = itemId,
+                Quantity = quantity,
+                Price = null,
+                Discount = null,
+                VatPercentage = null,
+                Specification = null,
+            }],
+        }));
+        return await ReadAsync<PurchaseOrderDetail>(await admin.PostAsJsonAsync($"{ProcurementOrdersUrl}/{order.Id}/approve", new ReviewRequest(null)));
+    }
+
+    public static async Task<PurchaseReceiveDetail> ApprovedReceiveAsync(
+        ApiFactory factory, HttpClient admin, int itemId, decimal quantity, int? supplierId = null)
+    {
+        var order = await ApprovedOrderAsync(factory, admin, itemId, quantity, supplierId);
+        var receive = await ReadAsync<PurchaseReceiveDetail>(await admin.PostAsJsonAsync(ProcurementReceivesUrl, await ReceiveAsync(factory, order.Id, itemId, quantity)));
+        return await ReadAsync<PurchaseReceiveDetail>(await admin.PostAsJsonAsync($"{ProcurementReceivesUrl}/{receive.Id}/approve", new ReviewRequest(null)));
+    }
+
+    public static async Task<SavePurchaseReceiveRequest> ReceiveAsync(ApiFactory factory, int orderId, int itemId, decimal quantity) => new()
+    {
+        Code = null,
+        ReceiveDate = Today,
+        PurchaseOrderId = orderId,
+        WarehouseId = await WarehouseAsync(factory.DhakaId),
+        ChallanNo = null,
+        ChallanDate = null,
+        VatChallanNo = null,
+        PaymentTypeId = null,
+        PaymentDays = null,
+        IsVatInclusive = false,
+        HeaderDiscount = null,
+        DeliveryCharge = null,
+        LaborCharge = null,
+        OtherCharge = null,
+        Remarks = null,
+        Lines = [new SavePurchaseReceiveLine
+        {
+            ItemId = itemId,
+            Quantity = quantity,
+            Price = null,
+            Discount = null,
+            VatPercentage = null,
+            Batch = null,
+        }],
+    };
+
     public static string Unique() => Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
 }

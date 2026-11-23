@@ -1,9 +1,11 @@
 import {
   approvePurchaseOrder,
+  approvePurchasePayment,
   approvePurchaseReceive,
   approvePurchaseReturn,
   approvePurchaseRequisition,
   rejectPurchaseOrder,
+  rejectPurchasePayment,
   rejectPurchaseReceive,
   rejectPurchaseReturn,
   rejectPurchaseRequisition,
@@ -11,6 +13,7 @@ import {
 } from '@erp/api-client';
 import { featurePath } from '@/common/constants/routes';
 import { orderPaths } from '@/modules/procurement/purchase/purchase-order/constants';
+import { paymentPaths } from '@/modules/procurement/purchase/purchase-payment/constants';
 import { receivePaths } from '@/modules/procurement/purchase/purchase-receive/constants';
 import { returnPaths } from '@/modules/procurement/purchase/purchase-return/constants';
 import { requisitionPaths } from '@/modules/procurement/purchase/purchase-requisition/constants';
@@ -52,5 +55,11 @@ export const APPROVAL_DOCUMENTS: Record<string, ApprovalDocument> = {
     path: returnPaths.view,
     approve: approvePurchaseReturn,
     reject: rejectPurchaseReturn,
+  },
+  'procurement.purchase-payment': {
+    label: 'myApprovals.document.payment',
+    path: paymentPaths.view,
+    approve: approvePurchasePayment,
+    reject: rejectPurchasePayment,
   },
 };

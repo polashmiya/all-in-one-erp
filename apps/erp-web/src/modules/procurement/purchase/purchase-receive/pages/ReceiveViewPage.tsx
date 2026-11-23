@@ -159,6 +159,22 @@ export function ReceiveViewPage() {
                   },
                 ]
               : []),
+            ...(receive.paidAmount
+              ? [
+                  {
+                    key: 'paid',
+                    label: t('receive.totals.paid'),
+                    value: formatMoney(receive.paidAmount),
+                  },
+                  {
+                    key: 'due',
+                    label: t('receive.totals.due'),
+                    value: formatMoney(
+                      receive.netAmount - receive.returnAmount - receive.paidAmount,
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       }
