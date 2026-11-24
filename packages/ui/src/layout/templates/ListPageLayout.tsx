@@ -59,6 +59,8 @@ export interface ListPageLayoutProps<
   onRowClick?: (row: T) => void;
   onRowHover?: (row: T) => void;
   drafts?: ListDrafts;
+  extra?: ReactNode;
+  body?: ReactNode;
 }
 
 function SortHint({ sort, columns }: { sort?: ListSort; columns: TableColumnsType<object> }) {
@@ -105,6 +107,8 @@ export function ListPageLayout<
   onRowClick,
   onRowHover,
   drafts,
+  extra,
+  body,
 }: ListPageLayoutProps<T, F, V, S>) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -205,9 +209,11 @@ export function ListPageLayout<
   );
 
   return (
-    <PageContainer fill title={title} subTitle={subtitle} actions={actions}>
+    <PageContainer fill title={title} subTitle={subtitle} actions={actions} extra={extra}>
       {summary}
-      {showDrafts ? (
+      {body ? (
+        body
+      ) : showDrafts ? (
         <DraftTable drafts={drafts} header={filterBar} toolsContainer={toolsEl} />
       ) : (
         <DataTable<T>

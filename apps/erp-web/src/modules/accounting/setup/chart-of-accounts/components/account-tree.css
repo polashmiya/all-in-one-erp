@@ -1,0 +1,31 @@
+.erp-account-tree > .erp-filterbar {
+  padding: var(--erp-space-md) var(--erp-space-lg);
+  border-bottom: 1px solid var(--erp-divider);
+}
+
+.erp-account-tree .erp-filterbar__extra {
+  display: flex;
+  gap: var(--erp-space-lg);
+}
+
+.erp-account-tree__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--erp-space-lg);
+  overflow: auto;
+}
+
+.erp-account-tree__row {
+  display: flex;
+  align-items: center;
+  gap: var(--erp-space-sm);
+}
+
+.erp-account-tree__main {
+  color: var(--erp-text-strong);
+  font-weight: 600;
+}
+
+.erp-account-tree__actions {
+  margin-left: auto;
+}

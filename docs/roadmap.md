@@ -518,6 +518,9 @@ Left open:
   Liabilities, 5 Equity, 6 Income, 7 Cost Of Sales, 8 Expense. Default accounts are numbered under their group.
   `AccountType` has one value per group. Each group has one main group account
   that stays active and cannot be moved; every other account must be under one. The migration maps the five old types.
+- **Chart of Accounts views** (owner, 2026-11-24): a Tree / Table switch in the header, tree first; the choice is kept in
+  the browser. In the tree, every account can be edited and every group can get a new account under it. `ListPageLayout`
+  and `MasterListPage` take `extra` (header) and `body` (instead of the table).
 - **Bank Accounts** (Accounting › Account Setup): bank or mobile banking, per business unit, each with its own account in
   the books (made automatically). Payments and deposits have **Pay from**; without it the posting account is used.
 - **Advances** are a Purchase Payment with "Advance payment" on (debit Advance to suppliers). A bill line can be paid

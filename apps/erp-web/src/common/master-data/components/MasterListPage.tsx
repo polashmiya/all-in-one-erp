@@ -57,6 +57,8 @@ export interface MasterListPageProps<T extends MasterRow, F extends ListFilters>
   onSetStatus: (ids: number[], isActive: boolean) => Promise<unknown>;
   onDelete?: (ids: number[]) => Promise<unknown>;
   moreActions?: (row: T) => RowAction[];
+  extra?: ReactNode;
+  body?: ReactNode;
   children?: ReactNode;
 }
 
@@ -83,6 +85,8 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
   onSetStatus,
   onDelete,
   moreActions,
+  extra,
+  body,
   children,
 }: MasterListPageProps<T, F>) {
   const { t } = useTranslation();
@@ -286,6 +290,8 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
         loading={loading}
         onRefresh={onRefresh}
         drafts={drafts}
+        extra={extra}
+        body={body}
         selectable={access.edit || canDelete || access.export}
         bulkActions={(keys) => {
           const ids = keys.map(Number);

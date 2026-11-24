@@ -1,3 +1,4 @@
+import { ApartmentOutlined, TableOutlined } from '@ant-design/icons';
 import {
   getListChartOfAccountsQueryKey,
   listChartOfAccounts,
@@ -7,6 +8,7 @@ import {
 } from '@erp/api-client';
 import { SoftTag, useDisclosure, useListState } from '@erp/ui';
 import { keepPreviousData } from '@tanstack/react-query';
+import { Segmented } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { appConfig } from '@/common/config/app.config';
 import { useRefreshDocuments } from '@/common/documents/documents';
@@ -24,7 +26,9 @@ import {
 } from '@/common/master-data';
 import { useAuthStore } from '@/common/store/auth-store';
 import { useAccountOptions, useAccountTypes } from '../../../accounting';
+import { useChartLayout, type ChartLayout } from '../chart-layout';
 import { AccountFormModal } from '../components/AccountFormModal';
+import { AccountTree } from '../components/AccountTree';
 import { CHART_FEATURE } from '../constants';
 
 type Filters = { type: string | null; parentId: string | null };
@@ -34,7 +38,8 @@ export function ChartOfAccountsPage() {
   const accountName = useAuthStore((s) => s.user?.accountName ?? '');
   const access = useFeatureAccess(CHART_FEATURE);
   const config = useFeatureConfig(CHART_FEATURE, access.view);
-  const modal = useDisclosure<ChartOfAccountRow>();
+  const modal = useDisclosure<{ account?: ChartOfAccountRow; parent?: ChartOfAccountRow }>();
+  const { layout, setLayout } = useChartLayout();
   const refresh = useRefreshDocuments();
   const types = useAccountTypes();
   const accounts = useAccountOptions(access.view);
@@ -56,13 +61,20 @@ export function ChartOfAccountsPage() {
       enabled: access.view,
     },
   });
+  const treeParams = { page: 1, pageSize: EXPORT_PAGE_SIZE };
+  const tree = useListChartOfAccounts(treeParams, {
+    query: {
+      queryKey: useUnitKey(getListChartOfAccountsQueryKey(treeParams)),
+      enabled: access.view && layout === 'tree',
+    },
+  });
   const setStatus = useSetChartOfAccountsStatus();
   const filters = useConfigFilters<keyof Filters>(config.data, {
     type: types,
     parentId: accounts?.filter((a) => a.isGroup),
   });
 
-  const edit = access.edit ? (row: ChartOfAccountRow) => modal.onOpen(row) : undefined;
+  const edit = access.edit ? (row: ChartOfAccountRow) => modal.onOpen({ account: row }) : undefined;
   const typeName = (row: ChartOfAccountRow) => t(`accounting.type.${row.type}`);
   const { columns, csvColumns } = useMasterColumns<ChartOfAccountRow>(config.data, {
     onOpen: edit,
@@ -88,11 +100,33 @@ export function ChartOfAccountsPage() {
       csvColumns={csvColumns}
       exportFile={t('chart.exportFile')}
       fetchAll={() =>
-        listChartOfAccounts({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)
+        listChartOfAccounts(layout === 'tree' ? treeParams : { ...params, ...treeParams }).then(
+          (r) => r.items,
+        )
       }
       empty={{ title: t('chart.emptyTitle'), description: t('chart.emptyText') }}
+      extra={
+        <Segmented<ChartLayout>
+          aria-label={t('chart.layout')}
+          value={layout}
+          onChange={setLayout}
+          options={[
+            { value: 'tree', label: t('chart.tree'), icon: <ApartmentOutlined /> },
+            { value: 'table', label: t('chart.table'), icon: <TableOutlined /> },
+          ]}
+        />
+      }
+      body={
+        layout === 'tree' && (
+          <AccountTree
+            accounts={tree.data?.items}
+            onAdd={(parent) => modal.onOpen({ parent })}
+            onEdit={(account) => modal.onOpen({ account })}
+          />
+        )
+      }
       onCreate={() => modal.onOpen()}
-      onEdit={(row) => modal.onOpen(row)}
+      onEdit={(row) => modal.onOpen({ account: row })}
       onSetStatus={(ids, isActive) =>
         setStatus.mutateAsync({ data: { ids, isActive } }).then(refresh)
       }
@@ -101,7 +135,8 @@ export function ChartOfAccountsPage() {
         <AccountFormModal
           config={config.data}
           open={modal.open}
-          account={modal.data}
+          account={modal.data?.account}
+          parent={modal.data?.parent}
           accounts={accounts}
           accountName={accountName}
           onClose={modal.onClose}

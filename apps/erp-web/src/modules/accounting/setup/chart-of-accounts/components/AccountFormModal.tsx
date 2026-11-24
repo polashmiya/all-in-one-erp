@@ -16,6 +16,7 @@ import { CHART_LOOKUPS } from '../constants';
 export function AccountFormModal({
   open,
   account,
+  parent,
   accounts,
   config,
   accountName,
@@ -24,6 +25,7 @@ export function AccountFormModal({
 }: {
   open: boolean;
   account?: ChartOfAccountRow;
+  parent?: ChartOfAccountRow;
   accounts?: ChartOfAccountOption[];
   config: FeatureConfig;
   accountName: string;
@@ -35,7 +37,10 @@ export function AccountFormModal({
   const types = useAccountTypes();
   const create = useCreateChartOfAccount();
   const update = useUpdateChartOfAccount();
-  const initialValues = useMemo<Partial<SaveChartOfAccountRequest>>(() => account ?? {}, [account]);
+  const initialValues = useMemo<Partial<SaveChartOfAccountRequest>>(
+    () => account ?? (parent ? { type: parent.type, parentId: parent.id } : {}),
+    [account, parent],
+  );
   const isMain = !!account && !account.parentId;
   const groups = accounts?.filter((a) => a.isGroup && a.id !== account?.id);
 
