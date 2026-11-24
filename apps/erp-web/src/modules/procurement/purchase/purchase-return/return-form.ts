@@ -1,5 +1,6 @@
 import {
   approvePurchaseReturn,
+  cancelPurchaseReturn,
   deletePurchaseReturn,
   getGetPurchaseReturnApprovalQueryKey,
   getGetReturnReceiveOptionsQueryKey,
@@ -121,6 +122,7 @@ export function toRequest(v: ReturnValues): SavePurchaseReturnRequest {
 export const returnCalls: ApprovalCalls = {
   approve: (id, data) => approvePurchaseReturn(id, data),
   reject: (id, data) => rejectPurchaseReturn(id, data),
+  cancel: (id, data) => cancelPurchaseReturn(id, data),
   remove: (id) => deletePurchaseReturn(id),
   progress: (id) => getPurchaseReturnApproval(id),
   progressKey: (id) => getGetPurchaseReturnApprovalQueryKey(id),

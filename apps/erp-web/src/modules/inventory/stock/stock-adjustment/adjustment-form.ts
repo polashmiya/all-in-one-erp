@@ -1,5 +1,6 @@
 import {
   approveStockAdjustment,
+  cancelStockAdjustment,
   deleteStockAdjustment,
   getGetStockAdjustmentApprovalQueryKey,
   getStockAdjustmentApproval,
@@ -91,6 +92,7 @@ export function toRequest(v: AdjustmentValues): SaveStockAdjustmentRequest {
 export const adjustmentCalls: ApprovalCalls = {
   approve: (id, data) => approveStockAdjustment(id, data),
   reject: (id, data) => rejectStockAdjustment(id, data),
+  cancel: (id, data) => cancelStockAdjustment(id, data),
   remove: (id) => deleteStockAdjustment(id),
   progress: (id) => getStockAdjustmentApproval(id),
   progressKey: (id) => getGetStockAdjustmentApprovalQueryKey(id),

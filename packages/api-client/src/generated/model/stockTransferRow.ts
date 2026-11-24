@@ -10,9 +10,17 @@ export interface StockTransferRow {
   id: number;
   code: string;
   transferDate: string;
+  /** @nullable */
+  fromOfficeId: string | null;
+  /** @nullable */
+  fromOfficeName: string | null;
   fromWarehouseId: string;
   /** @nullable */
   fromWarehouseName: string | null;
+  /** @nullable */
+  toOfficeId: string | null;
+  /** @nullable */
+  toOfficeName: string | null;
   toWarehouseId: string;
   /** @nullable */
   toWarehouseName: string | null;

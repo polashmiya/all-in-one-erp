@@ -7,6 +7,7 @@ import {
   approvePurchaseReturn,
   approveStockAdjustment,
   approveStockTransfer,
+  approveTaxDeposit,
   rejectJournal,
   rejectPurchaseOrder,
   rejectPurchasePayment,
@@ -15,6 +16,7 @@ import {
   rejectPurchaseReturn,
   rejectStockAdjustment,
   rejectStockTransfer,
+  rejectTaxDeposit,
   type ReviewRequest,
 } from '@erp/api-client';
 import { featurePath } from '@/common/constants/routes';
@@ -51,6 +53,7 @@ const reviews: Record<DocumentFeature, { approve: Review; reject: Review }> = {
   'inventory.stock-adjustment': { approve: approveStockAdjustment, reject: rejectStockAdjustment },
   'inventory.stock-transfer': { approve: approveStockTransfer, reject: rejectStockTransfer },
   'accounting.journal': { approve: approveJournal, reject: rejectJournal },
+  'accounting.tax-deposit': { approve: approveTaxDeposit, reject: rejectTaxDeposit },
 };
 
 export const APPROVAL_DOCUMENTS: Record<string, ApprovalDocument> = Object.fromEntries(

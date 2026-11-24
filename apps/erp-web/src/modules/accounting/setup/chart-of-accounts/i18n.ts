@@ -3,7 +3,8 @@ import type { AppResources } from '@erp/ui';
 export const chartOfAccountsResources: AppResources = {
   en: {
     'chart.title': 'Chart of Accounts',
-    'chart.subtitle': 'Accounts are shared by every business unit of {{account}}.',
+    'chart.subtitle':
+      'Eight main groups with their accounts, shared by every business unit of {{account}}.',
     'chart.new': 'New account',
     'chart.search': 'Search account code or name…',
     'chart.emptyTitle': 'No accounts yet',
@@ -15,7 +16,8 @@ export const chartOfAccountsResources: AppResources = {
   },
   bn: {
     'chart.title': 'হিসাবের তালিকা',
-    'chart.subtitle': 'হিসাবগুলো {{account}}-এর সব বিজনেস ইউনিট একসাথে ব্যবহার করে।',
+    'chart.subtitle':
+      'আটটি প্রধান গ্রুপ ও তাদের হিসাব, {{account}}-এর সব বিজনেস ইউনিট ব্যবহার করে।',
     'chart.new': 'নতুন হিসাব',
     'chart.search': 'হিসাব কোড বা নাম খুঁজুন…',
     'chart.emptyTitle': 'এখনও কোনো হিসাব নেই',

@@ -503,13 +503,38 @@ Left open:
 - Two people saving the same thing at the same moment get a 409 instead of a server error (`ConflictExceptionHandler`).
 - Checked with `StockAndAccountingTests`, all other tests and a Playwright run in Chrome over the whole flow.
 
+## Done: phase 25 — cancel, bank accounts, advances, VDS/TDS deposit, closing (2026-11-24)
+
+- Owner asked for: cancel on approved records, several bank accounts, a default chart of accounts in eight groups that
+  users extend, period and year closing, supplier advances, a VDS/TDS deposit screen, and transfers between offices and
+  warehouses of the same branch (not between branches).
+- **Cancel.** Status `Cancelled` and permission action `cancel` (give it to roles in User Role) on requisition, order,
+  receive, return, payment, adjustment, transfer, manual journal and deposit. Only an approved record; a reason is
+  required and is kept as the last approval step. It is refused while another record uses it (order ← receive ← return
+  or payment ← deposit). `StockPosting.CancelAsync` and `AccountPosting.ReverseAsync` post the opposite stock and
+  journal dated today (`IsReversal`); stock that came in goes out at the current average cost and the gap goes to
+  price difference. Cancelled manual journals still count together with their reversal.
+- **Eight groups** (owner, 2026-11-24): 1 Current Assets, 2 Non-Current Assets, 3 Current Liabilities, 4 Non-Current
+  Liabilities, 5 Equity, 6 Income, 7 Cost Of Sales, 8 Expense. Default accounts are numbered under their group.
+  `AccountType` has one value per group. Each group has one main group account
+  that stays active and cannot be moved; every other account must be under one. The migration maps the five old types.
+- **Bank Accounts** (Accounting › Account Setup): bank or mobile banking, per business unit, each with its own account in
+  the books (made automatically). Payments and deposits have **Pay from**; without it the posting account is used.
+- **Advances** are a Purchase Payment with "Advance payment" on (debit Advance to suppliers). A bill line can be paid
+  "From advance", never more than what is left (`SupplierAdvances`).
+- **VDS/TDS Deposit** (Accounting › Transactions): picks approved payments with VDS or TDS not deposited yet.
+- **Period Closing** (Accounting › Account Setup), per business unit: months close in order, when they are over and
+  nothing is pending; the latest can be reopened. `PeriodLock` refuses saving, approving and cancelling in a closed month.
+  Closing a year (all 12 months closed) moves profit to retained earnings; the income statement leaves that journal out.
+  The fiscal year starts in July; an account can change it until a year is closed.
+- Transfers have From office and To office, which narrow the warehouses.
+- Migration `CancelBanksAndClosing`. Checked with `CancelAndClosingTests`, all other tests and a Playwright run in Chrome.
+
 Left open, ask the owner:
 
-- An approved record cannot be cancelled; correct it with a return, an adjustment or a manual journal.
-- Closing an accounting period and closing the year.
-- Several bank accounts on a payment (all cheque and bank payments go to one Bank account now), bank reconciliation.
-- Stock transfer to another business unit (items belong to one business unit).
-- Advance payments, VDS/TDS deposit screen, sales side (stock out, receivable, cost of goods sold).
+- Bank reconciliation.
+- Stock transfer to another business unit (owner: not now).
+- Sales side (stock out, receivable, cost of goods sold): start only when the owner says so.
 
 Still open for later, ask the owner:
 
@@ -519,18 +544,18 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-24. Phases 0 to 24 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-24. Phases 0 to 25 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
 supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return, Purchase
 Payment, Purchase Report), Inventory, Accounting and
 multi-level approval.
-Next: owner to choose from "Left open" of phase 24 (sales is the natural next module), then "Still open for later".
+Next: Sales when the owner says so, then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
 `DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
-`PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`.
+`PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`, `CancelBanksAndClosing`, `AccountGroupNames`.
 
 ## Working on another machine
 

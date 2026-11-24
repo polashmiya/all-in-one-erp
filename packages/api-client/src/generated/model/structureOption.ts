@@ -13,4 +13,6 @@ export interface StructureOption {
   /** @nullable */
   parentId: string | null;
   isActive: boolean;
+  /** @nullable */
+  officeId?: string | null;
 }

@@ -5,6 +5,7 @@ public enum StepStatus
     Pending = 1,
     Approved = 2,
     Rejected = 3,
+    Cancelled = 4,
 }
 
 public class ApprovalLevel : BaseEntity, IAccountOwned

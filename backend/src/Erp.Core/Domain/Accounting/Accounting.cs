@@ -4,11 +4,14 @@ namespace Erp.Core.Domain.Accounting;
 
 public enum AccountType
 {
-    Asset = 1,
-    Liability = 2,
-    Equity = 3,
-    Income = 4,
-    Expense = 5,
+    CurrentAsset = 1,
+    NonCurrentAsset = 2,
+    CurrentLiability = 3,
+    NonCurrentLiability = 4,
+    Equity = 5,
+    Income = 6,
+    CostOfSales = 7,
+    Expense = 8,
 }
 
 public class ChartOfAccount : MasterRecord
@@ -58,6 +61,8 @@ public class Journal : MasterRecord, IBusinessUnitOwned, IApprovalDocument
     public string? DocumentCode { get; set; }
 
     public bool IsManual { get; set; }
+
+    public bool IsReversal { get; set; }
 
     public decimal TotalAmount { get; set; }
 

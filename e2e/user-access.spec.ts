@@ -149,6 +149,7 @@ test('a Panel admin builds a role and a user who signs in by username and sees o
   const row = page.getByRole('row', { name: new RegExp(username) });
   await row.getByRole('button', { name: 'Assign' }).click();
   await page.getByRole('dialog').getByRole('combobox').click();
+  await page.keyboard.type(roleName);
   await page.locator(`.ant-select-item-option[title="${roleName}"]`).click();
   await page.getByRole('button', { name: 'Save role' }).click();
   await expect(row.getByText(roleName)).toBeVisible();

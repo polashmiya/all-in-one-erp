@@ -19,5 +19,6 @@ export interface PurchasePaymentLineDetail {
   vds: number;
   tds: number;
   discountAmount: number;
+  advanceAdjusted: number;
   settledAmount: number;
 }

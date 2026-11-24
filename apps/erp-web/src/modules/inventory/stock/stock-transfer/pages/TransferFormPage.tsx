@@ -3,8 +3,9 @@ import {
   useCreateStockTransfer,
   useGetStockTransfer,
   useUpdateStockTransfer,
+  type StructureOption,
 } from '@erp/api-client';
-import { defaultValues } from '@erp/metadata-engine';
+import { defaultValues, type LookupItem } from '@erp/metadata-engine';
 import { ForbiddenResult, PageState } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
@@ -14,7 +15,7 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { TransferLines } from '../components/TransferLines';
-import { TRANSFER_FEATURE, transferPaths } from '../constants';
+import { TRANSFER_FEATURE, TRANSFER_LOOKUPS, transferPaths } from '../constants';
 import {
   fromDetail,
   newTransfer,
@@ -34,6 +35,9 @@ export function TransferFormPage() {
     query: { queryKey: useUnitKey(getGetStockTransferQueryKey(id)), enabled: allowed && id > 0 },
   });
   const lookups = useTransferLookups(allowed);
+  const warehouses = lookups[TRANSFER_LOOKUPS.warehouse];
+  const inOffice = (item: LookupItem, officeId: unknown) =>
+    !officeId || (item as StructureOption).officeId === officeId;
   const create = useCreateStockTransfer();
   const update = useUpdateStockTransfer();
 
@@ -68,13 +72,20 @@ export function TransferFormPage() {
           options={{
             lookups,
             behaviors: {
+              fromWarehouseId: {
+                watch: ['fromOfficeId'],
+                state: (values) => ({ filter: (item) => inOffice(item, values.fromOfficeId) }),
+              },
               toWarehouseId: {
-                watch: ['fromWarehouseId'],
-                state: (values) => ({ filter: (item) => item.id !== values.fromWarehouseId }),
+                watch: ['toOfficeId', 'fromWarehouseId'],
+                state: (values) => ({
+                  filter: (item) =>
+                    item.id !== values.fromWarehouseId && inOffice(item, values.toOfficeId),
+                }),
               },
             },
           }}
-          lines={<TransferLines />}
+          lines={<TransferLines warehouses={warehouses as StructureOption[] | undefined} />}
           paths={transferPaths}
           texts={{
             newTitle: t('transfer.form.newTitle'),

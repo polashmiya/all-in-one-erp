@@ -1,3 +1,5 @@
+using Erp.Api.Accounting;
+using Erp.Api.Accounting.BankAccounts;
 using Erp.Api.Approvals;
 using Erp.Api.Documents;
 using Erp.Api.PartnerManagement;
@@ -33,7 +35,7 @@ internal static class PurchasePaymentEndpoints
 
         payments.MapGet("/bills", Bills)
             .WithName("GetPayableBills")
-            .WithSummary("Approved goods receives of a supplier that still have an amount due; paymentId leaves that payment out")
+            .WithSummary("What a supplier is owed: approved goods receives with an amount due and the advance left; paymentId leaves that payment out")
             .RequireAnyPermission(Editors);
 
         payments.MapGet("/{id:int}", Get)
@@ -72,6 +74,14 @@ internal static class PurchasePaymentEndpoints
             .WithName("RejectPurchasePayment")
             .WithSummary("Reject a pending payment; the comment is the reason and is required")
             .RequirePermission($"{Feature}.{FeatureActions.Approve}")
+            .Validate<ReviewRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        payments.MapPost("/{id:int}/cancel", Cancel)
+            .WithName("CancelPurchasePayment")
+            .WithSummary("Cancel an approved payment and take its journal back; the comment is the reason and is required")
+            .RequirePermission($"{Feature}.{FeatureActions.Cancel}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -132,7 +142,8 @@ internal static class PurchasePaymentEndpoints
                 p.Status,
                 BillCount = p.Lines.Count,
                 p.PaymentAmount,
-                Settled = p.PaymentAmount + p.Vds + p.Tds + p.DiscountAmount,
+                p.IsAdvance,
+                Settled = p.PaymentAmount + p.Vds + p.Tds + p.DiscountAmount + p.AdvanceAdjusted,
                 p.CreatedAt,
                 p.ModifiedAt,
             })
@@ -141,12 +152,12 @@ internal static class PurchasePaymentEndpoints
         return new PurchasePaymentList(
             rows.Select(p => new PurchasePaymentRow(
                 p.Id, p.Code, p.PaymentDate, p.SupplierId, p.SupplierName, p.PaymentMethodId, p.PaymentMethodName,
-                ApprovalFlow.StatusKey(p.Status), p.BillCount, p.PaymentAmount, p.Settled, p.CreatedAt, p.ModifiedAt)).ToList(),
+                ApprovalFlow.StatusKey(p.Status), p.BillCount, p.PaymentAmount, p.IsAdvance, p.Settled, p.CreatedAt, p.ModifiedAt)).ToList(),
             total,
             counts);
     }
 
-    private static async Task<List<PayableBill>> Bills(int supplierId, int? paymentId, ErpDbContext db, CancellationToken cancellationToken)
+    private static async Task<SupplierPayable> Bills(int supplierId, int? paymentId, ErpDbContext db, CancellationToken cancellationToken)
     {
         var receives = await db.PurchaseReceives.AsNoTracking()
             .Where(r => r.IsActive && r.Status == ApprovalStatus.Approved && r.SupplierId == supplierId)
@@ -164,7 +175,7 @@ internal static class PurchasePaymentEndpoints
             .ToListAsync(cancellationToken);
 
         var paid = await PayableBills.PaidAsync(db, receives.Select(r => r.Id).ToList(), paymentId ?? 0, cancellationToken);
-        return [.. receives
+        List<PayableBill> bills = [.. receives
             .Select(r =>
             {
                 var paidAmount = paid.GetValueOrDefault(r.Id);
@@ -172,6 +183,7 @@ internal static class PurchasePaymentEndpoints
                     paidAmount, r.NetAmount - r.ReturnAmount - paidAmount);
             })
             .Where(b => b.Due > 0)];
+        return new SupplierPayable(bills, await SupplierAdvances.AvailableAsync(db, supplierId, paymentId ?? 0, cancellationToken));
     }
 
     private static async Task<Results<Ok<PurchasePaymentDetail>, NotFound>> Get(int id, ErpDbContext db, CancellationToken cancellationToken) =>
@@ -220,6 +232,15 @@ internal static class PurchasePaymentEndpoints
             : await ChangeAsync(id, db, current, p => ApprovalFlow.ActAsync(db, current, Feature, p, false, request.Comment, cancellationToken),
                 cancellationToken);
 
+    private static async Task<Results<Ok<PurchasePaymentDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Cancel(
+        int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
+        ApprovalFlow.MissingReason(request) is { } missing
+            ? missing
+            : await ChangeAsync(id, db, current, 
+                d => ApprovalFlow.CancelAsync(db, current, Feature, d, request.Comment,
+                    () => PurchaseCancel.PaymentAsync(db, current, d, cancellationToken), cancellationToken),
+                cancellationToken);
+
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var payment = await db.PurchasePayments.Include(p => p.Lines).SingleOrDefaultAsync(p => p.Id == id && p.IsActive, cancellationToken);
@@ -253,9 +274,11 @@ internal static class PurchasePaymentEndpoints
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
         var code = await DocumentData.CodeAsync(db.PurchasePayments, payment, request.Code, errors, cancellationToken);
+        await PeriodLock.CheckAsync(db, "paymentDate", request.PaymentDate, errors, cancellationToken);
         await PartnerData.CheckLookupsAsync(db,
             [("paymentMethodId", request.PaymentMethodId, existing?.PaymentMethodId, ProcurementLookups.PaymentMethod)], errors,
             cancellationToken);
+        await PaymentSources.CheckAsync(db, request.PaymentMethodId, request.BankAccountId, existing?.BankAccountId, errors, cancellationToken);
         if (request.SupplierId != existing?.SupplierId &&
             !await db.Suppliers.AnyAsync(s => s.Id == request.SupplierId && s.IsActive, cancellationToken))
         {
@@ -282,8 +305,15 @@ internal static class PurchasePaymentEndpoints
             }
 
             var due = receive.NetAmount - receive.ReturnAmount - paid.GetValueOrDefault(receive.Id);
-            var settled = line.PaymentAmount + (line.Vds ?? 0) + (line.Tds ?? 0) + (line.DiscountAmount ?? 0);
+            var settled = line.PaymentAmount + (line.Vds ?? 0) + (line.Tds ?? 0) + (line.DiscountAmount ?? 0) + (line.AdvanceAdjusted ?? 0);
             if (settled > due) problems.Add($"Only {Math.Max(0, due):0.##} is due on {receive.Code}.");
+        }
+
+        var adjusted = request.Lines.Sum(l => l.AdvanceAdjusted ?? 0);
+        if (adjusted > 0)
+        {
+            var available = await SupplierAdvances.AvailableAsync(db, request.SupplierId, payment.Id, cancellationToken);
+            if (adjusted > available) problems.Add($"Only {Math.Max(0, available):0.##} of advance is left for this supplier.");
         }
 
         if (problems.Count > 0) return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["lines"] = [.. problems.Distinct()] });
@@ -296,20 +326,24 @@ internal static class PurchasePaymentEndpoints
             Vds = line.Vds ?? 0,
             Tds = line.Tds ?? 0,
             DiscountAmount = line.DiscountAmount ?? 0,
+            AdvanceAdjusted = line.AdvanceAdjusted ?? 0,
         }).ToList();
 
         payment.Lines.Clear();
         payment.Lines.AddRange(lines);
-        payment.PaymentAmount = lines.Sum(l => l.PaymentAmount);
+        payment.IsAdvance = request.IsAdvance;
+        payment.PaymentAmount = request.IsAdvance ? request.AdvanceAmount ?? 0 : lines.Sum(l => l.PaymentAmount);
         payment.Vds = lines.Sum(l => l.Vds);
         payment.Tds = lines.Sum(l => l.Tds);
         payment.DiscountAmount = lines.Sum(l => l.DiscountAmount);
+        payment.AdvanceAdjusted = lines.Sum(l => l.AdvanceAdjusted);
 
         if (payment.Id == 0) db.PurchasePayments.Add(payment);
         payment.Code = code ?? await DocumentData.NextCodeAsync(db.PurchasePayments, CodePrefix, cancellationToken);
         payment.PaymentDate = request.PaymentDate;
         payment.SupplierId = request.SupplierId;
         payment.PaymentMethodId = request.PaymentMethodId;
+        payment.BankAccountId = request.BankAccountId;
         payment.PayeeName = DocumentData.Trimmed(request.PayeeName);
         payment.BankAccountNo = DocumentData.Trimmed(request.BankAccountNo);
         payment.InstrumentNo = DocumentData.Trimmed(request.InstrumentNo);
@@ -329,12 +363,15 @@ internal static class PurchasePaymentEndpoints
         Code = p.Code,
         PaymentDate = p.PaymentDate,
         SupplierId = p.SupplierId,
+        IsAdvance = p.IsAdvance,
         PaymentMethodId = p.PaymentMethodId,
+        BankAccountId = p.BankAccountId,
         PayeeName = p.PayeeName,
         BankAccountNo = p.BankAccountNo,
         InstrumentNo = p.InstrumentNo,
         InstrumentDate = p.InstrumentDate,
         Remarks = p.Remarks,
+        AdvanceAmount = p.IsAdvance ? p.PaymentAmount : null,
         Lines = [.. p.Lines.OrderBy(l => l.Sequence).Select(l => new SavePurchasePaymentLine
         {
             PurchaseReceiveId = l.PurchaseReceiveId,
@@ -342,6 +379,7 @@ internal static class PurchasePaymentEndpoints
             Vds = l.Vds,
             Tds = l.Tds,
             DiscountAmount = l.DiscountAmount,
+            AdvanceAdjusted = l.AdvanceAdjusted,
         })],
         CustomData = CustomFieldData.Parse(p.CustomData),
     };
@@ -376,6 +414,9 @@ internal static class PurchasePaymentEndpoints
             SupplierName = await db.Suppliers.Where(s => s.Id == p.SupplierId).Select(s => s.Name).FirstOrDefaultAsync(cancellationToken),
             PaymentMethodId = p.PaymentMethodId,
             PaymentMethodName = p.PaymentMethodId is { } method ? names.GetValueOrDefault(method) : null,
+            IsAdvance = p.IsAdvance,
+            BankAccountId = p.BankAccountId,
+            BankAccountName = await db.BankAccounts.Where(b => b.Id == p.BankAccountId).Select(b => b.Name).FirstOrDefaultAsync(cancellationToken),
             PayeeName = p.PayeeName,
             BankAccountNo = p.BankAccountNo,
             InstrumentNo = p.InstrumentNo,
@@ -389,14 +430,15 @@ internal static class PurchasePaymentEndpoints
             Vds = p.Vds,
             Tds = p.Tds,
             DiscountAmount = p.DiscountAmount,
-            SettledAmount = p.PaymentAmount + p.Vds + p.Tds + p.DiscountAmount,
+            AdvanceAdjusted = p.AdvanceAdjusted,
+            SettledAmount = p.PaymentAmount + p.Vds + p.Tds + p.DiscountAmount + p.AdvanceAdjusted,
             Lines = [.. p.Lines.OrderBy(l => l.Sequence).Select(l =>
             {
                 var receive = receives[l.PurchaseReceiveId];
                 return new PurchasePaymentLineDetail(
                     l.Id, l.PurchaseReceiveId, receive.Code, receive.ReceiveDate, receive.PurchaseOrderName, receive.Bill,
-                    receive.Bill - paid.GetValueOrDefault(l.PurchaseReceiveId), l.PaymentAmount, l.Vds, l.Tds, l.DiscountAmount,
-                    l.PaymentAmount + l.Vds + l.Tds + l.DiscountAmount);
+                    receive.Bill - paid.GetValueOrDefault(l.PurchaseReceiveId), l.PaymentAmount, l.Vds, l.Tds, l.DiscountAmount, l.AdvanceAdjusted,
+                    l.PaymentAmount + l.Vds + l.Tds + l.DiscountAmount + l.AdvanceAdjusted);
             })],
             CustomData = CustomFieldData.Parse(p.CustomData),
             CreatedAt = p.CreatedAt,

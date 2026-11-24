@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Erp.Api.Documents;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Accounting;
@@ -59,7 +60,7 @@ internal static class ChartOfAccountEndpoints
             .Validate<SavePostingAccountsRequest>();
     }
 
-    private static string TypeKey(AccountType type) => type.ToString().ToLowerInvariant();
+    public static string TypeKey(AccountType type) => JsonNamingPolicy.CamelCase.ConvertName(type.ToString());
 
     private static async Task<ChartOfAccountList> List(
         string? search,
@@ -128,6 +129,12 @@ internal static class ChartOfAccountEndpoints
     {
         var accounts = await db.ChartOfAccounts.Where(a => request.Ids.Contains(a.Id)).ToListAsync(cancellationToken);
         if (accounts.Count != request.Ids.Distinct().Count()) return TypedResults.NotFound();
+        if (!request.IsActive && accounts.Any(a => a.ParentId is null))
+        {
+            return TypedResults.Problem(
+                title: "Account in use", detail: "A main group stays active.", statusCode: StatusCodes.Status409Conflict);
+        }
+
         if (!request.IsActive && await db.PostingAccounts.AnyAsync(p => request.Ids.Contains(p.ChartOfAccountId), cancellationToken))
         {
             return TypedResults.Problem(
@@ -160,7 +167,8 @@ internal static class ChartOfAccountEndpoints
         var parent = request.ParentId is { } parentId
             ? await db.ChartOfAccounts.SingleOrDefaultAsync(a => a.Id == parentId, cancellationToken)
             : null;
-        if (request.ParentId is not null && (parent is null || !parent.IsGroup || parent.Type != type ||
+        var isRoot = account is { Id: > 0, ParentId: null };
+        if (!isRoot && (parent is null || !parent.IsGroup || parent.Type != type ||
             await IsUnderAsync(db, parent, account.Id, cancellationToken)))
         {
             errors["parentId"] = ["Choose a group of the same type."];
@@ -174,6 +182,7 @@ internal static class ChartOfAccountEndpoints
             if (type != account.Type && (posted || hasChildren || mapped)) errors["type"] = ["The type cannot change once the account is used."];
             if (request.IsGroup && !account.IsGroup && (posted || mapped)) errors["isGroup"] = ["An account in use cannot become a group."];
             if (!request.IsGroup && account.IsGroup && hasChildren) errors["isGroup"] = ["Move the accounts under this group first."];
+            if (isRoot && (!request.IsGroup || !request.IsActive || type != account.Type)) errors["isGroup"] = ["A main group stays an active group of its type."];
             if (!request.IsActive && mapped) errors["isActive"] = ["Automatic postings use this account."];
         }
 
@@ -183,8 +192,8 @@ internal static class ChartOfAccountEndpoints
         account.Name = name;
         account.Type = type;
         account.IsGroup = request.IsGroup;
-        account.Parent = parent;
-        account.ParentId = parent?.Id;
+        account.Parent = isRoot ? null : parent;
+        account.ParentId = account.Parent?.Id;
         account.Description = DocumentData.Trimmed(request.Description);
         account.IsActive = request.IsActive;
         account.CustomData = CustomFieldData.ToJson(request.CustomData);

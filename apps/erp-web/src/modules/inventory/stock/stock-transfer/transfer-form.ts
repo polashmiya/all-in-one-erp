@@ -1,5 +1,6 @@
 import {
   approveStockTransfer,
+  cancelStockTransfer,
   deleteStockTransfer,
   getGetStockTransferApprovalQueryKey,
   getStockTransferApproval,
@@ -10,7 +11,7 @@ import {
 } from '@erp/api-client';
 import type { LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
-import { useUnitWarehouses } from '@/common/documents/documents';
+import { useUnitOffices, useUnitWarehouses } from '@/common/documents/documents';
 import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
 import { trimmed } from '@/common/master-data';
 import { TRANSFER_LOOKUPS } from './constants';
@@ -27,7 +28,8 @@ export type TransferValues = Omit<SaveStockTransferRequest, 'lines'> & { lines: 
 
 export function useTransferLookups(enabled = true): LookupSources {
   const warehouses = useUnitWarehouses(enabled);
-  return { [TRANSFER_LOOKUPS.warehouse]: warehouses };
+  const offices = useUnitOffices(enabled);
+  return { [TRANSFER_LOOKUPS.warehouse]: warehouses, [TRANSFER_LOOKUPS.office]: offices };
 }
 
 export const emptyLine = (): TransferLine => ({ quantity: 1 });
@@ -54,7 +56,9 @@ export function toRequest(v: TransferValues): SaveStockTransferRequest {
   return {
     code: trimmed(v.code),
     transferDate: v.transferDate,
+    fromOfficeId: v.fromOfficeId ?? null,
     fromWarehouseId: v.fromWarehouseId,
+    toOfficeId: v.toOfficeId ?? null,
     toWarehouseId: v.toWarehouseId,
     remarks: trimmed(v.remarks),
     lines: v.lines.map((line) => ({
@@ -69,6 +73,7 @@ export function toRequest(v: TransferValues): SaveStockTransferRequest {
 export const transferCalls: ApprovalCalls = {
   approve: (id, data) => approveStockTransfer(id, data),
   reject: (id, data) => rejectStockTransfer(id, data),
+  cancel: (id, data) => cancelStockTransfer(id, data),
   remove: (id) => deleteStockTransfer(id),
   progress: (id) => getStockTransferApproval(id),
   progressKey: (id) => getGetStockTransferApprovalQueryKey(id),

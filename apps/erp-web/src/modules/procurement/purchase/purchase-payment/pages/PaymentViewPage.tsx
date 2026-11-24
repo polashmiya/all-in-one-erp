@@ -26,7 +26,14 @@ import { paymentCalls } from '../payment-form';
 import '@/common/documents/documents.css';
 
 type MoneyKey =
-  'billAmount' | 'due' | 'paymentAmount' | 'vds' | 'tds' | 'discountAmount' | 'settledAmount';
+  | 'billAmount'
+  | 'due'
+  | 'paymentAmount'
+  | 'vds'
+  | 'tds'
+  | 'discountAmount'
+  | 'advanceAdjusted'
+  | 'settledAmount';
 
 export function PaymentViewPage() {
   const { t } = useTranslation();
@@ -67,7 +74,10 @@ export function PaymentViewPage() {
       paths={paymentPaths}
       calls={paymentCalls}
       icon={<WalletOutlined />}
-      tag={payment.paymentMethodName}
+      tag={payment.isAdvance ? t('payment.advance') : payment.paymentMethodName}
+      renderers={{
+        advanceAmount: () => (payment.isAdvance ? formatMoney(payment.paymentAmount) : null),
+      }}
       meta={[
         { key: 'supplier', icon: <ShopOutlined />, label: payment.supplierName },
         {
@@ -79,6 +89,7 @@ export function PaymentViewPage() {
           key: 'instrument',
           icon: <BankOutlined />,
           label: [
+            payment.bankAccountName,
             payment.instrumentNo,
             payment.instrumentDate && formatDate(payment.instrumentDate),
           ]
@@ -87,70 +98,82 @@ export function PaymentViewPage() {
         },
       ]}
       lines={
-        <DetailSection
-          title={t('payment.lines.title')}
-          description={t('payment.billCount', { count: payment.lines.length })}
-        >
-          <div className="erp-lines">
-            <Table<PurchasePaymentLineDetail>
-              size="small"
-              rowKey="id"
-              pagination={false}
-              dataSource={payment.lines}
-              scroll={{ x: 'max-content' }}
-              columns={[
-                {
-                  key: 'bill',
-                  title: t('payment.lines.bill'),
-                  render: (_, line) => (
-                    <TitleCell
-                      title={
-                        <Link to={receivePaths.view(line.purchaseReceiveId)}>
-                          {line.purchaseReceiveCode}
-                        </Link>
-                      }
-                      subtitle={[formatDate(line.receiveDate), line.purchaseOrderName]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    />
-                  ),
-                },
-                money('billAmount', t('payment.lines.billAmount')),
-                money('due', t('payment.lines.due')),
-                money('paymentAmount', t('payment.lines.paymentAmount')),
-                money('vds', t('payment.lines.vds')),
-                money('tds', t('payment.lines.tds')),
-                money('discountAmount', t('payment.lines.discountAmount')),
-                money('settledAmount', t('payment.lines.settled')),
-              ]}
-            />
-            <div className="erp-lines__footer">
-              <span />
-              <LineTotals
-                items={[
+        payment.isAdvance ? (
+          <DetailSection title={t('payment.lines.title')}>
+            <span>{t('payment.lines.advanceDescription')}</span>
+          </DetailSection>
+        ) : (
+          <DetailSection
+            title={t('payment.lines.title')}
+            description={t('payment.billCount', { count: payment.lines.length })}
+          >
+            <div className="erp-lines">
+              <Table<PurchasePaymentLineDetail>
+                size="small"
+                rowKey="id"
+                pagination={false}
+                dataSource={payment.lines}
+                scroll={{ x: 'max-content' }}
+                columns={[
                   {
-                    key: 'payment',
-                    label: t('payment.totals.payment'),
-                    value: formatMoney(payment.paymentAmount),
+                    key: 'bill',
+                    title: t('payment.lines.bill'),
+                    render: (_, line) => (
+                      <TitleCell
+                        title={
+                          <Link to={receivePaths.view(line.purchaseReceiveId)}>
+                            {line.purchaseReceiveCode}
+                          </Link>
+                        }
+                        subtitle={[formatDate(line.receiveDate), line.purchaseOrderName]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      />
+                    ),
                   },
-                  { key: 'vds', label: t('payment.totals.vds'), value: formatMoney(payment.vds) },
-                  { key: 'tds', label: t('payment.totals.tds'), value: formatMoney(payment.tds) },
-                  {
-                    key: 'discount',
-                    label: t('payment.totals.discount'),
-                    value: formatMoney(payment.discountAmount),
-                  },
-                  {
-                    key: 'settled',
-                    label: t('payment.totals.settled'),
-                    value: formatMoney(payment.settledAmount),
-                    strong: true,
-                  },
+                  money('billAmount', t('payment.lines.billAmount')),
+                  money('due', t('payment.lines.due')),
+                  money('paymentAmount', t('payment.lines.paymentAmount')),
+                  money('vds', t('payment.lines.vds')),
+                  money('tds', t('payment.lines.tds')),
+                  money('discountAmount', t('payment.lines.discountAmount')),
+                  money('advanceAdjusted', t('payment.lines.advanceAdjusted')),
+                  money('settledAmount', t('payment.lines.settled')),
                 ]}
               />
+              <div className="erp-lines__footer">
+                <span />
+                <LineTotals
+                  items={[
+                    {
+                      key: 'payment',
+                      label: t('payment.totals.payment'),
+                      value: formatMoney(payment.paymentAmount),
+                    },
+                    { key: 'vds', label: t('payment.totals.vds'), value: formatMoney(payment.vds) },
+                    { key: 'tds', label: t('payment.totals.tds'), value: formatMoney(payment.tds) },
+                    {
+                      key: 'discount',
+                      label: t('payment.totals.discount'),
+                      value: formatMoney(payment.discountAmount),
+                    },
+                    {
+                      key: 'advance',
+                      label: t('payment.totals.advanceUsed'),
+                      value: formatMoney(payment.advanceAdjusted),
+                    },
+                    {
+                      key: 'settled',
+                      label: t('payment.totals.settled'),
+                      value: formatMoney(payment.settledAmount),
+                      strong: true,
+                    },
+                  ]}
+                />
+              </div>
             </div>
-          </div>
-        </DetailSection>
+          </DetailSection>
+        )
       }
     />
   );

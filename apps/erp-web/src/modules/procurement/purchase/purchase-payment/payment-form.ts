@@ -1,5 +1,6 @@
 import {
   approvePurchasePayment,
+  cancelPurchasePayment,
   deletePurchasePayment,
   getGetPurchasePaymentApprovalQueryKey,
   getGetSupplierOptionsQueryKey,
@@ -11,12 +12,13 @@ import {
   type SavePurchasePaymentLine,
   type SavePurchasePaymentRequest,
 } from '@erp/api-client';
-import type { LookupItem, LookupSources } from '@erp/metadata-engine';
+import type { LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
 import { useLookupLists } from '@/common/hooks/useLookupLists';
 import { trimmed, useUnitKey } from '@/common/master-data';
 import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
-import { CASH_METHOD, PAYMENT_LOOKUP_LISTS, PAYMENT_LOOKUPS } from './constants';
+import { usePayFrom } from '@/common/pay-from';
+import { PAYMENT_LOOKUP_LISTS, PAYMENT_LOOKUPS } from './constants';
 
 export interface PaymentLine extends Partial<SavePurchasePaymentLine> {
   code?: string;
@@ -34,15 +36,21 @@ export function usePaymentLookups(enabled = true) {
     query: { queryKey: useUnitKey(getGetSupplierOptionsQueryKey()), enabled },
   });
 
-  const lookups: LookupSources = { ...lists, [PAYMENT_LOOKUPS.supplier]: suppliers.data };
-  return { lookups, suppliers: suppliers.data };
+  const payFrom = usePayFrom(lists[PAYMENT_LOOKUPS.method], enabled);
+  const lookups: LookupSources = {
+    ...lists,
+    ...payFrom.lookups,
+    [PAYMENT_LOOKUPS.supplier]: suppliers.data,
+  };
+  return { lookups, suppliers: suppliers.data, payFrom };
 }
 
-export const isCash = (methods: LookupItem[] | undefined, id?: unknown) =>
-  methods?.find((m) => m.id === id)?.code === CASH_METHOD;
-
 export const settledOf = (line: PaymentLine | undefined) =>
-  (line?.paymentAmount ?? 0) + (line?.vds ?? 0) + (line?.tds ?? 0) + (line?.discountAmount ?? 0);
+  (line?.paymentAmount ?? 0) +
+  (line?.vds ?? 0) +
+  (line?.tds ?? 0) +
+  (line?.discountAmount ?? 0) +
+  (line?.advanceAdjusted ?? 0);
 
 export const cents = (amount: number) => Math.round(amount * 100);
 
@@ -54,6 +62,7 @@ export function paymentTotals(lines: PaymentLine[]) {
     vds: sum((l) => l.vds),
     tds: sum((l) => l.tds),
     discount: sum((l) => l.discountAmount),
+    advance: sum((l) => l.advanceAdjusted),
     settled: sum(settledOf),
   };
 }
@@ -77,6 +86,7 @@ export function fromBill(bill: PayableBill): PaymentLine {
 export function fromDetail(detail: PurchasePaymentDetail): PaymentValues {
   return {
     ...detail,
+    advanceAmount: detail.isAdvance ? detail.paymentAmount : null,
     lines: detail.lines.map((line) => ({
       purchaseReceiveId: line.purchaseReceiveId,
       code: line.purchaseReceiveCode,
@@ -88,6 +98,7 @@ export function fromDetail(detail: PurchasePaymentDetail): PaymentValues {
       vds: line.vds || null,
       tds: line.tds || null,
       discountAmount: line.discountAmount || null,
+      advanceAdjusted: line.advanceAdjusted || null,
     })),
   };
 }
@@ -97,18 +108,22 @@ export function toRequest(v: PaymentValues, cash: boolean): SavePurchasePaymentR
     code: trimmed(v.code),
     paymentDate: v.paymentDate,
     supplierId: v.supplierId,
+    isAdvance: !!v.isAdvance,
     paymentMethodId: v.paymentMethodId ?? null,
+    bankAccountId: v.bankAccountId ?? null,
+    advanceAmount: v.isAdvance ? (v.advanceAmount ?? null) : null,
     payeeName: trimmed(v.payeeName),
     bankAccountNo: cash ? null : trimmed(v.bankAccountNo),
     instrumentNo: cash ? null : trimmed(v.instrumentNo),
     instrumentDate: cash ? null : (v.instrumentDate ?? null),
     remarks: trimmed(v.remarks),
-    lines: v.lines.map((line) => ({
+    lines: (v.isAdvance ? [] : v.lines).map((line) => ({
       purchaseReceiveId: line.purchaseReceiveId ?? 0,
       paymentAmount: line.paymentAmount ?? 0,
       vds: line.vds ?? null,
       tds: line.tds ?? null,
       discountAmount: line.discountAmount ?? null,
+      advanceAdjusted: line.advanceAdjusted ?? null,
     })),
     customData: v.customData ?? null,
   };
@@ -117,6 +132,7 @@ export function toRequest(v: PaymentValues, cash: boolean): SavePurchasePaymentR
 export const paymentCalls: ApprovalCalls = {
   approve: (id, data) => approvePurchasePayment(id, data),
   reject: (id, data) => rejectPurchasePayment(id, data),
+  cancel: (id, data) => cancelPurchasePayment(id, data),
   remove: (id) => deletePurchasePayment(id),
   progress: (id) => getPurchasePaymentApproval(id),
   progressKey: (id) => getGetPurchasePaymentApprovalQueryKey(id),

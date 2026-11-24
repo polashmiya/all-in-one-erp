@@ -12,7 +12,11 @@ public class PurchasePayment : MasterRecord, IBusinessUnitOwned, IApprovalDocume
 
     public int SupplierId { get; set; }
 
+    public bool IsAdvance { get; set; }
+
     public int? PaymentMethodId { get; set; }
+
+    public int? BankAccountId { get; set; }
 
     public string? PayeeName { get; set; }
 
@@ -31,6 +35,8 @@ public class PurchasePayment : MasterRecord, IBusinessUnitOwned, IApprovalDocume
     public decimal Tds { get; set; }
 
     public decimal DiscountAmount { get; set; }
+
+    public decimal AdvanceAdjusted { get; set; }
 
     public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
@@ -62,4 +68,6 @@ public class PurchasePaymentLine
     public decimal Tds { get; set; }
 
     public decimal DiscountAmount { get; set; }
+
+    public decimal AdvanceAdjusted { get; set; }
 }

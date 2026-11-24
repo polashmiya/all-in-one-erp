@@ -5,6 +5,8 @@ namespace Erp.Api.Procurement.PurchasePayments;
 
 public sealed class PurchasePaymentManifest : IFeatureManifestProvider
 {
+    public const string BankAccount = "bank-account";
+
     public IEnumerable<FeatureManifest> GetManifests() =>
     [
         new(ProcurementMenu.PurchasePayment,
@@ -36,11 +38,22 @@ public sealed class PurchasePaymentManifest : IFeatureManifestProvider
                 ListOrder = 30,
                 Filter = true,
             },
+            new("isAdvance", FieldTypes.Boolean, new("Advance payment", "অগ্রিম পরিশোধ"), "basic", 35)
+            {
+                Help = new("Pay before a bill. Use it later on the supplier's bills.", "বিলের আগে পরিশোধ। পরে সরবরাহকারীর বিলে সমন্বয় করুন।"),
+                ListOrder = 35,
+            },
+            new("advanceAmount", FieldTypes.Money, new("Advance amount", "অগ্রিমের টাকা"), "basic", 36),
             new("paymentMethodId", FieldTypes.Lookup, new("Payment method", "পরিশোধ পদ্ধতি"), "basic", 40)
             {
                 Lookup = ProcurementLookups.PaymentMethod,
                 ListOrder = 40,
                 Filter = true,
+            },
+            new("bankAccountId", FieldTypes.Lookup, new("Pay from", "যে হিসাব থেকে"), "basic", 45)
+            {
+                Lookup = BankAccount,
+                Help = new("Bank or mobile banking account the money goes out from.", "যে ব্যাংক বা মোবাইল ব্যাংকিং হিসাব থেকে টাকা যাবে।"),
             },
             new("payeeName", FieldTypes.Text, new("Pay to", "প্রাপক"), "basic", 50)
             {
@@ -48,7 +61,7 @@ public sealed class PurchasePaymentManifest : IFeatureManifestProvider
                 Help = new("Name on the cheque or receipt, if not the supplier.", "চেক বা রসিদে নাম, সরবরাহকারী না হলে।"),
             },
 
-            new("bankAccountNo", FieldTypes.Text, new("Bank account no.", "ব্যাংক হিসাব নম্বর"), "basic", 60) { MaxLength = 100 },
+            new("bankAccountNo", FieldTypes.Text, new("Supplier's account no.", "সরবরাহকারীর হিসাব নম্বর"), "basic", 60) { MaxLength = 100 },
             new("instrumentNo", FieldTypes.Text, new("Cheque or reference no.", "চেক বা রেফারেন্স নম্বর"), "basic", 70) { MaxLength = 200 },
             new("instrumentDate", FieldTypes.Date, new("Cheque date", "চেকের তারিখ"), "basic", 80),
 

@@ -1,6 +1,11 @@
 import { adjustmentPaths } from '@/modules/inventory/stock/stock-adjustment/constants';
 import { transferPaths } from '@/modules/inventory/stock/stock-transfer/constants';
 import { journalPaths } from '@/modules/accounting/transactions/journal/constants';
+import { depositPaths } from '@/modules/accounting/transactions/tax-deposit/constants';
+import {
+  PERIOD_CLOSING_FEATURE,
+  PERIOD_CLOSING_PATH,
+} from '@/modules/accounting/setup/period-closing/constants';
 import { orderPaths } from '@/modules/procurement/purchase/purchase-order/constants';
 import { paymentPaths } from '@/modules/procurement/purchase/purchase-payment/constants';
 import { receivePaths } from '@/modules/procurement/purchase/purchase-receive/constants';
@@ -24,9 +29,18 @@ export const DOCUMENTS = {
   'inventory.stock-adjustment': { label: 'document.type.adjustment', path: adjustmentPaths.view },
   'inventory.stock-transfer': { label: 'document.type.transfer', path: transferPaths.view },
   'accounting.journal': { label: 'document.type.journal', path: journalPaths.view },
+  'accounting.tax-deposit': { label: 'document.type.taxDeposit', path: depositPaths.view },
 } satisfies Record<string, DocumentLink>;
 
 export type DocumentFeature = keyof typeof DOCUMENTS;
 
+const LINKS: Record<string, DocumentLink> = {
+  ...DOCUMENTS,
+  [PERIOD_CLOSING_FEATURE]: {
+    label: 'document.type.closing',
+    path: () => PERIOD_CLOSING_PATH,
+  },
+};
+
 export const documentLink = (feature: string | null | undefined): DocumentLink | undefined =>
-  feature ? (DOCUMENTS as Record<string, DocumentLink>)[feature] : undefined;
+  feature ? LINKS[feature] : undefined;

@@ -13,8 +13,11 @@ export interface SavePurchasePaymentRequest {
   code: string | null;
   paymentDate: string;
   supplierId: number;
+  isAdvance: boolean;
   /** @nullable */
   paymentMethodId: number | null;
+  /** @nullable */
+  bankAccountId: number | null;
   /** @nullable */
   payeeName: string | null;
   /** @nullable */
@@ -25,6 +28,8 @@ export interface SavePurchasePaymentRequest {
   instrumentDate: string | null;
   /** @nullable */
   remarks: string | null;
+  /** @nullable */
+  advanceAmount: number | null;
   lines: SavePurchasePaymentLine[];
   /** @nullable */
   customData?: SavePurchasePaymentRequestCustomData;

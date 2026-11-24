@@ -12,4 +12,5 @@ export interface ApprovalCounts {
   approved: number;
   rejected: number;
   closed: number;
+  cancelled: number;
 }

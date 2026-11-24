@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Erp.Api.Documents;
 
-public sealed record ApprovalCounts(int All, int Pending, int Approved, int Rejected, int Closed);
+public sealed record ApprovalCounts(int All, int Pending, int Approved, int Rejected, int Closed, int Cancelled);
 
 public sealed record DocumentItemOption(
     int Id, string Code, string Name, int UomId, string UomName, decimal Rate, decimal VatPercentage, bool IsActive);
@@ -32,7 +32,8 @@ internal static class DocumentData
             Count(ApprovalStatus.Pending),
             Count(ApprovalStatus.Approved),
             Count(ApprovalStatus.Rejected),
-            Count(ApprovalStatus.Closed));
+            Count(ApprovalStatus.Closed),
+            Count(ApprovalStatus.Cancelled));
 
         return Enum.TryParse<ApprovalStatus>(status, true, out var only)
             ? (documents.Where(d => d.Status == only), counts)

@@ -70,7 +70,8 @@ export function PaymentListPage() {
       lines={{
         label: t('payment.col.bills'),
         value: (row) => row.billCount,
-        subtitle: (row) => t('payment.billCount', { count: row.billCount }),
+        subtitle: (row) =>
+          row.isAdvance ? t('payment.advance') : t('payment.billCount', { count: row.billCount }),
       }}
       exportFile={t('payment.exportFile')}
       fetchAll={() =>

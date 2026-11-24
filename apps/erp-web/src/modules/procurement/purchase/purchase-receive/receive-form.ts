@@ -1,5 +1,6 @@
 import {
   approvePurchaseReceive,
+  cancelPurchaseReceive,
   deletePurchaseReceive,
   getGetPurchaseReceiveApprovalQueryKey,
   getGetReceiveOrderOptionsQueryKey,
@@ -139,6 +140,7 @@ export function toRequest(v: ReceiveValues): SavePurchaseReceiveRequest {
 export const receiveCalls: ApprovalCalls = {
   approve: (id, data) => approvePurchaseReceive(id, data),
   reject: (id, data) => rejectPurchaseReceive(id, data),
+  cancel: (id, data) => cancelPurchaseReceive(id, data),
   remove: (id) => deletePurchaseReceive(id),
   progress: (id) => getPurchaseReceiveApproval(id),
   progressKey: (id) => getGetPurchaseReceiveApprovalQueryKey(id),

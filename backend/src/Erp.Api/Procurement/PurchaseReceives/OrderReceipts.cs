@@ -18,7 +18,7 @@ internal static class OrderReceipts
         ErpDbContext db, IReadOnlyCollection<int> orderIds, int exceptReceiveId, CancellationToken cancellationToken)
     {
         var lines = await db.PurchaseReceives.AsNoTracking()
-            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && r.Id != exceptReceiveId && orderIds.Contains(r.PurchaseOrderId))
+            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && r.Status != ApprovalStatus.Cancelled && r.Id != exceptReceiveId && orderIds.Contains(r.PurchaseOrderId))
             .SelectMany(r => r.Lines.Select(l => new { r.PurchaseOrderId, l.ItemId, l.Quantity }))
             .ToListAsync(cancellationToken);
         return lines.GroupBy(l => (l.PurchaseOrderId, l.ItemId)).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));

@@ -9,9 +9,8 @@ import { EXPORT_PAGE_SIZE, useUnitKey } from '@/common/master-data';
 import { ReportPage } from '@/common/reports/ReportPage';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import {
-  accountRows,
-  headingRow,
   totalRow,
+  useGroupRows,
   useStatementColumns,
   type StatementRow,
 } from '../../../components/statement';
@@ -26,6 +25,7 @@ export function BalanceSheetPage() {
   const unit = useAuthStore(selectCurrentUnit);
   const access = useFeatureAccess(BALANCE_SHEET_FEATURE);
   const columns = useStatementColumns();
+  const groupRows = useGroupRows();
   const list = useListState<Filters>({ filters: { to: null }, pageSize: EXPORT_PAGE_SIZE });
 
   const params = { to: list.filters.to ?? undefined };
@@ -38,14 +38,11 @@ export function BalanceSheetPage() {
   });
   const data = query.data;
   const rows: StatementRow[] | undefined = data && [
-    headingRow('assets', t('balanceSheet.assets')),
-    ...accountRows(data.assets),
+    ...data.assets.flatMap(groupRows),
     totalRow('totalAssets', t('balanceSheet.totalAssets'), data.totalAssets),
-    headingRow('liabilities', t('balanceSheet.liabilities')),
-    ...accountRows(data.liabilities),
+    ...data.liabilities.flatMap(groupRows),
     totalRow('totalLiabilities', t('balanceSheet.totalLiabilities'), data.totalLiabilities),
-    headingRow('equity', t('balanceSheet.equity')),
-    ...accountRows(data.equity),
+    ...groupRows(data.equity).slice(0, -1),
     { key: 'earnings', name: t('balanceSheet.earnings'), amount: data.currentEarnings },
     totalRow('totalEquity', t('balanceSheet.totalEquity'), data.totalEquity),
     totalRow('sum', t('balanceSheet.sum'), data.totalLiabilities + data.totalEquity),

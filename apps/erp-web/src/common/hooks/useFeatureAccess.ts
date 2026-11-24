@@ -8,6 +8,7 @@ export interface FeatureAccess {
   delete: boolean;
   export: boolean;
   approve: boolean;
+  cancel: boolean;
 }
 
 export function useFeatureAccess(feature: string): FeatureAccess {
@@ -23,6 +24,7 @@ export function useFeatureAccess(feature: string): FeatureAccess {
       delete: has('delete'),
       export: has('export'),
       approve: has('approve'),
+      cancel: has('cancel'),
     };
   }, [permissions, feature]);
 }

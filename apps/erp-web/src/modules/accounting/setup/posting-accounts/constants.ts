@@ -5,10 +5,19 @@ export const POSTING_FEATURE = 'accounting.posting-accounts';
 export const POSTING_PATH = featurePath(ACCOUNTING_MODULE, 'posting-accounts');
 
 export const POSTING_SECTIONS = [
-  { key: 'stock', keys: ['inventory', 'stock-gain', 'stock-loss', 'opening-balance'] },
+  {
+    key: 'stock',
+    keys: ['inventory', 'stock-gain', 'stock-loss', 'opening-balance', 'retained-earnings'],
+  },
   {
     key: 'purchase',
-    keys: ['accounts-payable', 'vat-receivable', 'price-difference', 'purchase-discount'],
+    keys: [
+      'accounts-payable',
+      'supplier-advance',
+      'vat-receivable',
+      'price-difference',
+      'purchase-discount',
+    ],
   },
   { key: 'payment', keys: ['cash', 'bank', 'mobile-banking', 'vds-payable', 'tds-payable'] },
 ];

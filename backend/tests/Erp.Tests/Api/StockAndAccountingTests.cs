@@ -113,13 +113,16 @@ public sealed class StockAndAccountingTests(ApiFactory factory)
             Code = null,
             PaymentDate = Today,
             SupplierId = supplier,
+            IsAdvance = false,
             PaymentMethodId = null,
+            BankAccountId = null,
             PayeeName = null,
             BankAccountNo = null,
             InstrumentNo = null,
             InstrumentDate = null,
             Remarks = null,
-            Lines = [new SavePurchasePaymentLine { PurchaseReceiveId = receive.Id, PaymentAmount = 880m, Vds = 50m, Tds = 40m, DiscountAmount = 30m }],
+            AdvanceAmount = null,
+            Lines = [new SavePurchasePaymentLine { PurchaseReceiveId = receive.Id, PaymentAmount = 880m, Vds = 50m, Tds = 40m, DiscountAmount = 30m, AdvanceAdjusted = null }],
         }));
         await ApproveAsync(admin, $"{PaymentsUrl}/{payment.Id}");
         var journal = await JournalAsync(admin, payment.Code);
@@ -181,7 +184,9 @@ public sealed class StockAndAccountingTests(ApiFactory factory)
         {
             Code = null,
             TransferDate = Today,
+            FromOfficeId = null,
             FromWarehouseId = from,
+            ToOfficeId = null,
             ToWarehouseId = to,
             Remarks = null,
             Lines = [new SaveStockTransferLine { ItemId = item, Quantity = 4, Remarks = null }],
@@ -269,6 +274,7 @@ public sealed class StockAndAccountingTests(ApiFactory factory)
     {
         var admin = await AdminAsync();
         var cash = await AccountAsync(admin, PostingKeys.Cash);
+        var parent = (await admin.GetFromJsonAsync<List<ChartOfAccountOption>>($"{AccountsUrl}/options"))!.Single(a => a.IsGroup && a.Type == "expense").Id;
         var code = Unique();
         var request = new SaveChartOfAccountRequest
         {
@@ -276,7 +282,7 @@ public sealed class StockAndAccountingTests(ApiFactory factory)
             Name = $"Account {code}",
             Type = "expense",
             IsGroup = false,
-            ParentId = null,
+            ParentId = parent,
             Description = null,
             IsActive = true,
         };

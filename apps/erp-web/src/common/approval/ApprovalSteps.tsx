@@ -7,18 +7,19 @@ import './approval.css';
 
 function stateOf(step: ApprovalStepView) {
   if (step.status === 'approved') return 'is-approved';
-  if (step.status === 'rejected') return 'is-rejected';
+  if (step.status === 'rejected' || step.status === 'cancelled') return 'is-rejected';
   return step.isCurrent ? 'is-current' : 'is-waiting';
 }
 
 function Marker({ step }: { step: ApprovalStepView }) {
   if (step.status === 'approved') return <CheckOutlined />;
-  if (step.status === 'rejected') return <CloseOutlined />;
+  if (step.status === 'rejected' || step.status === 'cancelled') return <CloseOutlined />;
   return step.isCurrent ? <ClockCircleOutlined /> : <>{step.level}</>;
 }
 
 export function ApprovalSteps({ steps }: { steps: ApprovalStepView[] }) {
   const { t } = useTranslation();
+  const levels = steps.filter((step) => step.status !== 'cancelled').length;
   const done = steps.filter((step) => step.status === 'approved').length;
   const statusLabel = (step: ApprovalStepView) =>
     step.status === 'pending'
@@ -28,7 +29,7 @@ export function ApprovalSteps({ steps }: { steps: ApprovalStepView[] }) {
   return (
     <DetailSection
       title={t('approval.title')}
-      description={t('approval.progress', { done, total: steps.length })}
+      description={t('approval.progress', { done, total: levels })}
     >
       <ol className="erp-steps">
         {steps.map((step) => (
@@ -39,7 +40,9 @@ export function ApprovalSteps({ steps }: { steps: ApprovalStepView[] }) {
             <div className="erp-steps__body">
               <div className="erp-steps__head">
                 <span className="erp-steps__title">
-                  {t('approval.levelName', { level: step.level, name: step.name })}
+                  {step.status === 'cancelled'
+                    ? t('approval.step.cancelled')
+                    : t('approval.levelName', { level: step.level, name: step.name })}
                 </span>
                 <StatusTag
                   tone={step.isCurrent ? 'warning' : (STEP_TONES[step.status] ?? 'neutral')}

@@ -1,4 +1,4 @@
-import type { StatementLine } from '@erp/api-client';
+import type { StatementGroup, StatementLine } from '@erp/api-client';
 import { formatMoney } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import type { ReportColumn } from '@/common/reports/ReportPage';
@@ -59,3 +59,15 @@ export function useStatementColumns(): ReportColumn<StatementRow>[] {
 }
 
 const codeOf = (row: StatementRow) => <span>{row.code}</span>;
+
+export function useGroupRows() {
+  const { t } = useTranslation();
+  return (group: StatementGroup): StatementRow[] => {
+    const name = t(`accounting.type.${group.type}`);
+    return [
+      headingRow(group.type, name),
+      ...accountRows(group.lines),
+      totalRow(`${group.type}-total`, t('accounting.total', { name }), group.total),
+    ];
+  };
+}

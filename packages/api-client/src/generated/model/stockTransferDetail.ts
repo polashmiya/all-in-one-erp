@@ -12,10 +12,18 @@ export interface StockTransferDetail {
   id: number;
   code: string;
   transferDate: string;
+  /** @nullable */
+  fromOfficeId: string | null;
   fromWarehouseId: string;
   /** @nullable */
+  fromOfficeName: string | null;
+  /** @nullable */
   fromWarehouseName: string | null;
+  /** @nullable */
+  toOfficeId: string | null;
   toWarehouseId: string;
+  /** @nullable */
+  toOfficeName: string | null;
   /** @nullable */
   toWarehouseName: string | null;
   /** @nullable */

@@ -94,19 +94,22 @@ public sealed class PurchasePaymentTests(ApiFactory factory)
     }
 
     private static async Task<List<PayableBill>> BillsAsync(HttpClient admin, int supplierId, int? paymentId = null) =>
-        (await admin.GetFromJsonAsync<List<PayableBill>>($"{Url}/bills?supplierId={supplierId}{(paymentId is null ? "" : $"&paymentId={paymentId}")}"))!;
+        [.. (await admin.GetFromJsonAsync<SupplierPayable>($"{Url}/bills?supplierId={supplierId}{(paymentId is null ? "" : $"&paymentId={paymentId}")}"))!.Bills];
 
     private static SavePurchasePaymentRequest Payment(int supplierId, params SavePurchasePaymentLine[] lines) => new()
     {
         Code = null,
         PaymentDate = Today,
         SupplierId = supplierId,
+        IsAdvance = false,
         PaymentMethodId = null,
+        BankAccountId = null,
         PayeeName = null,
         BankAccountNo = null,
         InstrumentNo = null,
         InstrumentDate = null,
         Remarks = null,
+        AdvanceAmount = null,
         Lines = lines,
     };
 
@@ -118,5 +121,6 @@ public sealed class PurchasePaymentTests(ApiFactory factory)
         Vds = vds,
         Tds = tds,
         DiscountAmount = discount,
+        AdvanceAdjusted = null,
     };
 }

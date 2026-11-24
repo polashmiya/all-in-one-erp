@@ -2,6 +2,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   DeleteOutlined,
+  StopOutlined,
   LockOutlined,
 } from '@ant-design/icons';
 import { problemMessage, type ApprovalProgress, type ReviewRequest } from '@erp/api-client';
@@ -14,16 +15,19 @@ import { ReviewModal, type ReviewMode } from '@/common/approval/ReviewModal';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useRefreshDocuments } from './documents';
 
-interface Target {
+export interface ApprovalTarget {
   id: number;
   code: string;
   status: string;
+  isManual?: boolean;
 }
 
 export interface ApprovalCalls {
   approve: (id: number, data: ReviewRequest) => Promise<unknown>;
   reject: (id: number, data: ReviewRequest) => Promise<unknown>;
   close?: (id: number) => Promise<unknown>;
+  cancel: (id: number, data: ReviewRequest) => Promise<unknown>;
+  canCancel?: (target: ApprovalTarget) => boolean;
   remove: (id: number) => Promise<unknown>;
   progress: (id: number) => Promise<ApprovalProgress>;
   progressKey: (id: number) => QueryKey;
@@ -38,9 +42,9 @@ export function useApprovalActions(
   const { message } = App.useApp();
   const access = useFeatureAccess(feature);
   const refresh = useRefreshDocuments();
-  const [review, setReview] = useState<{ target: Target; mode: ReviewMode }>();
+  const [review, setReview] = useState<{ target: ApprovalTarget; mode: ReviewMode }>();
 
-  const run = async (key: string, target: Target, action: () => Promise<unknown>) => {
+  const run = async (key: string, target: ApprovalTarget, action: () => Promise<unknown>) => {
     try {
       await action();
       void message.success(t(`document.done.${key}`, { code: target.code }));
@@ -52,7 +56,7 @@ export function useApprovalActions(
     }
   };
 
-  const actions = (target: Target, canAct = false): RowAction[] => [
+  const actions = (target: ApprovalTarget, canAct = false): RowAction[] => [
     {
       key: 'approve',
       label: t('approval.approve'),
@@ -80,6 +84,14 @@ export function useApprovalActions(
       onClick: () => run('closed', target, async () => calls.close?.(target.id)),
     },
     {
+      key: 'cancel',
+      label: t('document.cancel'),
+      icon: <StopOutlined />,
+      danger: true,
+      hidden: !access.cancel || target.status !== 'approved' || calls.canCancel?.(target) === false,
+      onClick: () => setReview({ target, mode: 'cancel' }),
+    },
+    {
       key: 'delete',
       label: t('document.delete'),
       icon: <DeleteOutlined />,
@@ -98,14 +110,14 @@ export function useApprovalActions(
   const modal = (
     <ReviewModal
       mode={review?.mode}
+      open={!!review}
       code={review?.target.code ?? ''}
       onClose={() => setReview(undefined)}
       onSubmit={(comment) => {
         if (!review) return Promise.resolve();
         const { target, mode } = review;
-        return mode === 'approve'
-          ? run('approved', target, () => calls.approve(target.id, { comment }))
-          : run('rejected', target, () => calls.reject(target.id, { comment }));
+        const done = { approve: 'approved', reject: 'rejected', cancel: 'cancelled' }[mode];
+        return run(done, target, () => calls[mode](target.id, { comment }));
       }}
     />
   );

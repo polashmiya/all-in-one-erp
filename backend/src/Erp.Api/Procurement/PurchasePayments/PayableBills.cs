@@ -9,11 +9,11 @@ internal static class PayableBills
     public static Task<Dictionary<int, decimal>> PaidAsync(
         ErpDbContext db, IReadOnlyCollection<int> receiveIds, int exceptPaymentId, CancellationToken cancellationToken) =>
         db.PurchasePayments.AsNoTracking()
-            .Where(p => p.IsActive && p.Status != ApprovalStatus.Rejected && p.Id != exceptPaymentId)
+            .Where(p => p.IsActive && p.Status != ApprovalStatus.Rejected && p.Status != ApprovalStatus.Cancelled && p.Id != exceptPaymentId)
             .SelectMany(p => p.Lines)
             .Where(l => receiveIds.Contains(l.PurchaseReceiveId))
             .GroupBy(l => l.PurchaseReceiveId)
-            .Select(g => new { g.Key, Paid = g.Sum(l => l.PaymentAmount + l.Vds + l.Tds + l.DiscountAmount) })
+            .Select(g => new { g.Key, Paid = g.Sum(l => l.PaymentAmount + l.Vds + l.Tds + l.DiscountAmount + l.AdvanceAdjusted) })
             .ToDictionaryAsync(g => g.Key, g => g.Paid, cancellationToken);
 
     public static async Task SyncAsync(ErpDbContext db, IEnumerable<int> receiveIds, CancellationToken cancellationToken)

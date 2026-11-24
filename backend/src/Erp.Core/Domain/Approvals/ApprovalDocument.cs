@@ -6,6 +6,7 @@ public enum ApprovalStatus
     Approved = 2,
     Rejected = 3,
     Closed = 4,
+    Cancelled = 5,
 }
 
 public interface IApprovalDocument

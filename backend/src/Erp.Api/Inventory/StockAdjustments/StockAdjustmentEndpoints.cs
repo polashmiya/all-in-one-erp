@@ -73,6 +73,14 @@ internal static class StockAdjustmentEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        adjustments.MapPost("/{id:int}/cancel", Cancel)
+            .WithName("CancelStockAdjustment")
+            .WithSummary("Cancel an approved adjustment and take its stock and journal back; the comment is the reason and is required")
+            .RequirePermission($"{Feature}.{FeatureActions.Cancel}")
+            .Validate<ReviewRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         adjustments.MapDelete("/{id:int}", Delete)
             .WithName("DeleteStockAdjustment")
             .WithSummary("Delete a pending or rejected adjustment")
@@ -188,6 +196,19 @@ internal static class StockAdjustmentEndpoints
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
         ApprovalFlow.MissingReason(request) is { } missing ? missing : await ReviewAsync(id, false, request, current, db, cancellationToken);
 
+    private static async Task<Results<Ok<StockAdjustmentDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Cancel(
+        int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
+    {
+        if (ApprovalFlow.MissingReason(request) is { } missing) return missing;
+        var adjustment = await db.StockAdjustments.SingleOrDefaultAsync(a => a.Id == id && a.IsActive, cancellationToken);
+        if (adjustment is null) return TypedResults.NotFound();
+        var problem = await ApprovalFlow.CancelAsync(db, current, Feature, adjustment, request.Comment,
+            () => StockPosting.CancelAsync(db, current, Feature, id, adjustment.AdjustmentDate, cancellationToken), cancellationToken);
+        if (problem is not null) return problem;
+        await db.SaveChangesAsync(cancellationToken);
+        return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
+    }
+
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var adjustment = await db.StockAdjustments.SingleOrDefaultAsync(a => a.Id == id && a.IsActive, cancellationToken);
@@ -251,6 +272,7 @@ internal static class StockAdjustmentEndpoints
 
         var type = Enum.Parse<AdjustmentType>(request.Type, true);
         var code = await DocumentData.CodeAsync(db.StockAdjustments, adjustment, request.Code, errors, cancellationToken);
+        await PeriodLock.CheckAsync(db, "adjustmentDate", request.AdjustmentDate, errors, cancellationToken);
         await PartnerData.CheckLookupsAsync(db,
             [("reasonId", request.ReasonId, existing?.ReasonId, StockLookups.AdjustmentReason)], errors, cancellationToken);
         await DocumentData.CheckWarehouseAsync(db, request.WarehouseId, existing?.WarehouseId, errors, cancellationToken);

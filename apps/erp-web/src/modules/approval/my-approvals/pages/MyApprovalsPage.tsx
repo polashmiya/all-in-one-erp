@@ -249,6 +249,7 @@ export function MyApprovalsPage() {
       />
       <ReviewModal
         mode={review?.mode}
+        open={!!review}
         code={review?.row.code ?? ''}
         onClose={() => setReview(undefined)}
         onSubmit={decide}

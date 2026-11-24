@@ -75,7 +75,11 @@ public class StockTransfer : MasterRecord, IBusinessUnitOwned, IApprovalDocument
 
     public DateOnly TransferDate { get; set; }
 
+    public Guid? FromOfficeId { get; set; }
+
     public Guid FromWarehouseId { get; set; }
+
+    public Guid? ToOfficeId { get; set; }
 
     public Guid ToWarehouseId { get; set; }
 

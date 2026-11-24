@@ -1,3 +1,4 @@
+using Erp.Core.Domain.Accounting;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Metadata;
 using Erp.Core.Domain.Partners;
@@ -342,6 +343,8 @@ internal sealed class PurchasePaymentConfiguration : IEntityTypeConfiguration<Pu
         builder.Property(x => x.Vds).HasColumnName("VDS").HasPrecision(18, 2);
         builder.Property(x => x.Tds).HasColumnName("TDS").HasPrecision(18, 2);
         builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+        builder.Property(x => x.AdvanceAdjusted).HasPrecision(18, 2);
+        builder.Property(x => x.BankAccountId).HasColumnName("BankAccountID");
         builder.Property(x => x.ReviewedAt).HasColumnType("datetime").HasConversion(MasterRecordMapping.Utc);
         builder.Property(x => x.ReviewedById).HasColumnName("ReviewedByID");
         builder.Property(x => x.ReviewComment).HasMaxLength(500);
@@ -352,6 +355,7 @@ internal sealed class PurchasePaymentConfiguration : IEntityTypeConfiguration<Pu
         builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Supplier>().WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<LookupValue>().WithMany().HasForeignKey(x => x.PaymentMethodId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<BankAccount>().WithMany().HasForeignKey(x => x.BankAccountId).OnDelete(DeleteBehavior.NoAction);
         builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.PurchasePaymentId).OnDelete(DeleteBehavior.Cascade);
 
         builder.ColumnOrder(
@@ -365,6 +369,7 @@ internal sealed class PurchasePaymentConfiguration : IEntityTypeConfiguration<Pu
             nameof(PurchasePayment.AccountId), nameof(PurchasePayment.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
             nameof(PurchasePayment.CustomData),
+            nameof(PurchasePayment.IsAdvance), nameof(PurchasePayment.BankAccountId), nameof(PurchasePayment.AdvanceAdjusted),
         ]);
     }
 }
@@ -382,6 +387,7 @@ internal sealed class PurchasePaymentLineConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.Vds).HasColumnName("VDS").HasPrecision(18, 2);
         builder.Property(x => x.Tds).HasColumnName("TDS").HasPrecision(18, 2);
         builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+        builder.Property(x => x.AdvanceAdjusted).HasPrecision(18, 2);
 
         builder.HasOne<PurchaseReceive>().WithMany().HasForeignKey(x => x.PurchaseReceiveId).OnDelete(DeleteBehavior.NoAction);
     }

@@ -15,10 +15,15 @@ export interface PurchasePaymentDetail {
   supplierId: number;
   /** @nullable */
   supplierName: string | null;
+  isAdvance: boolean;
   /** @nullable */
   paymentMethodId: number | null;
   /** @nullable */
+  bankAccountId: number | null;
+  /** @nullable */
   paymentMethodName: string | null;
+  /** @nullable */
+  bankAccountName: string | null;
   /** @nullable */
   payeeName: string | null;
   /** @nullable */
@@ -40,6 +45,7 @@ export interface PurchasePaymentDetail {
   vds: number;
   tds: number;
   discountAmount: number;
+  advanceAdjusted: number;
   settledAmount: number;
   lines: PurchasePaymentLineDetail[];
   /** @nullable */

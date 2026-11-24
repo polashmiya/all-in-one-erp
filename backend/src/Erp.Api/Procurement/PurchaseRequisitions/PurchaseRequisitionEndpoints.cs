@@ -80,6 +80,14 @@ internal static class PurchaseRequisitionEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        requisitions.MapPost("/{id:int}/cancel", Cancel)
+            .WithName("CancelPurchaseRequisition")
+            .WithSummary("Cancel an approved requisition; the comment is the reason and is required")
+            .RequirePermission($"{Feature}.{FeatureActions.Cancel}")
+            .Validate<ReviewRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         requisitions.MapDelete("/{id:int}", Delete)
             .WithName("DeletePurchaseRequisition")
             .WithSummary("Delete a pending or rejected requisition")
@@ -208,6 +216,15 @@ internal static class PurchaseRequisitionEndpoints
             ? TypedResults.NotFound()
             : TypedResults.Ok(await ApprovalFlow.ProgressAsync(db, current, Feature, requisition, cancellationToken));
     }
+
+    private static async Task<Results<Ok<RequisitionDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Cancel(
+        int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
+        ApprovalFlow.MissingReason(request) is { } missing
+            ? missing
+            : await ChangeAsync(id, db, 
+                d => ApprovalFlow.CancelAsync(db, current, Feature, d, request.Comment,
+                    () => PurchaseCancel.RequisitionAsync(db, current, d, cancellationToken), cancellationToken),
+                cancellationToken);
 
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {

@@ -6,4 +6,5 @@ export const STEP_TONES: Record<string, StatusTone> = {
   pending: 'neutral',
   approved: 'success',
   rejected: 'danger',
+  cancelled: 'danger',
 };

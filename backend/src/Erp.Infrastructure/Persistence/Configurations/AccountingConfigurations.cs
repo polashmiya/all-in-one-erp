@@ -63,7 +63,7 @@ internal sealed class JournalConfiguration : IEntityTypeConfiguration<Journal>
         builder.Property(x => x.ReviewComment).HasMaxLength(500);
 
         builder.HasIndex(x => new { x.BusinessUnitId, x.Code }).IsUnique();
-        builder.HasIndex(x => new { x.BusinessUnitId, x.Feature, x.DocumentId }).IsUnique()
+        builder.HasIndex(x => new { x.BusinessUnitId, x.Feature, x.DocumentId, x.IsReversal }).IsUnique()
             .HasFilter("[TransactionRefID] IS NOT NULL");
         builder.HasIndex(x => new { x.BusinessUnitId, x.IsActive, x.Status, x.JournalDate });
 
@@ -78,6 +78,7 @@ internal sealed class JournalConfiguration : IEntityTypeConfiguration<Journal>
             nameof(Journal.AccountId), nameof(Journal.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
             nameof(Journal.CustomData),
+            nameof(Journal.IsReversal),
         ]);
     }
 }

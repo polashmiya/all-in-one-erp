@@ -20,6 +20,7 @@ export interface PurchasePaymentRow {
   status: string;
   billCount: number;
   paymentAmount: number;
+  isAdvance: boolean;
   settledAmount: number;
   /** @nullable */
   createdAt: string | null;

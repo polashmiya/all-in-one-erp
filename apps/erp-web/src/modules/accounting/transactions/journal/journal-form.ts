@@ -1,5 +1,6 @@
 import {
   approveJournal,
+  cancelJournal,
   deleteJournal,
   getGetJournalApprovalQueryKey,
   getJournalApproval,
@@ -60,7 +61,9 @@ export function journalTotals(lines: JournalLineValue[]) {
 export const journalCalls: ApprovalCalls = {
   approve: (id, data) => approveJournal(id, data),
   reject: (id, data) => rejectJournal(id, data),
+  cancel: (id, data) => cancelJournal(id, data),
   remove: (id) => deleteJournal(id),
+  canCancel: (target) => !!target.isManual,
   progress: (id) => getJournalApproval(id),
   progressKey: (id) => getGetJournalApprovalQueryKey(id),
 };

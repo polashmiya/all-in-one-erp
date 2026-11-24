@@ -10,9 +10,8 @@ import { dateParams, NO_DATES, useDateFilters, type DateRange } from '@/common/r
 import { ReportPage } from '@/common/reports/ReportPage';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import {
-  accountRows,
-  headingRow,
   totalRow,
+  useGroupRows,
   useStatementColumns,
   type StatementRow,
 } from '../../../components/statement';
@@ -25,6 +24,7 @@ export function IncomeStatementPage() {
   const unit = useAuthStore(selectCurrentUnit);
   const access = useFeatureAccess(INCOME_STATEMENT_FEATURE);
   const columns = useStatementColumns();
+  const groupRows = useGroupRows();
   const dates = useDateFilters<DateRange>();
   const list = useListState<DateRange>({ filters: NO_DATES, pageSize: EXPORT_PAGE_SIZE });
 
@@ -38,12 +38,10 @@ export function IncomeStatementPage() {
   });
   const data = query.data;
   const rows: StatementRow[] | undefined = data && [
-    headingRow('income', t('incomeStatement.income')),
-    ...accountRows(data.income),
-    totalRow('totalIncome', t('incomeStatement.totalIncome'), data.totalIncome),
-    headingRow('expenses', t('incomeStatement.expenses')),
-    ...accountRows(data.expenses),
-    totalRow('totalExpenses', t('incomeStatement.totalExpenses'), data.totalExpenses),
+    ...groupRows(data.income),
+    ...groupRows(data.costOfSales),
+    totalRow('grossProfit', t('incomeStatement.grossProfit'), data.grossProfit),
+    ...groupRows(data.expenses),
     totalRow('netProfit', t('incomeStatement.netProfit'), data.netProfit),
   ];
 
@@ -60,14 +58,14 @@ export function IncomeStatementPage() {
           icon: <RiseOutlined />,
           tint: 'green',
           label: t('incomeStatement.totalIncome'),
-          value: formatMoney(data?.totalIncome ?? 0),
+          value: formatMoney(data?.income.total ?? 0),
         },
         {
           key: 'expenses',
           icon: <FallOutlined />,
           tint: 'amber',
-          label: t('incomeStatement.totalExpenses'),
-          value: formatMoney(data?.totalExpenses ?? 0),
+          label: t('incomeStatement.costAndExpenses'),
+          value: formatMoney((data?.costOfSales.total ?? 0) + (data?.expenses.total ?? 0)),
         },
         {
           key: 'profit',

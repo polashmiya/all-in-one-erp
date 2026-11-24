@@ -28,6 +28,7 @@ public sealed class StockTransferManifest : IFeatureManifestProvider
                 ListOrder = 20,
                 Sort = true,
             },
+            new("fromOfficeId", FieldTypes.Lookup, new("From office", "যে অফিস থেকে"), "basic", 25) { Lookup = EmployeeLookups.Office, ListOrder = 25 },
             new("fromWarehouseId", FieldTypes.Lookup, new("From warehouse", "যে গুদাম থেকে"), "basic", 30)
             {
                 Locked = true,
@@ -35,6 +36,7 @@ public sealed class StockTransferManifest : IFeatureManifestProvider
                 ListOrder = 30,
                 Filter = true,
             },
+            new("toOfficeId", FieldTypes.Lookup, new("To office", "যে অফিসে"), "basic", 35) { Lookup = EmployeeLookups.Office, ListOrder = 35 },
             new("toWarehouseId", FieldTypes.Lookup, new("To warehouse", "যে গুদামে"), "basic", 40)
             {
                 Locked = true,

@@ -16,6 +16,9 @@ import { useUnitKey } from '@/common/master-data';
 import { TRANSFER_FEATURE, transferPaths } from '../constants';
 import { transferCalls } from '../transfer-form';
 
+const place = (office: string | null, warehouse: string | null) =>
+  [office, warehouse].filter(Boolean).join(' · ');
+
 export function TransferViewPage() {
   const { t } = useTranslation();
   const id = Number(useParams().id);
@@ -53,7 +56,7 @@ export function TransferViewPage() {
         {
           key: 'warehouses',
           icon: <HomeOutlined />,
-          label: `${transfer.fromWarehouseName} → ${transfer.toWarehouseName}`,
+          label: `${place(transfer.fromOfficeName, transfer.fromWarehouseName)} → ${place(transfer.toOfficeName, transfer.toWarehouseName)}`,
         },
       ]}
       lines={

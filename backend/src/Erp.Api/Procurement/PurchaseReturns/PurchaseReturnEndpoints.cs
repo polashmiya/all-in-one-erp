@@ -1,3 +1,4 @@
+using Erp.Api.Accounting;
 using Erp.Api.Approvals;
 using Erp.Api.Documents;
 using Erp.Api.PartnerManagement;
@@ -72,6 +73,14 @@ internal static class PurchaseReturnEndpoints
             .WithName("RejectPurchaseReturn")
             .WithSummary("Reject a pending return; the comment is the reason and is required")
             .RequirePermission($"{Feature}.{FeatureActions.Approve}")
+            .Validate<ReviewRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        returns.MapPost("/{id:int}/cancel", Cancel)
+            .WithName("CancelPurchaseReturn")
+            .WithSummary("Cancel an approved return and take its stock and journal back; the comment is the reason and is required")
+            .RequirePermission($"{Feature}.{FeatureActions.Cancel}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -223,6 +232,15 @@ internal static class PurchaseReturnEndpoints
             : await ChangeAsync(id, db, current, r => ApprovalFlow.ActAsync(db, current, Feature, r, false, request.Comment, cancellationToken),
                 cancellationToken);
 
+    private static async Task<Results<Ok<PurchaseReturnDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Cancel(
+        int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
+        ApprovalFlow.MissingReason(request) is { } missing
+            ? missing
+            : await ChangeAsync(id, db, current, 
+                d => ApprovalFlow.CancelAsync(db, current, Feature, d, request.Comment,
+                    () => PurchaseCancel.ReturnAsync(db, current, d, cancellationToken), cancellationToken),
+                cancellationToken);
+
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var purchaseReturn = await db.PurchaseReturns.SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
@@ -256,6 +274,7 @@ internal static class PurchaseReturnEndpoints
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
         var code = await DocumentData.CodeAsync(db.PurchaseReturns, purchaseReturn, request.Code, errors, cancellationToken);
+        await PeriodLock.CheckAsync(db, "returnDate", request.ReturnDate, errors, cancellationToken);
         await PartnerData.CheckLookupsAsync(db,
             [("reasonId", request.ReasonId, existing?.ReasonId, ProcurementLookups.ReturnReason)], errors, cancellationToken);
         await DocumentData.CheckWarehouseAsync(db, request.WarehouseId, existing?.WarehouseId, errors, cancellationToken);

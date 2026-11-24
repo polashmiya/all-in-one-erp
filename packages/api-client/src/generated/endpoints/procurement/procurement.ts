@@ -32,7 +32,6 @@ import type {
   ListPurchaseRequisitionsParams,
   ListPurchaseReturnsParams,
   OrderRequisitionOption,
-  PayableBill,
   ProblemDetails,
   PurchaseOrderDetail,
   PurchaseOrderList,
@@ -53,6 +52,7 @@ import type {
   SavePurchaseReceiveRequest,
   SavePurchaseReturnRequest,
   SaveRequisitionRequest,
+  SupplierPayable,
 } from '../../model';
 
 import { customFetch } from '../../../http/client.ts';
@@ -1116,6 +1116,120 @@ export const useClosePurchaseRequisition = <
   TContext
 > => {
   return useMutation(getClosePurchaseRequisitionMutationOptions(options), queryClient);
+};
+export const getCancelPurchaseRequisitionUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-requisitions/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved requisition; the comment is the reason and is required
+ */
+export const cancelPurchaseRequisition = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<RequisitionDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<RequisitionDetail>(getCancelPurchaseRequisitionUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelPurchaseRequisitionMutationKey = () => ['cancelPurchaseRequisition'] as const;
+
+export const getCancelPurchaseRequisitionMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelPurchaseRequisition>>,
+    TError,
+    CancelPurchaseRequisitionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelPurchaseRequisition>>,
+  TError,
+  CancelPurchaseRequisitionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelPurchaseRequisitionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelPurchaseRequisition>>,
+    CancelPurchaseRequisitionMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelPurchaseRequisition(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelPurchaseRequisitionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelPurchaseRequisition>>
+>;
+export type CancelPurchaseRequisitionMutationBody = BodyType<ReviewRequest>;
+export type CancelPurchaseRequisitionMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelPurchaseRequisitionMutationVariables = {
+  id: number;
+  data: BodyType<ReviewRequest>;
+};
+
+/**
+ * @summary Cancel an approved requisition; the comment is the reason and is required
+ */
+export const useCancelPurchaseRequisition = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelPurchaseRequisition>>,
+      TError,
+      CancelPurchaseRequisitionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelPurchaseRequisition>>,
+  TError,
+  CancelPurchaseRequisitionMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelPurchaseRequisitionMutationOptions(options), queryClient);
 };
 export const getListPurchaseOrdersUrl = (params?: ListPurchaseOrdersParams) => {
   const normalizedParams = new URLSearchParams();
@@ -2248,6 +2362,117 @@ export const useClosePurchaseOrder = <
 > => {
   return useMutation(getClosePurchaseOrderMutationOptions(options), queryClient);
 };
+export const getCancelPurchaseOrderUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-orders/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved purchase order; the comment is the reason and is required
+ */
+export const cancelPurchaseOrder = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseOrderDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseOrderDetail>(getCancelPurchaseOrderUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelPurchaseOrderMutationKey = () => ['cancelPurchaseOrder'] as const;
+
+export const getCancelPurchaseOrderMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelPurchaseOrder>>,
+    TError,
+    CancelPurchaseOrderMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelPurchaseOrder>>,
+  TError,
+  CancelPurchaseOrderMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelPurchaseOrderMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelPurchaseOrder>>,
+    CancelPurchaseOrderMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelPurchaseOrder(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelPurchaseOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelPurchaseOrder>>
+>;
+export type CancelPurchaseOrderMutationBody = BodyType<ReviewRequest>;
+export type CancelPurchaseOrderMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelPurchaseOrderMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Cancel an approved purchase order; the comment is the reason and is required
+ */
+export const useCancelPurchaseOrder = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelPurchaseOrder>>,
+      TError,
+      CancelPurchaseOrderMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelPurchaseOrder>>,
+  TError,
+  CancelPurchaseOrderMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelPurchaseOrderMutationOptions(options), queryClient);
+};
 export const getListPurchaseReceivesUrl = (params?: ListPurchaseReceivesParams) => {
   const normalizedParams = new URLSearchParams();
 
@@ -3301,6 +3526,117 @@ export const useRejectPurchaseReceive = <
 > => {
   return useMutation(getRejectPurchaseReceiveMutationOptions(options), queryClient);
 };
+export const getCancelPurchaseReceiveUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-receives/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved receive and take its stock and journal back; the comment is the reason and is required
+ */
+export const cancelPurchaseReceive = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReceiveDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseReceiveDetail>(getCancelPurchaseReceiveUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelPurchaseReceiveMutationKey = () => ['cancelPurchaseReceive'] as const;
+
+export const getCancelPurchaseReceiveMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelPurchaseReceive>>,
+    TError,
+    CancelPurchaseReceiveMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelPurchaseReceive>>,
+  TError,
+  CancelPurchaseReceiveMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelPurchaseReceiveMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelPurchaseReceive>>,
+    CancelPurchaseReceiveMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelPurchaseReceive(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelPurchaseReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelPurchaseReceive>>
+>;
+export type CancelPurchaseReceiveMutationBody = BodyType<ReviewRequest>;
+export type CancelPurchaseReceiveMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelPurchaseReceiveMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Cancel an approved receive and take its stock and journal back; the comment is the reason and is required
+ */
+export const useCancelPurchaseReceive = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelPurchaseReceive>>,
+      TError,
+      CancelPurchaseReceiveMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelPurchaseReceive>>,
+  TError,
+  CancelPurchaseReceiveMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelPurchaseReceiveMutationOptions(options), queryClient);
+};
 export const getListPurchaseReturnsUrl = (params?: ListPurchaseReturnsParams) => {
   const normalizedParams = new URLSearchParams();
 
@@ -4353,6 +4689,117 @@ export const useRejectPurchaseReturn = <
 > => {
   return useMutation(getRejectPurchaseReturnMutationOptions(options), queryClient);
 };
+export const getCancelPurchaseReturnUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-returns/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved return and take its stock and journal back; the comment is the reason and is required
+ */
+export const cancelPurchaseReturn = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReturnDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchaseReturnDetail>(getCancelPurchaseReturnUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelPurchaseReturnMutationKey = () => ['cancelPurchaseReturn'] as const;
+
+export const getCancelPurchaseReturnMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelPurchaseReturn>>,
+    TError,
+    CancelPurchaseReturnMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelPurchaseReturn>>,
+  TError,
+  CancelPurchaseReturnMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelPurchaseReturnMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelPurchaseReturn>>,
+    CancelPurchaseReturnMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelPurchaseReturn(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelPurchaseReturnMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelPurchaseReturn>>
+>;
+export type CancelPurchaseReturnMutationBody = BodyType<ReviewRequest>;
+export type CancelPurchaseReturnMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelPurchaseReturnMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Cancel an approved return and take its stock and journal back; the comment is the reason and is required
+ */
+export const useCancelPurchaseReturn = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelPurchaseReturn>>,
+      TError,
+      CancelPurchaseReturnMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelPurchaseReturn>>,
+  TError,
+  CancelPurchaseReturnMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelPurchaseReturnMutationOptions(options), queryClient);
+};
 export const getListPurchasePaymentsUrl = (params?: ListPurchasePaymentsParams) => {
   const normalizedParams = new URLSearchParams();
 
@@ -4625,13 +5072,13 @@ export const getGetPayableBillsUrl = (params: GetPayableBillsParams) => {
 };
 
 /**
- * @summary Approved goods receives of a supplier that still have an amount due; paymentId leaves that payment out
+ * @summary What a supplier is owed: approved goods receives with an amount due and the advance left; paymentId leaves that payment out
  */
 export const getPayableBills = async (
   params: GetPayableBillsParams,
   options?: Parameters<typeof customFetch>[1],
-): Promise<PayableBill[]> => {
-  return customFetch<PayableBill[]>(getGetPayableBillsUrl(params), {
+): Promise<SupplierPayable> => {
+  return customFetch<SupplierPayable>(getGetPayableBillsUrl(params), {
     ...options,
     method: 'GET',
   });
@@ -4718,7 +5165,7 @@ export function useGetPayableBills<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Approved goods receives of a supplier that still have an amount due; paymentId leaves that payment out
+ * @summary What a supplier is owed: approved goods receives with an amount due and the advance left; paymentId leaves that payment out
  */
 
 export function useGetPayableBills<
@@ -5413,6 +5860,117 @@ export const useRejectPurchasePayment = <
   TContext
 > => {
   return useMutation(getRejectPurchasePaymentMutationOptions(options), queryClient);
+};
+export const getCancelPurchasePaymentUrl = (id: number) => {
+  return `/api/erp/procurement/purchase-payments/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved payment and take its journal back; the comment is the reason and is required
+ */
+export const cancelPurchasePayment = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchasePaymentDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<PurchasePaymentDetail>(getCancelPurchasePaymentUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelPurchasePaymentMutationKey = () => ['cancelPurchasePayment'] as const;
+
+export const getCancelPurchasePaymentMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelPurchasePayment>>,
+    TError,
+    CancelPurchasePaymentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelPurchasePayment>>,
+  TError,
+  CancelPurchasePaymentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelPurchasePaymentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelPurchasePayment>>,
+    CancelPurchasePaymentMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelPurchasePayment(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelPurchasePaymentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelPurchasePayment>>
+>;
+export type CancelPurchasePaymentMutationBody = BodyType<ReviewRequest>;
+export type CancelPurchasePaymentMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelPurchasePaymentMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Cancel an approved payment and take its journal back; the comment is the reason and is required
+ */
+export const useCancelPurchasePayment = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelPurchasePayment>>,
+      TError,
+      CancelPurchasePaymentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelPurchasePayment>>,
+  TError,
+  CancelPurchasePaymentMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelPurchasePaymentMutationOptions(options), queryClient);
 };
 export const getGetPurchaseReportUrl = (params?: GetPurchaseReportParams) => {
   const normalizedParams = new URLSearchParams();

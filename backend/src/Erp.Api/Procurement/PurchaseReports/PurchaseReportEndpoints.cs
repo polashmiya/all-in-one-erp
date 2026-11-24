@@ -164,7 +164,7 @@ internal static class PurchaseReportEndpoints
             })
             .ToListAsync(cancellationToken);
         var returns = await db.PurchaseReturns.AsNoTracking()
-            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && receives.Any(g => g.Id == r.PurchaseReceiveId))
+            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && r.Status != ApprovalStatus.Cancelled && receives.Any(g => g.Id == r.PurchaseReceiveId))
             .SelectMany(r => r.Lines)
             .GroupBy(l => l.ItemId)
             .Select(g => new { g.Key, Net = g.Sum(l => l.NetAmount) })

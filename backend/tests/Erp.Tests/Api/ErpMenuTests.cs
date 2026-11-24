@@ -51,7 +51,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
     {
         var menu = await ErpMenuAsync(factory.Seed.ErpAdmin.Email, factory.Seed.ErpAdmin.Password, factory.DhakaId);
 
-        Assert.Equal(30, FeatureCodes(menu).Count());
+        Assert.Equal(33, FeatureCodes(menu).Count());
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class ErpMenuTests(ApiFactory factory)
         var viewer = await ErpMenuAsync(ApiFactory.ViewerEmail, ApiFactory.TestPassword, factory.DhakaId);
         var newUser = await ErpMenuAsync(ApiFactory.NewUserEmail, ApiFactory.TestPassword, factory.DhakaId);
 
-        Assert.Equal(30, FeatureCodes(viewer).Count());
+        Assert.Equal(33, FeatureCodes(viewer).Count());
         Assert.Empty(newUser);
     }
 

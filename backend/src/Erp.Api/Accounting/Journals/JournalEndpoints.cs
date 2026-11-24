@@ -70,6 +70,14 @@ internal static class JournalEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        journals.MapPost("/{id:int}/cancel", Cancel)
+            .WithName("CancelJournal")
+            .WithSummary("Cancel an approved manual journal with a reversing journal; the comment is the reason and is required")
+            .RequirePermission($"{Feature}.{FeatureActions.Cancel}")
+            .Validate<ReviewRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         journals.MapDelete("/{id:int}", Delete)
             .WithName("DeleteJournal")
             .WithSummary("Delete a pending or rejected manual journal")
@@ -165,6 +173,26 @@ internal static class JournalEndpoints
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
         ApprovalFlow.MissingReason(request) is { } missing ? missing : await ReviewAsync(id, false, request, current, db, cancellationToken);
 
+    private static async Task<Results<Ok<JournalDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Cancel(
+        int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
+    {
+        if (ApprovalFlow.MissingReason(request) is { } missing) return missing;
+        var journal = await ManualAsync(db, id, cancellationToken);
+        if (journal is null) return TypedResults.NotFound();
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var problem = await ApprovalFlow.CancelAsync(db, current, Feature, journal, request.Comment, async () =>
+        {
+            var (_, refused) = await AccountPosting.ReverseAsync(
+                db, current, journal, Feature, journal.Id, journal.Code, journal.JournalDate > today ? journal.JournalDate : today, 0,
+                cancellationToken);
+            return refused;
+        }, cancellationToken);
+        if (problem is not null) return problem;
+        await db.SaveChangesAsync(cancellationToken);
+        return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
+    }
+
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var journal = await ManualAsync(db, id, cancellationToken);
@@ -184,6 +212,8 @@ internal static class JournalEndpoints
         var journal = await ManualAsync(db, id, cancellationToken);
         if (journal is null) return TypedResults.NotFound();
         if (await ApprovalFlow.ActAsync(db, current, Feature, journal, approve, request.Comment, cancellationToken) is { } problem) return problem;
+        if (journal.Status == ApprovalStatus.Approved &&
+            await PeriodLock.ProblemAsync(db, journal.JournalDate, cancellationToken) is { } closed) return closed;
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
     }
@@ -197,6 +227,7 @@ internal static class JournalEndpoints
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
         var code = await DocumentData.CodeAsync(db.Journals, journal, request.Code, errors, cancellationToken);
+        await PeriodLock.CheckAsync(db, "journalDate", request.JournalDate, errors, cancellationToken);
         var problems = await LineProblemsAsync(db, request.Lines, cancellationToken);
         if (problems.Count > 0) errors["lines"] = [.. problems.Distinct()];
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
@@ -234,7 +265,7 @@ internal static class JournalEndpoints
             .Where(a => ids.Contains(a.Id) && a.IsActive && !a.IsGroup)
             .ToDictionaryAsync(a => a.Id, a => a.Name, cancellationToken);
         var controls = await db.PostingAccounts.AsNoTracking()
-            .Where(p => p.Key == PostingKeys.Inventory || p.Key == PostingKeys.AccountsPayable)
+            .Where(p => p.Key == PostingKeys.Inventory || p.Key == PostingKeys.AccountsPayable || p.Key == PostingKeys.SupplierAdvance)
             .ToDictionaryAsync(p => p.Key, p => p.ChartOfAccountId, cancellationToken);
         var supplierIds = lines.Select(l => l.SupplierId).OfType<int>().Distinct().ToList();
         var suppliers = await db.Suppliers.Where(s => supplierIds.Contains(s.Id)).Select(s => s.Id).ToListAsync(cancellationToken);
@@ -250,7 +281,8 @@ internal static class JournalEndpoints
             {
                 problems.Add($"{name} only changes with stock. Use a stock adjustment.");
             }
-            else if (controls.GetValueOrDefault(PostingKeys.AccountsPayable) == line.ChartOfAccountId && line.SupplierId is null)
+            else if (line.SupplierId is null && (controls.GetValueOrDefault(PostingKeys.AccountsPayable) == line.ChartOfAccountId ||
+                controls.GetValueOrDefault(PostingKeys.SupplierAdvance) == line.ChartOfAccountId))
             {
                 problems.Add($"Choose a supplier for {name}.");
             }

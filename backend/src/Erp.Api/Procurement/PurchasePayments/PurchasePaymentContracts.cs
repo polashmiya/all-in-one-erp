@@ -15,6 +15,7 @@ public sealed record PurchasePaymentRow(
     string Status,
     int BillCount,
     decimal PaymentAmount,
+    bool IsAdvance,
     decimal SettledAmount,
     DateTime? CreatedAt,
     DateTime? ModifiedAt);
@@ -32,6 +33,8 @@ public sealed record PayableBill(
     decimal PaidAmount,
     decimal Due);
 
+public sealed record SupplierPayable(IReadOnlyList<PayableBill> Bills, decimal AvailableAdvance);
+
 public sealed record SavePurchasePaymentLine
 {
     public required int PurchaseReceiveId { get; init; }
@@ -39,6 +42,7 @@ public sealed record SavePurchasePaymentLine
     public required decimal? Vds { get; init; }
     public required decimal? Tds { get; init; }
     public required decimal? DiscountAmount { get; init; }
+    public required decimal? AdvanceAdjusted { get; init; }
 }
 
 public sealed record SavePurchasePaymentRequest
@@ -46,12 +50,15 @@ public sealed record SavePurchasePaymentRequest
     public required string? Code { get; init; }
     public required DateOnly PaymentDate { get; init; }
     public required int SupplierId { get; init; }
+    public required bool IsAdvance { get; init; }
     public required int? PaymentMethodId { get; init; }
+    public required int? BankAccountId { get; init; }
     public required string? PayeeName { get; init; }
     public required string? BankAccountNo { get; init; }
     public required string? InstrumentNo { get; init; }
     public required DateOnly? InstrumentDate { get; init; }
     public required string? Remarks { get; init; }
+    public required decimal? AdvanceAmount { get; init; }
     public required IReadOnlyList<SavePurchasePaymentLine> Lines { get; init; }
     public Dictionary<string, JsonElement>? CustomData { get; init; }
 }
@@ -68,6 +75,7 @@ public sealed record PurchasePaymentLineDetail(
     decimal Vds,
     decimal Tds,
     decimal DiscountAmount,
+    decimal AdvanceAdjusted,
     decimal SettledAmount);
 
 public sealed record PurchasePaymentDetail
@@ -77,8 +85,11 @@ public sealed record PurchasePaymentDetail
     public required DateOnly PaymentDate { get; init; }
     public required int SupplierId { get; init; }
     public required string? SupplierName { get; init; }
+    public required bool IsAdvance { get; init; }
     public required int? PaymentMethodId { get; init; }
+    public required int? BankAccountId { get; init; }
     public required string? PaymentMethodName { get; init; }
+    public required string? BankAccountName { get; init; }
     public required string? PayeeName { get; init; }
     public required string? BankAccountNo { get; init; }
     public required string? InstrumentNo { get; init; }
@@ -92,6 +103,7 @@ public sealed record PurchasePaymentDetail
     public required decimal Vds { get; init; }
     public required decimal Tds { get; init; }
     public required decimal DiscountAmount { get; init; }
+    public required decimal AdvanceAdjusted { get; init; }
     public required decimal SettledAmount { get; init; }
     public required IReadOnlyList<PurchasePaymentLineDetail> Lines { get; init; }
     public required Dictionary<string, JsonElement>? CustomData { get; init; }
@@ -104,7 +116,9 @@ internal sealed class SavePurchasePaymentRequestValidator : AbstractValidator<Sa
     public SavePurchasePaymentRequestValidator()
     {
         RuleFor(x => x.SupplierId).GreaterThan(0).WithMessage("Supplier is required.");
-        RuleFor(x => x.Lines).NotEmpty().WithMessage("Add at least one bill.");
+        RuleFor(x => x.Lines).NotEmpty().When(x => !x.IsAdvance).WithMessage("Add at least one bill.");
+        RuleFor(x => x.Lines).Empty().When(x => x.IsAdvance).WithMessage("An advance has no bills.");
+        RuleFor(x => x.AdvanceAmount).NotNull().GreaterThan(0).PrecisionScale(18, 2, true).When(x => x.IsAdvance).WithMessage("Enter the advance amount.");
         RuleFor(x => x.Lines.Count).LessThanOrEqualTo(DocumentData.MaxLines).OverridePropertyName("lines");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
@@ -113,7 +127,8 @@ internal sealed class SavePurchasePaymentRequestValidator : AbstractValidator<Sa
             line.RuleFor(l => l.Vds).GreaterThanOrEqualTo(0).When(l => l.Vds is not null);
             line.RuleFor(l => l.Tds).GreaterThanOrEqualTo(0).When(l => l.Tds is not null);
             line.RuleFor(l => l.DiscountAmount).GreaterThanOrEqualTo(0).When(l => l.DiscountAmount is not null);
-            line.RuleFor(l => l.PaymentAmount + (l.Vds ?? 0) + (l.Tds ?? 0) + (l.DiscountAmount ?? 0)).GreaterThan(0)
+            line.RuleFor(l => l.AdvanceAdjusted).GreaterThanOrEqualTo(0).When(l => l.AdvanceAdjusted is not null);
+            line.RuleFor(l => l.PaymentAmount + (l.Vds ?? 0) + (l.Tds ?? 0) + (l.DiscountAmount ?? 0) + (l.AdvanceAdjusted ?? 0)).GreaterThan(0)
                 .OverridePropertyName("paymentAmount").WithMessage("Enter an amount for every bill.");
         });
     }

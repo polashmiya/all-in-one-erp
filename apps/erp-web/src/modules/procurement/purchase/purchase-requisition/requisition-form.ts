@@ -1,5 +1,6 @@
 import {
   approvePurchaseRequisition,
+  cancelPurchaseRequisition,
   closePurchaseRequisition,
   deletePurchaseRequisition,
   rejectPurchaseRequisition,
@@ -95,6 +96,7 @@ export const lineAmount = (line?: Partial<RequisitionLineValue>) =>
 export const requisitionCalls: ApprovalCalls = {
   approve: (id, data) => approvePurchaseRequisition(id, data),
   reject: (id, data) => rejectPurchaseRequisition(id, data),
+  cancel: (id, data) => cancelPurchaseRequisition(id, data),
   close: (id) => closePurchaseRequisition(id),
   remove: (id) => deletePurchaseRequisition(id),
   progress: (id) => getPurchaseRequisitionApproval(id),

@@ -20,7 +20,7 @@ internal sealed class InventoryTransactionConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.Remarks).HasMaxLength(1500);
         builder.Property(x => x.JournalId).HasColumnName("SubLedgerHeaderID");
 
-        builder.HasIndex(x => new { x.BusinessUnitId, x.Feature, x.DocumentId }).IsUnique();
+        builder.HasIndex(x => new { x.BusinessUnitId, x.Feature, x.DocumentId, x.IsReversal }).IsUnique();
         builder.HasIndex(x => new { x.BusinessUnitId, x.PostingDate });
 
         builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
@@ -35,6 +35,7 @@ internal sealed class InventoryTransactionConfiguration : IEntityTypeConfigurati
             nameof(InventoryTransaction.Remarks), nameof(InventoryTransaction.JournalId), nameof(InventoryTransaction.AccountId),
             nameof(InventoryTransaction.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
+            nameof(InventoryTransaction.IsReversal),
         ]);
     }
 }
@@ -140,6 +141,8 @@ internal sealed class StockTransferConfiguration : IEntityTypeConfiguration<Stoc
         builder.Property(x => x.BusinessUnitId).HasColumnName("BusinessUnitID");
         builder.Property(x => x.Code).HasColumnName("StockTransferCode").HasMaxLength(100);
         builder.Property(x => x.FromWarehouseId).HasColumnName("FromWarehouseID");
+        builder.Property(x => x.FromOfficeId).HasColumnName("FromOfficeID");
+        builder.Property(x => x.ToOfficeId).HasColumnName("ToOfficeID");
         builder.Property(x => x.ToWarehouseId).HasColumnName("ToWarehouseID");
         builder.Property(x => x.Remarks).HasMaxLength(1000);
         builder.Property(x => x.TotalQuantity).HasPrecision(18, 4);
@@ -152,6 +155,8 @@ internal sealed class StockTransferConfiguration : IEntityTypeConfiguration<Stoc
 
         builder.HasOne<BusinessUnit>().WithMany().HasForeignKey(x => x.BusinessUnitId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Warehouse>().WithMany().HasForeignKey(x => x.FromWarehouseId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Office>().WithMany().HasForeignKey(x => x.FromOfficeId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Office>().WithMany().HasForeignKey(x => x.ToOfficeId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Warehouse>().WithMany().HasForeignKey(x => x.ToWarehouseId).OnDelete(DeleteBehavior.NoAction);
         builder.HasMany(x => x.Lines).WithOne().HasForeignKey(x => x.StockTransferId).OnDelete(DeleteBehavior.Cascade);
 
@@ -163,6 +168,7 @@ internal sealed class StockTransferConfiguration : IEntityTypeConfiguration<Stoc
             nameof(StockTransfer.ReviewComment), nameof(StockTransfer.AccountId), nameof(StockTransfer.BusinessUnitId),
             .. MasterRecordMapping.AuditColumns,
             nameof(StockTransfer.CustomData),
+            nameof(StockTransfer.FromOfficeId), nameof(StockTransfer.ToOfficeId),
         ]);
     }
 }

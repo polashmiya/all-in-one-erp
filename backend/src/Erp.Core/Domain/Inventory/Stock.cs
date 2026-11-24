@@ -12,6 +12,8 @@ public class InventoryTransaction : MasterRecord, IBusinessUnitOwned
 
     public required string DocumentCode { get; set; }
 
+    public bool IsReversal { get; set; }
+
     public DateOnly PostingDate { get; set; }
 
     public int? SupplierId { get; set; }

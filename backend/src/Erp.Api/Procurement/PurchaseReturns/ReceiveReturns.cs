@@ -10,7 +10,7 @@ internal static class ReceiveReturns
         ErpDbContext db, IReadOnlyCollection<int> receiveIds, int exceptReturnId, CancellationToken cancellationToken)
     {
         var lines = await db.PurchaseReturns.AsNoTracking()
-            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && r.Id != exceptReturnId &&
+            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && r.Status != ApprovalStatus.Cancelled && r.Id != exceptReturnId &&
                 receiveIds.Contains(r.PurchaseReceiveId))
             .SelectMany(r => r.Lines.Select(l => new { r.PurchaseReceiveId, l.ItemId, l.Quantity }))
             .ToListAsync(cancellationToken);
@@ -24,7 +24,7 @@ internal static class ReceiveReturns
 
         var returned = await ReturnedAsync(db, ids, 0, cancellationToken);
         var amounts = await db.PurchaseReturns.AsNoTracking()
-            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && ids.Contains(r.PurchaseReceiveId))
+            .Where(r => r.IsActive && r.Status != ApprovalStatus.Rejected && r.Status != ApprovalStatus.Cancelled && ids.Contains(r.PurchaseReceiveId))
             .GroupBy(r => r.PurchaseReceiveId)
             .Select(g => new { g.Key, Amount = g.Sum(r => r.NetAmount) })
             .ToDictionaryAsync(g => g.Key, g => g.Amount, cancellationToken);

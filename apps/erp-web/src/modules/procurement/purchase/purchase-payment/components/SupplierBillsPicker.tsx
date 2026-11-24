@@ -28,7 +28,7 @@ export function SupplierBillsPicker({
     form.setFieldValue('lines', []);
     if (!next) return;
     try {
-      const bills = await getPayableBills({ supplierId: next, paymentId });
+      const { bills } = await getPayableBills({ supplierId: next, paymentId });
       if (form.getFieldValue('supplierId') === next)
         form.setFieldValue('lines', bills.map(fromBill));
     } catch (error) {

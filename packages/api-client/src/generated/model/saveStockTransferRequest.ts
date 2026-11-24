@@ -12,7 +12,11 @@ export interface SaveStockTransferRequest {
   /** @nullable */
   code: string | null;
   transferDate: string;
+  /** @nullable */
+  fromOfficeId: string | null;
   fromWarehouseId: string;
+  /** @nullable */
+  toOfficeId: string | null;
   toWarehouseId: string;
   /** @nullable */
   remarks: string | null;

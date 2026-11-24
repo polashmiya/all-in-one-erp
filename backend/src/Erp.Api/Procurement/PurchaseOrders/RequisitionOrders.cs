@@ -31,7 +31,7 @@ internal static class RequisitionOrders
         ErpDbContext db, List<int> requisitionIds, int exceptOrderId, CancellationToken cancellationToken)
     {
         var lines = await db.PurchaseOrders.AsNoTracking()
-            .Where(o => o.IsActive && o.Status != ApprovalStatus.Rejected && o.Id != exceptOrderId &&
+            .Where(o => o.IsActive && o.Status != ApprovalStatus.Rejected && o.Status != ApprovalStatus.Cancelled && o.Id != exceptOrderId &&
                 o.RequisitionId != null && requisitionIds.Contains(o.RequisitionId.Value))
             .SelectMany(o => o.Lines.Select(l => new { RequisitionId = o.RequisitionId!.Value, l.ItemId, l.Quantity }))
             .ToListAsync(cancellationToken);

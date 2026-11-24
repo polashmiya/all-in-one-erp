@@ -31,7 +31,7 @@ public sealed record EmployeeList(IReadOnlyList<EmployeeRow> Items, int Total, E
 
 public sealed record EmployeeOption(int Id, string Code, string Name, string? NameBn, bool IsActive);
 
-public sealed record StructureOption(Guid Id, string Code, string Name, Guid? ParentId, bool IsActive);
+public sealed record StructureOption(Guid Id, string Code, string Name, Guid? ParentId, bool IsActive, Guid? OfficeId = null);
 
 public sealed record EmployeeUserInput(string Username, string Password);
 

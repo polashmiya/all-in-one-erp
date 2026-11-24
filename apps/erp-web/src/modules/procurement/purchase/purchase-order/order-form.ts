@@ -1,5 +1,6 @@
 import {
   approvePurchaseOrder,
+  cancelPurchaseOrder,
   closePurchaseOrder,
   deletePurchaseOrder,
   getGetOrderRequisitionOptionsQueryKey,
@@ -111,6 +112,7 @@ export function toRequest(v: OrderValues): SavePurchaseOrderRequest {
 export const orderCalls: ApprovalCalls = {
   approve: (id, data) => approvePurchaseOrder(id, data),
   reject: (id, data) => rejectPurchaseOrder(id, data),
+  cancel: (id, data) => cancelPurchaseOrder(id, data),
   close: (id) => closePurchaseOrder(id),
   remove: (id) => deletePurchaseOrder(id),
   progress: (id) => getPurchaseOrderApproval(id),

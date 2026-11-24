@@ -107,7 +107,7 @@ internal sealed class ApprovalInboxEndpoints : IErpEndpoints
         var documents = await source.Documents(db, ApprovalStatus.Pending, null).ToListAsync(cancellationToken);
         var ids = documents.Select(d => d.Id).ToList();
         var steps = await db.ApprovalSteps.AsNoTracking()
-            .Where(s => s.Feature == source.Feature && ids.Contains(s.DocumentId))
+            .Where(s => s.Feature == source.Feature && ids.Contains(s.DocumentId) && s.Status != StepStatus.Cancelled)
             .ToListAsync(cancellationToken);
         var byDocument = steps.GroupBy(s => s.DocumentId).ToDictionary(g => g.Key, g => g.OrderBy(s => s.Level).ToList());
 
@@ -132,12 +132,13 @@ internal sealed class ApprovalInboxEndpoints : IErpEndpoints
         ErpDbContext db, ICurrentContext current, IApprovalSource source, CancellationToken cancellationToken)
     {
         var steps = await db.ApprovalSteps.AsNoTracking()
-            .Where(s => s.Feature == source.Feature && s.ActedById == current.UserId && s.Status != StepStatus.Pending)
+            .Where(s => s.Feature == source.Feature && s.ActedById == current.UserId &&
+                (s.Status == StepStatus.Approved || s.Status == StepStatus.Rejected))
             .ToListAsync(cancellationToken);
         var ids = steps.Select(s => s.DocumentId).Distinct().ToList();
         var documents = await source.Documents(db, null, ids).ToDictionaryAsync(d => d.Id, cancellationToken);
         var levels = await db.ApprovalSteps.AsNoTracking()
-            .Where(s => s.Feature == source.Feature && ids.Contains(s.DocumentId))
+            .Where(s => s.Feature == source.Feature && ids.Contains(s.DocumentId) && s.Status != StepStatus.Cancelled)
             .GroupBy(s => s.DocumentId)
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);

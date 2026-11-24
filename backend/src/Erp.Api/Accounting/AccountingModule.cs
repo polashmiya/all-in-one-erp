@@ -1,7 +1,11 @@
 using Erp.Api.Accounting.AccountingReports;
+using Erp.Api.Accounting.BankAccounts;
 using Erp.Api.Accounting.ChartOfAccounts;
 using Erp.Api.Accounting.Journals;
+using Erp.Api.Accounting.PeriodClosings;
+using Erp.Api.Accounting.TaxDeposits;
 using Erp.Api.Approvals;
+using Erp.Api.Procurement.PurchasePayments;
 using Erp.Core.Modules;
 using Erp.Metadata;
 
@@ -13,19 +17,26 @@ public static class AccountingModule
         [
             $"{AccountingMenu.ChartOfAccounts}.view",
             $"{AccountingMenu.PostingAccounts}.view",
+            $"{AccountingMenu.BankAccounts}.view",
             $"{AccountingMenu.AccountLedger}.view",
             .. JournalEndpoints.Editors,
         ];
 
     public static readonly string[] SupplierReaders = [$"{AccountingMenu.SupplierLedger}.view", .. JournalEndpoints.Editors];
 
+    public static readonly string[] BankReaders =
+        [$"{AccountingMenu.BankAccounts}.view", .. PurchasePaymentEndpoints.Editors, .. TaxDepositEndpoints.Editors];
+
     public static IServiceCollection AddAccountingModule(this IServiceCollection services)
     {
         services.AddSingleton<IErpMenuProvider, AccountingMenu>();
         services.AddSingleton<IErpEndpoints, AccountingEndpoints>();
         services.AddSingleton<IFeatureManifestProvider, ChartOfAccountManifest>();
+        services.AddSingleton<IFeatureManifestProvider, BankAccountManifest>();
         services.AddSingleton<IFeatureManifestProvider, JournalManifest>();
+        services.AddSingleton<IFeatureManifestProvider, TaxDepositManifest>();
         services.AddSingleton<IApprovalSource, JournalApprovalSource>();
+        services.AddSingleton<IApprovalSource, TaxDepositApprovalSource>();
         return services;
     }
 }
@@ -36,7 +47,10 @@ public sealed class AccountingEndpoints : IErpEndpoints
     {
         var group = erp.MapGroup("/accounting").WithTags("Accounting");
         ChartOfAccountEndpoints.Map(group);
+        BankAccountEndpoints.Map(group);
         JournalEndpoints.Map(group);
+        TaxDepositEndpoints.Map(group);
+        PeriodClosingEndpoints.Map(group);
         AccountingReportEndpoints.Map(group);
     }
 }

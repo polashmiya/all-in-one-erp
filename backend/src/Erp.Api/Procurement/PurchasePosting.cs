@@ -1,4 +1,5 @@
 using Erp.Api.Accounting;
+using Erp.Api.Accounting.BankAccounts;
 using Erp.Api.Inventory;
 using Erp.Core.Domain.Accounting;
 using Erp.Core.Domain.Procurement;
@@ -82,23 +83,23 @@ internal static class PurchasePosting
     public static async Task<ProblemHttpResult?> PaymentAsync(
         ErpDbContext db, ICurrentContext current, PurchasePayment payment, CancellationToken cancellationToken)
     {
-        var method = await db.LookupValues.Where(v => v.Id == payment.PaymentMethodId).Select(v => v.Code).FirstOrDefaultAsync(cancellationToken);
-        var source = method switch
-        {
-            null or ProcurementLookups.Cash => PostingKeys.Cash,
-            ProcurementLookups.MobileBanking => PostingKeys.MobileBanking,
-            _ => PostingKeys.Bank,
-        };
-        var settled = payment.PaymentAmount + payment.Vds + payment.Tds + payment.DiscountAmount;
-        var (_, problem) = await AccountPosting.PostAsync(db, current, new JournalEntry(
-            ProcurementMenu.PurchasePayment, payment.Id, payment.Code, payment.PaymentDate, $"Supplier paid {payment.Code}",
+        var source = await PaymentSources.CreditAsync(
+            db, payment.PaymentMethodId, payment.BankAccountId, payment.PaymentAmount, cancellationToken);
+        var settled = payment.PaymentAmount + payment.Vds + payment.Tds + payment.DiscountAmount + payment.AdvanceAdjusted;
+        JournalEntryLine[] lines = payment.IsAdvance
+            ? [JournalEntryLine.Debit(PostingKeys.SupplierAdvance, payment.PaymentAmount, payment.SupplierId), source]
+            :
             [
                 JournalEntryLine.Debit(PostingKeys.AccountsPayable, settled, payment.SupplierId),
-                JournalEntryLine.Credit(source, payment.PaymentAmount),
+                source,
                 JournalEntryLine.Credit(PostingKeys.VdsPayable, payment.Vds),
                 JournalEntryLine.Credit(PostingKeys.TdsPayable, payment.Tds),
                 JournalEntryLine.Credit(PostingKeys.PurchaseDiscount, payment.DiscountAmount),
-            ]), cancellationToken);
+                JournalEntryLine.Credit(PostingKeys.SupplierAdvance, payment.AdvanceAdjusted, payment.SupplierId),
+            ];
+        var narration = payment.IsAdvance ? $"Supplier advance {payment.Code}" : $"Supplier paid {payment.Code}";
+        var (_, problem) = await AccountPosting.PostAsync(db, current, new JournalEntry(
+            ProcurementMenu.PurchasePayment, payment.Id, payment.Code, payment.PaymentDate, narration, lines), cancellationToken);
         return problem;
     }
 }

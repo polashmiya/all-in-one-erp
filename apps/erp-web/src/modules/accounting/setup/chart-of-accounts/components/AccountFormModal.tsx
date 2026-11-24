@@ -36,6 +36,7 @@ export function AccountFormModal({
   const create = useCreateChartOfAccount();
   const update = useUpdateChartOfAccount();
   const initialValues = useMemo<Partial<SaveChartOfAccountRequest>>(() => account ?? {}, [account]);
+  const isMain = !!account && !account.parentId;
   const groups = accounts?.filter((a) => a.isGroup && a.id !== account?.id);
 
   const save = async (values: SaveChartOfAccountRequest) => {
@@ -70,6 +71,8 @@ export function AccountFormModal({
           parentId: {
             watch: ['type'],
             state: (values) => ({
+              hidden: isMain,
+              required: true,
               filter: (item) => groups?.find((g) => g.id === item.id)?.type === values.type,
             }),
           },

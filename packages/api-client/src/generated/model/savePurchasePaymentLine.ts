@@ -15,4 +15,6 @@ export interface SavePurchasePaymentLine {
   tds: number | null;
   /** @nullable */
   discountAmount: number | null;
+  /** @nullable */
+  advanceAdjusted: number | null;
 }

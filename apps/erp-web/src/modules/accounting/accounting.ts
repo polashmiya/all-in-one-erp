@@ -5,7 +5,16 @@ import { useUnitKey } from '@/common/master-data';
 
 export const ACCOUNTING_MODULE = 'accounting';
 
-export const ACCOUNT_TYPES = ['asset', 'liability', 'equity', 'income', 'expense'];
+export const ACCOUNT_TYPES = [
+  'currentAsset',
+  'nonCurrentAsset',
+  'currentLiability',
+  'nonCurrentLiability',
+  'equity',
+  'income',
+  'costOfSales',
+  'expense',
+];
 
 export function useAccountTypes(): LookupItem[] {
   const { t } = useTranslation();

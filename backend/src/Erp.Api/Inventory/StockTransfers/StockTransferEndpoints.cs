@@ -1,3 +1,4 @@
+using Erp.Api.Accounting;
 using Erp.Api.Approvals;
 using Erp.Api.Documents;
 using Erp.Core.Authorization;
@@ -70,6 +71,14 @@ internal static class StockTransferEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        transfers.MapPost("/{id:int}/cancel", Cancel)
+            .WithName("CancelStockTransfer")
+            .WithSummary("Cancel an approved transfer and move its stock back; the comment is the reason and is required")
+            .RequirePermission($"{Feature}.{FeatureActions.Cancel}")
+            .Validate<ReviewRequest>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         transfers.MapDelete("/{id:int}", Delete)
             .WithName("DeleteStockTransfer")
             .WithSummary("Delete a pending or rejected transfer")
@@ -116,8 +125,12 @@ internal static class StockTransferEndpoints
                 t.Id,
                 t.Code,
                 t.TransferDate,
+                t.FromOfficeId,
+                FromOfficeName = db.Offices.Where(o => o.Id == t.FromOfficeId).Select(o => o.Name).FirstOrDefault(),
                 t.FromWarehouseId,
                 FromWarehouseName = db.Warehouses.Where(w => w.Id == t.FromWarehouseId).Select(w => w.Name).FirstOrDefault(),
+                t.ToOfficeId,
+                ToOfficeName = db.Offices.Where(o => o.Id == t.ToOfficeId).Select(o => o.Name).FirstOrDefault(),
                 t.ToWarehouseId,
                 ToWarehouseName = db.Warehouses.Where(w => w.Id == t.ToWarehouseId).Select(w => w.Name).FirstOrDefault(),
                 t.Status,
@@ -130,7 +143,8 @@ internal static class StockTransferEndpoints
 
         return new StockTransferList(
             rows.Select(t => new StockTransferRow(
-                t.Id, t.Code, t.TransferDate, t.FromWarehouseId, t.FromWarehouseName, t.ToWarehouseId, t.ToWarehouseName,
+                t.Id, t.Code, t.TransferDate, t.FromOfficeId, t.FromOfficeName, t.FromWarehouseId, t.FromWarehouseName, t.ToOfficeId, t.ToOfficeName,
+                t.ToWarehouseId, t.ToWarehouseName,
                 ApprovalFlow.StatusKey(t.Status), t.ItemCount, t.TotalQuantity, t.CreatedAt, t.ModifiedAt)).ToList(),
             total,
             counts);
@@ -179,6 +193,19 @@ internal static class StockTransferEndpoints
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
         ApprovalFlow.MissingReason(request) is { } missing ? missing : await ReviewAsync(id, false, request, current, db, cancellationToken);
 
+    private static async Task<Results<Ok<StockTransferDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Cancel(
+        int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
+    {
+        if (ApprovalFlow.MissingReason(request) is { } missing) return missing;
+        var transfer = await db.StockTransfers.SingleOrDefaultAsync(t => t.Id == id && t.IsActive, cancellationToken);
+        if (transfer is null) return TypedResults.NotFound();
+        var problem = await ApprovalFlow.CancelAsync(db, current, Feature, transfer, request.Comment,
+            () => StockPosting.CancelAsync(db, current, Feature, id, transfer.TransferDate, cancellationToken), cancellationToken);
+        if (problem is not null) return problem;
+        await db.SaveChangesAsync(cancellationToken);
+        return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
+    }
+
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var transfer = await db.StockTransfers.SingleOrDefaultAsync(t => t.Id == id && t.IsActive, cancellationToken);
@@ -217,8 +244,16 @@ internal static class StockTransferEndpoints
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
         var code = await DocumentData.CodeAsync(db.StockTransfers, transfer, request.Code, errors, cancellationToken);
+        await PeriodLock.CheckAsync(db, "transferDate", request.TransferDate, errors, cancellationToken);
         await DocumentData.CheckWarehouseAsync(db, request.FromWarehouseId, existing?.FromWarehouseId, errors, cancellationToken, "fromWarehouseId");
         await DocumentData.CheckWarehouseAsync(db, request.ToWarehouseId, existing?.ToWarehouseId, errors, cancellationToken, "toWarehouseId");
+        var offices = await db.Warehouses
+            .Where(w => w.Id == request.FromWarehouseId || w.Id == request.ToWarehouseId)
+            .ToDictionaryAsync(w => w.Id, w => w.OfficeId, cancellationToken);
+        var fromOffice = offices.GetValueOrDefault(request.FromWarehouseId);
+        var toOffice = offices.GetValueOrDefault(request.ToWarehouseId);
+        if (request.FromOfficeId is not null && request.FromOfficeId != fromOffice) errors["fromWarehouseId"] = ["Choose a warehouse of this office."];
+        if (request.ToOfficeId is not null && request.ToOfficeId != toOffice) errors["toWarehouseId"] = ["Choose a warehouse of this office."];
         var items = await DocumentData.CheckItemsAsync(
             db, [.. request.Lines.Select(l => l.ItemId)], transfer.Lines.Select(l => l.ItemId), errors, cancellationToken);
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
@@ -243,6 +278,8 @@ internal static class StockTransferEndpoints
         if (transfer.Id == 0) db.StockTransfers.Add(transfer);
         transfer.Code = code ?? await DocumentData.NextCodeAsync(db.StockTransfers, CodePrefix, cancellationToken);
         transfer.TransferDate = request.TransferDate;
+        transfer.FromOfficeId = fromOffice;
+        transfer.ToOfficeId = toOffice;
         transfer.FromWarehouseId = request.FromWarehouseId;
         transfer.ToWarehouseId = request.ToWarehouseId;
         transfer.Remarks = DocumentData.Trimmed(request.Remarks);
@@ -258,6 +295,8 @@ internal static class StockTransferEndpoints
     {
         Code = t.Code,
         TransferDate = t.TransferDate,
+        FromOfficeId = t.FromOfficeId,
+        ToOfficeId = t.ToOfficeId,
         FromWarehouseId = t.FromWarehouseId,
         ToWarehouseId = t.ToWarehouseId,
         Remarks = t.Remarks,
@@ -287,6 +326,10 @@ internal static class StockTransferEndpoints
             Id = t.Id,
             Code = t.Code,
             TransferDate = t.TransferDate,
+            FromOfficeId = t.FromOfficeId,
+            FromOfficeName = await db.Offices.Where(o => o.Id == t.FromOfficeId).Select(o => o.Name).FirstOrDefaultAsync(cancellationToken),
+            ToOfficeId = t.ToOfficeId,
+            ToOfficeName = await db.Offices.Where(o => o.Id == t.ToOfficeId).Select(o => o.Name).FirstOrDefaultAsync(cancellationToken),
             FromWarehouseId = t.FromWarehouseId,
             FromWarehouseName = warehouses.GetValueOrDefault(t.FromWarehouseId),
             ToWarehouseId = t.ToWarehouseId,

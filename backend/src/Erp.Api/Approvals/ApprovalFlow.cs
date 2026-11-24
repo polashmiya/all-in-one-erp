@@ -42,7 +42,7 @@ internal static class ApprovalFlow
 
     public static ValidationProblem? MissingReason(ReviewRequest request) =>
         string.IsNullOrWhiteSpace(request.Comment)
-            ? TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["comment"] = ["Write the reason for rejecting."] })
+            ? TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["comment"] = ["Write the reason."] })
             : null;
 
     public static async Task<List<ApprovalLevel>> LevelsAsync(
@@ -110,6 +110,40 @@ internal static class ApprovalFlow
 
         return null;
     }
+
+    public static async Task<ProblemHttpResult?> CancelAsync(
+        ErpDbContext db, ICurrentContext current, string feature, IApprovalDocument document, string? comment,
+        Func<Task<ProblemHttpResult?>> undo, CancellationToken cancellationToken)
+    {
+        if (document.Status != ApprovalStatus.Approved)
+        {
+            return TypedResults.Problem(detail: "Only an approved record can be cancelled.", statusCode: StatusCodes.Status409Conflict);
+        }
+
+        if (await undo() is { } problem) return problem;
+
+        var level = await db.ApprovalSteps
+            .Where(s => s.Feature == feature && s.DocumentId == document.Id)
+            .MaxAsync(s => (int?)s.Level, cancellationToken) ?? 0;
+        db.ApprovalSteps.Add(new ApprovalStep
+        {
+            AccountId = current.AccountId!.Value,
+            BusinessUnitId = current.BusinessUnitId!.Value,
+            Feature = feature,
+            DocumentId = document.Id,
+            Level = level + 1,
+            Name = nameof(StepStatus.Cancelled),
+            Status = StepStatus.Cancelled,
+            ActedById = current.UserId,
+            ActedAt = DateTimeOffset.UtcNow,
+            Comment = comment?.Trim(),
+        });
+        document.Status = ApprovalStatus.Cancelled;
+        return null;
+    }
+
+    public static ProblemHttpResult InUse(string detail) =>
+        TypedResults.Problem(title: "Record in use", detail: detail, statusCode: StatusCodes.Status409Conflict);
 
     public static async Task<ApprovalProgress> ProgressAsync(
         ErpDbContext db, ICurrentContext current, string feature, IApprovalDocument document, CancellationToken cancellationToken)

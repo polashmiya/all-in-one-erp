@@ -1,7 +1,7 @@
+using Erp.Api.Accounting.ChartOfAccounts;
 using Erp.Api.Documents;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Accounting;
-using Erp.Core.Domain.Approvals;
 using Erp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,15 +33,17 @@ public sealed record TrialBalanceReport(
 
 public sealed record StatementLine(int Id, string Code, string Name, decimal Amount);
 
+public sealed record StatementGroup(string Type, IReadOnlyList<StatementLine> Lines, decimal Total);
+
 public sealed record IncomeStatement(
-    IReadOnlyList<StatementLine> Income, decimal TotalIncome, IReadOnlyList<StatementLine> Expenses, decimal TotalExpenses, decimal NetProfit);
+    StatementGroup Income, StatementGroup CostOfSales, decimal GrossProfit, StatementGroup Expenses, decimal NetProfit);
 
 public sealed record BalanceSheet(
-    IReadOnlyList<StatementLine> Assets,
+    IReadOnlyList<StatementGroup> Assets,
     decimal TotalAssets,
-    IReadOnlyList<StatementLine> Liabilities,
+    IReadOnlyList<StatementGroup> Liabilities,
     decimal TotalLiabilities,
-    IReadOnlyList<StatementLine> Equity,
+    StatementGroup Equity,
     decimal CurrentEarnings,
     decimal TotalEquity);
 
@@ -77,7 +79,7 @@ internal static class AccountingReportEndpoints
     }
 
     private static IQueryable<JournalLine> Posted(ErpDbContext db) =>
-        db.Journals.AsNoTracking().Where(j => j.IsActive && j.Status == ApprovalStatus.Approved).SelectMany(j => j.Lines);
+        db.Journals.AsNoTracking().Posted().SelectMany(j => j.Lines);
 
     private static Task<LedgerReport> AccountLedger(
         int accountId, int? supplierId, DateOnly? from, DateOnly? to, int? page, int? pageSize, ErpDbContext db, CancellationToken cancellationToken) =>
@@ -154,7 +156,7 @@ internal static class AccountingReportEndpoints
             {
                 var sum = sums[a.Id];
                 return new TrialBalanceRow(
-                    a.Id, a.Code, a.Name, a.Type.ToString().ToLowerInvariant(), sum.Opening, sum.Debit, sum.Credit,
+                    a.Id, a.Code, a.Name, ChartOfAccountEndpoints.TypeKey(a.Type), sum.Opening, sum.Debit, sum.Credit,
                     sum.Opening + sum.Debit - sum.Credit);
             })
             .ToList();
@@ -167,29 +169,28 @@ internal static class AccountingReportEndpoints
     private static async Task<IncomeStatement> IncomeStatement(
         DateOnly? from, DateOnly? to, ErpDbContext db, CancellationToken cancellationToken)
     {
-        var sums = await SumsAsync(db, from, to, cancellationToken);
-        var income = Lines(sums, AccountType.Income, -1);
-        var expenses = Lines(sums, AccountType.Expense, 1);
-        var totalIncome = income.Sum(l => l.Amount);
-        var totalExpenses = expenses.Sum(l => l.Amount);
-        return new IncomeStatement(income, totalIncome, expenses, totalExpenses, totalIncome - totalExpenses);
+        var sums = await SumsAsync(Posted(db).Where(l => l.Journal!.Feature != AccountingMenu.PeriodClosing), from, to, cancellationToken);
+        var income = Group(sums, AccountType.Income, -1);
+        var cost = Group(sums, AccountType.CostOfSales, 1);
+        var expenses = Group(sums, AccountType.Expense, 1);
+        var gross = income.Total - cost.Total;
+        return new IncomeStatement(income, cost, gross, expenses, gross - expenses.Total);
     }
 
     private static async Task<BalanceSheet> BalanceSheet(DateOnly? to, ErpDbContext db, CancellationToken cancellationToken)
     {
-        var sums = await SumsAsync(db, null, to, cancellationToken);
-        var assets = Lines(sums, AccountType.Asset, 1);
-        var liabilities = Lines(sums, AccountType.Liability, -1);
-        var equity = Lines(sums, AccountType.Equity, -1);
-        var earnings = -sums.Where(s => s.Type is AccountType.Income or AccountType.Expense).Sum(s => s.Amount);
+        var sums = await SumsAsync(Posted(db), null, to, cancellationToken);
+        StatementGroup[] assets = [Group(sums, AccountType.CurrentAsset, 1), Group(sums, AccountType.NonCurrentAsset, 1)];
+        StatementGroup[] liabilities = [Group(sums, AccountType.CurrentLiability, -1), Group(sums, AccountType.NonCurrentLiability, -1)];
+        var equity = Group(sums, AccountType.Equity, -1);
+        var earnings = -sums.Where(s => s.Type >= AccountType.Income).Sum(s => s.Amount);
         return new BalanceSheet(
-            assets, assets.Sum(l => l.Amount), liabilities, liabilities.Sum(l => l.Amount), equity, earnings, equity.Sum(l => l.Amount) + earnings);
+            assets, assets.Sum(g => g.Total), liabilities, liabilities.Sum(g => g.Total), equity, earnings, equity.Total + earnings);
     }
 
     private static async Task<List<AccountSum>> SumsAsync(
-        ErpDbContext db, DateOnly? from, DateOnly? to, CancellationToken cancellationToken)
+        IQueryable<JournalLine> lines, DateOnly? from, DateOnly? to, CancellationToken cancellationToken)
     {
-        var lines = Posted(db);
         if (from is not null) lines = lines.Where(l => l.Journal!.JournalDate >= from);
         if (to is not null) lines = lines.Where(l => l.Journal!.JournalDate <= to);
         return await lines
@@ -198,8 +199,12 @@ internal static class AccountingReportEndpoints
             .ToListAsync(cancellationToken);
     }
 
-    private static List<StatementLine> Lines(List<AccountSum> sums, AccountType type, int sign) =>
-        [.. sums.Where(s => s.Type == type && s.Amount != 0)
+    private static StatementGroup Group(List<AccountSum> sums, AccountType type, int sign)
+    {
+        var lines = sums.Where(s => s.Type == type && s.Amount != 0)
             .OrderBy(s => s.Code)
-            .Select(s => new StatementLine(s.Id, s.Code, s.Name, sign * s.Amount))];
+            .Select(s => new StatementLine(s.Id, s.Code, s.Name, sign * s.Amount))
+            .ToList();
+        return new StatementGroup(ChartOfAccountEndpoints.TypeKey(type), lines, lines.Sum(l => l.Amount));
+    }
 }

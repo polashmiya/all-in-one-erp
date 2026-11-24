@@ -1,3 +1,4 @@
+using Erp.Api.Accounting;
 using Erp.Core.Domain.Inventory;
 using Erp.Core.Tenancy;
 using Erp.Infrastructure.Persistence;
@@ -7,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Erp.Api.Inventory;
 
 internal sealed record StockEntry(
-    string Feature, int DocumentId, string DocumentCode, DateOnly Date, int? SupplierId, string? Remarks, IReadOnlyList<StockEntryLine> Lines);
+    string Feature, int DocumentId, string DocumentCode, DateOnly Date, int? SupplierId, string? Remarks, IReadOnlyList<StockEntryLine> Lines)
+{
+    public bool IsReversal { get; init; }
+}
 
 internal sealed record StockEntryLine(int ItemId, int UomId, Guid WarehouseId, decimal Quantity, decimal Value = 0, Guid? ToWarehouseId = null)
 {
@@ -26,6 +30,8 @@ internal static class StockPosting
     public static async Task<(InventoryTransaction? Transaction, ProblemHttpResult? Problem)> PostAsync(
         ErpDbContext db, ICurrentContext current, StockEntry entry, CancellationToken cancellationToken)
     {
+        if (await PeriodLock.ProblemAsync(db, entry.Date, cancellationToken) is { } closed) return (null, closed);
+
         var itemIds = entry.Lines.Select(l => l.ItemId).Distinct().ToList();
         var items = await db.Items.Where(i => itemIds.Contains(i.Id)).ToDictionaryAsync(i => i.Id, cancellationToken);
         var balances = await db.StockBalances.Where(b => itemIds.Contains(b.ItemId)).ToListAsync(cancellationToken);
@@ -52,6 +58,7 @@ internal static class StockPosting
             Feature = entry.Feature,
             DocumentId = entry.DocumentId,
             DocumentCode = entry.DocumentCode,
+            IsReversal = entry.IsReversal,
             PostingDate = entry.Date,
             SupplierId = entry.SupplierId,
             Remarks = entry.Remarks,
@@ -111,5 +118,52 @@ internal static class StockPosting
 
         db.InventoryTransactions.Add(transaction);
         return (transaction, null);
+    }
+
+    public static async Task<ProblemHttpResult?> CancelAsync(
+        ErpDbContext db, ICurrentContext current, string feature, int documentId, DateOnly documentDate, CancellationToken cancellationToken)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var date = documentDate > today ? documentDate : today;
+        var original = await db.InventoryTransactions.AsNoTracking().Include(t => t.Lines)
+            .SingleOrDefaultAsync(t => t.Feature == feature && t.DocumentId == documentId && !t.IsReversal, cancellationToken);
+        InventoryTransaction? reversal = null;
+        if (original is not null)
+        {
+            (reversal, var refused) = await PostAsync(db, current, new StockEntry(
+                feature, documentId, original.DocumentCode, date, original.SupplierId, original.Remarks, [.. ReversedLines(original)])
+            {
+                IsReversal = true,
+            }, cancellationToken);
+            if (reversal is null) return refused;
+        }
+
+        var difference = (original?.Lines.Sum(l => l.Value) ?? 0) + (reversal?.Lines.Sum(l => l.Value) ?? 0);
+        var (journal, problem) = await AccountPosting.ReverseAsync(db, current, feature, documentId, date, difference, cancellationToken);
+        if (reversal is not null) reversal.Journal = journal;
+        return problem;
+    }
+
+    private static IEnumerable<StockEntryLine> ReversedLines(InventoryTransaction original)
+    {
+        var lines = original.Lines.OrderBy(l => l.Sequence).ToList();
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var next = i + 1 < lines.Count ? lines[i + 1] : null;
+            if (line.Quantity > 0)
+            {
+                yield return StockEntryLine.Out(line.ItemId, line.UomId, line.WarehouseId, line.Quantity);
+            }
+            else if (next is not null && next.ItemId == line.ItemId && next.Quantity == -line.Quantity && next.WarehouseId != line.WarehouseId)
+            {
+                yield return StockEntryLine.Move(line.ItemId, line.UomId, next.WarehouseId, line.WarehouseId, next.Quantity);
+                i++;
+            }
+            else
+            {
+                yield return StockEntryLine.In(line.ItemId, line.UomId, line.WarehouseId, -line.Quantity, -line.Value);
+            }
+        }
     }
 }

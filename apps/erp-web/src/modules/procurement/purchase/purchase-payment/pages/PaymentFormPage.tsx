@@ -15,10 +15,9 @@ import { useUnitKey } from '@/common/master-data';
 import { DocumentForm } from '@/common/documents/DocumentForm';
 import { PaymentLines } from '../components/PaymentLines';
 import { SupplierBillsPicker } from '../components/SupplierBillsPicker';
-import { BANK_FIELDS, PAYMENT_FEATURE, PAYMENT_LOOKUPS, paymentPaths } from '../constants';
+import { BANK_FIELDS, PAYMENT_FEATURE, paymentPaths } from '../constants';
 import {
   fromDetail,
-  isCash,
   newPayment,
   toRequest,
   usePaymentLookups,
@@ -35,7 +34,7 @@ export function PaymentFormPage() {
   const source = useGetPurchasePayment(id, {
     query: { queryKey: useUnitKey(getGetPurchasePaymentQueryKey(id)), enabled: allowed && id > 0 },
   });
-  const { lookups, suppliers } = usePaymentLookups(allowed);
+  const { lookups, suppliers, payFrom } = usePaymentLookups(allowed);
   const create = useCreatePurchasePayment();
   const update = useUpdatePurchasePayment();
 
@@ -44,10 +43,9 @@ export function PaymentFormPage() {
   const loading = (id > 0 && source.isPending) || config.isPending || draft.loading;
   const record = id ? source.data : undefined;
   const locked = !!record && record.status !== 'pending';
-  const methods = lookups[PAYMENT_LOOKUPS.method];
   const bankField: FieldBehavior = {
     watch: ['paymentMethodId'],
-    state: (values) => ({ hidden: isCash(methods, values.paymentMethodId) }),
+    state: (values) => ({ hidden: payFrom.isCash(values.paymentMethodId) }),
   };
 
   return (
@@ -74,7 +72,14 @@ export function PaymentFormPage() {
           }
           options={{
             lookups,
-            behaviors: Object.fromEntries(BANK_FIELDS.map((key) => [key, bankField])),
+            behaviors: {
+              ...Object.fromEntries(BANK_FIELDS.map((key) => [key, bankField])),
+              ...payFrom.behaviors,
+              advanceAmount: {
+                watch: ['isAdvance'],
+                state: (values) => ({ hidden: !values.isAdvance, required: true }),
+              },
+            },
             widgets: {
               supplierId: (_, placeholder) => (
                 <SupplierBillsPicker
@@ -85,7 +90,7 @@ export function PaymentFormPage() {
               ),
             },
           }}
-          lines={<PaymentLines />}
+          lines={<PaymentLines paymentId={record?.id} payFrom={payFrom} />}
           paths={paymentPaths}
           texts={{
             newTitle: t('payment.form.newTitle'),
@@ -95,7 +100,7 @@ export function PaymentFormPage() {
           }}
           saving={create.isPending || update.isPending}
           onSave={(values, recordId) => {
-            const data = toRequest(values, isCash(methods, values.paymentMethodId));
+            const data = toRequest(values, payFrom.isCash(values.paymentMethodId));
             return recordId
               ? update.mutateAsync({ id: recordId, data })
               : create.mutateAsync({ data });

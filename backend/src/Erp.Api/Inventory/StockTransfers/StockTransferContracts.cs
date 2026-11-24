@@ -8,8 +8,12 @@ public sealed record StockTransferRow(
     int Id,
     string Code,
     DateOnly TransferDate,
+    Guid? FromOfficeId,
+    string? FromOfficeName,
     Guid FromWarehouseId,
     string? FromWarehouseName,
+    Guid? ToOfficeId,
+    string? ToOfficeName,
     Guid ToWarehouseId,
     string? ToWarehouseName,
     string Status,
@@ -31,7 +35,9 @@ public sealed record SaveStockTransferRequest
 {
     public required string? Code { get; init; }
     public required DateOnly TransferDate { get; init; }
+    public required Guid? FromOfficeId { get; init; }
     public required Guid FromWarehouseId { get; init; }
+    public required Guid? ToOfficeId { get; init; }
     public required Guid ToWarehouseId { get; init; }
     public required string? Remarks { get; init; }
     public required IReadOnlyList<SaveStockTransferLine> Lines { get; init; }
@@ -46,9 +52,13 @@ public sealed record StockTransferDetail
     public required int Id { get; init; }
     public required string Code { get; init; }
     public required DateOnly TransferDate { get; init; }
+    public required Guid? FromOfficeId { get; init; }
     public required Guid FromWarehouseId { get; init; }
+    public required string? FromOfficeName { get; init; }
     public required string? FromWarehouseName { get; init; }
+    public required Guid? ToOfficeId { get; init; }
     public required Guid ToWarehouseId { get; init; }
+    public required string? ToOfficeName { get; init; }
     public required string? ToWarehouseName { get; init; }
     public required string? Remarks { get; init; }
     public required string Status { get; init; }

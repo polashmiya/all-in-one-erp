@@ -7,10 +7,13 @@ import {
   TitleCell,
   usePlaceholder,
 } from '@erp/ui';
+import { getGetPayableBillsQueryKey, useGetPayableBills } from '@erp/api-client';
 import { Button, Form, Table, type TableColumnsType } from 'antd';
 import type { FormListFieldData } from 'antd/es/form/FormList';
 import { useTranslation } from 'react-i18next';
 import { LineTotals } from '@/common/documents/LineTotals';
+import { useUnitKey } from '@/common/master-data';
+import type { PayFrom } from '@/common/pay-from';
 import {
   cents,
   paymentTotals,
@@ -20,19 +23,28 @@ import {
 } from '../payment-form';
 import '@/common/documents/documents.css';
 
-const AMOUNTS = ['paymentAmount', 'vds', 'tds', 'discountAmount'] as const;
+const AMOUNTS = ['paymentAmount', 'vds', 'tds', 'discountAmount', 'advanceAdjusted'] as const;
 
-export function PaymentLines() {
+export function PaymentLines({ paymentId, payFrom }: { paymentId?: number; payFrom: PayFrom }) {
   const { t } = useTranslation();
   const placeholder = usePlaceholder();
   const form = Form.useFormInstance<PaymentValues>();
   const lines: PaymentLine[] = Form.useWatch('lines', form) ?? [];
   const totals = paymentTotals(lines);
+  const isAdvance = !!Form.useWatch('isAdvance', form);
+  const supplierId = Form.useWatch('supplierId', form);
+  const params = { supplierId: supplierId ?? 0, paymentId };
+  const payable = useGetPayableBills(params, {
+    query: { queryKey: useUnitKey(getGetPayableBillsQueryKey(params)), enabled: !!supplierId },
+  });
+  const advance = payable.data?.availableAdvance ?? 0;
+  const amounts = AMOUNTS.filter((key) => key !== 'advanceAdjusted' || advance > 0);
+  payFrom.useClear();
 
   const amount = (key: (typeof AMOUNTS)[number]) => ({
     key,
     title: t(`payment.lines.${key}`),
-    className: 'erp-lines__money',
+    className: advance > 0 ? 'erp-lines__number' : 'erp-lines__money',
     align: 'end' as const,
     render: (_: unknown, field: FormListFieldData) => (
       <Form.Item
@@ -98,7 +110,7 @@ export function PaymentLines() {
       align: 'end',
       render: (_, field) => formatMoney(lines[field.name]?.due),
     },
-    ...AMOUNTS.map(amount),
+    ...amounts.map(amount),
     {
       key: 'settled',
       title: t('payment.lines.settled'),
@@ -121,6 +133,14 @@ export function PaymentLines() {
     },
   ];
 
+  if (isAdvance) {
+    return (
+      <DetailSection title={t('payment.lines.title')}>
+        <span>{t('payment.lines.advanceDescription')}</span>
+      </DetailSection>
+    );
+  }
+
   return (
     <DetailSection title={t('payment.lines.title')} description={t('payment.lines.description')}>
       <Form.List
@@ -129,6 +149,9 @@ export function PaymentLines() {
           {
             validator: async (_, value?: PaymentLine[]) => {
               if (!value?.length) throw new Error(t('payment.lines.required'));
+              if (cents(paymentTotals(value).advance) > cents(advance)) {
+                throw new Error(t('payment.lines.overAdvance', { amount: formatMoney(advance) }));
+              }
             },
           },
         ]}
@@ -160,6 +183,15 @@ export function PaymentLines() {
                     label: t('payment.totals.discount'),
                     value: formatMoney(totals.discount),
                   },
+                  ...(advance > 0
+                    ? [
+                        {
+                          key: 'advance',
+                          label: t('payment.totals.advance', { amount: formatMoney(advance) }),
+                          value: formatMoney(totals.advance),
+                        },
+                      ]
+                    : []),
                   {
                     key: 'settled',
                     label: t('payment.totals.settled'),

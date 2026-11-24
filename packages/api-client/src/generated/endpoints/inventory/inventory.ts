@@ -994,6 +994,117 @@ export const useRejectStockAdjustment = <
 > => {
   return useMutation(getRejectStockAdjustmentMutationOptions(options), queryClient);
 };
+export const getCancelStockAdjustmentUrl = (id: number) => {
+  return `/api/erp/inventory/stock-adjustments/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved adjustment and take its stock and journal back; the comment is the reason and is required
+ */
+export const cancelStockAdjustment = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<StockAdjustmentDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<StockAdjustmentDetail>(getCancelStockAdjustmentUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelStockAdjustmentMutationKey = () => ['cancelStockAdjustment'] as const;
+
+export const getCancelStockAdjustmentMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelStockAdjustment>>,
+    TError,
+    CancelStockAdjustmentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelStockAdjustment>>,
+  TError,
+  CancelStockAdjustmentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelStockAdjustmentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelStockAdjustment>>,
+    CancelStockAdjustmentMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelStockAdjustment(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelStockAdjustmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelStockAdjustment>>
+>;
+export type CancelStockAdjustmentMutationBody = BodyType<ReviewRequest>;
+export type CancelStockAdjustmentMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelStockAdjustmentMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Cancel an approved adjustment and take its stock and journal back; the comment is the reason and is required
+ */
+export const useCancelStockAdjustment = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelStockAdjustment>>,
+      TError,
+      CancelStockAdjustmentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelStockAdjustment>>,
+  TError,
+  CancelStockAdjustmentMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelStockAdjustmentMutationOptions(options), queryClient);
+};
 export const getListStockTransfersUrl = (params?: ListStockTransfersParams) => {
   const normalizedParams = new URLSearchParams();
 
@@ -1909,6 +2020,117 @@ export const useRejectStockTransfer = <
   TContext
 > => {
   return useMutation(getRejectStockTransferMutationOptions(options), queryClient);
+};
+export const getCancelStockTransferUrl = (id: number) => {
+  return `/api/erp/inventory/stock-transfers/${id}/cancel`;
+};
+
+/**
+ * @summary Cancel an approved transfer and move its stock back; the comment is the reason and is required
+ */
+export const cancelStockTransfer = async (
+  id: number,
+  reviewRequest: ReviewRequest,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<StockTransferDetail> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<StockTransferDetail>(getCancelStockTransferUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(reviewRequest),
+  });
+};
+
+export const getCancelStockTransferMutationKey = () => ['cancelStockTransfer'] as const;
+
+export const getCancelStockTransferMutationOptions = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelStockTransfer>>,
+    TError,
+    CancelStockTransferMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelStockTransfer>>,
+  TError,
+  CancelStockTransferMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCancelStockTransferMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelStockTransfer>>,
+    CancelStockTransferMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return cancelStockTransfer(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelStockTransferMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelStockTransfer>>
+>;
+export type CancelStockTransferMutationBody = BodyType<ReviewRequest>;
+export type CancelStockTransferMutationError = ErrorType<
+  HttpValidationProblemDetails | ProblemDetails
+>;
+export type CancelStockTransferMutationVariables = { id: number; data: BodyType<ReviewRequest> };
+
+/**
+ * @summary Cancel an approved transfer and move its stock back; the comment is the reason and is required
+ */
+export const useCancelStockTransfer = <
+  TError = ErrorType<HttpValidationProblemDetails | ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelStockTransfer>>,
+      TError,
+      CancelStockTransferMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelStockTransfer>>,
+  TError,
+  CancelStockTransferMutationVariables,
+  TContext
+> => {
+  return useMutation(getCancelStockTransferMutationOptions(options), queryClient);
 };
 export const getGetStockOnHandUrl = (params: GetStockOnHandParams) => {
   const normalizedParams = new URLSearchParams();

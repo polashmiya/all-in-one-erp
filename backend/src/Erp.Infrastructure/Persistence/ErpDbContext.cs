@@ -181,6 +181,14 @@ public class ErpDbContext : DbContext
 
     public DbSet<PostingAccount> PostingAccounts => Set<PostingAccount>();
 
+    public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
+
+    public DbSet<AccountingSetting> AccountingSettings => Set<AccountingSetting>();
+
+    public DbSet<PeriodClosing> PeriodClosings => Set<PeriodClosing>();
+
+    public DbSet<TaxDeposit> TaxDeposits => Set<TaxDeposit>();
+
     public DbSet<Journal> Journals => Set<Journal>();
 
     public DbSet<JournalLine> JournalLines => Set<JournalLine>();

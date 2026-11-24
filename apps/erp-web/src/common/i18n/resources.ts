@@ -30,6 +30,9 @@ import { stockLedgerResources } from '@/modules/inventory/reports/stock-ledger/i
 import { accountingResources } from '@/modules/accounting/i18n';
 import { chartOfAccountsResources } from '@/modules/accounting/setup/chart-of-accounts/i18n';
 import { postingAccountsResources } from '@/modules/accounting/setup/posting-accounts/i18n';
+import { bankAccountsResources } from '@/modules/accounting/setup/bank-accounts/i18n';
+import { periodClosingResources } from '@/modules/accounting/setup/period-closing/i18n';
+import { taxDepositResources } from '@/modules/accounting/transactions/tax-deposit/i18n';
 import { journalResources } from '@/modules/accounting/transactions/journal/i18n';
 import { ledgerResources } from '@/modules/accounting/reports/account-ledger/i18n';
 import { trialBalanceResources } from '@/modules/accounting/reports/trial-balance/i18n';
@@ -103,6 +106,9 @@ export const erpResources = mergeResources(
   accountingResources,
   chartOfAccountsResources,
   postingAccountsResources,
+  bankAccountsResources,
+  periodClosingResources,
+  taxDepositResources,
   journalResources,
   ledgerResources,
   trialBalanceResources,

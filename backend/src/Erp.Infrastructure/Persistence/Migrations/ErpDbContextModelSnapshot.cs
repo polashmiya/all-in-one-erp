@@ -22,6 +22,146 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.AccountingSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("FiscalYearStartMonth")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.ToTable("AccountingSetting", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.BankAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("AccountNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("BankAccNumber")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("BranchName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(4);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(9);
+
+                    b.Property<int>("ChartOfAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("ChartOfAccID")
+                        .HasColumnOrder(7);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(12);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(13);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(16);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(10);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(15);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(14);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("BankAccName")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("RoutingNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(11);
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccType")
+                        .HasColumnOrder(2);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ChartOfAccountId");
+
+                    b.HasIndex("BusinessUnitId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("BankAccount", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Accounting.ChartOfAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -181,6 +321,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("IsManualJV")
                         .HasColumnOrder(7);
 
+                    b.Property<bool>("IsReversal")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(22);
+
                     b.Property<DateOnly>("JournalDate")
                         .HasColumnType("date")
                         .HasColumnOrder(2);
@@ -234,7 +378,7 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.HasIndex("BusinessUnitId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("BusinessUnitId", "Feature", "DocumentId")
+                    b.HasIndex("BusinessUnitId", "Feature", "DocumentId", "IsReversal")
                         .IsUnique()
                         .HasFilter("[TransactionRefID] IS NOT NULL");
 
@@ -290,6 +434,76 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("SubLedgerRow", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.PeriodClosing", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("PeriodClosingID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(4);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(5);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(8);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(9);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsYear")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(3);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(11);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(10);
+
+                    b.Property<DateOnly>("PeriodEnd")
+                        .HasColumnType("date")
+                        .HasColumnOrder(2);
+
+                    b.Property<DateOnly>("PeriodStart")
+                        .HasColumnType("date")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BusinessUnitId", "IsYear", "PeriodEnd")
+                        .IsUnique()
+                        .HasFilter("[isActive] = 1");
+
+                    b.ToTable("PeriodClosing", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Accounting.PostingAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -335,6 +549,169 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("PostingAccount", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.TaxDeposit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("TaxDepositID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(14);
+
+                    b.Property<int?>("BankAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccountID")
+                        .HasColumnOrder(5);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(15);
+
+                    b.Property<DateOnly?>("ChallanDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("ChallanNo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(6);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TaxDepositCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(18);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(19);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(22);
+
+                    b.Property<DateOnly>("DepositDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(16);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(21);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(20);
+
+                    b.Property<int?>("PaymentMethodId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentMethodID")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("ReviewComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnOrder(13);
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(11);
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ReviewedByID")
+                        .HasColumnOrder(12);
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnOrder(10);
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(9);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(17);
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("TaxType")
+                        .HasColumnOrder(3);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BankAccountId");
+
+                    b.HasIndex("PaymentMethodId");
+
+                    b.HasIndex("BusinessUnitId", "Code")
+                        .IsUnique();
+
+                    b.HasIndex("BusinessUnitId", "IsActive", "Status", "DepositDate");
+
+                    b.ToTable("TaxDeposit", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.TaxDepositLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("TaxDepositLineID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("PurchasePaymentId")
+                        .HasColumnType("int")
+                        .HasColumnName("PurchasePaymentID");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaxDepositId")
+                        .HasColumnType("int")
+                        .HasColumnName("TaxDepositID");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PurchasePaymentId");
+
+                    b.HasIndex("TaxDepositId");
+
+                    b.ToTable("TaxDepositLine", (string)null);
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Approvals.ApprovalLevel", b =>
@@ -1309,6 +1686,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("isActive")
                         .HasColumnOrder(10);
 
+                    b.Property<bool>("IsReversal")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(16);
+
                     b.Property<int?>("JournalId")
                         .HasColumnType("int")
                         .HasColumnName("SubLedgerHeaderID")
@@ -1351,7 +1732,7 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("BusinessUnitId", "PostingDate");
 
-                    b.HasIndex("BusinessUnitId", "Feature", "DocumentId")
+                    b.HasIndex("BusinessUnitId", "Feature", "DocumentId", "IsReversal")
                         .IsUnique();
 
                     b.ToTable("InventoryHeader", (string)null);
@@ -2274,6 +2655,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnOrder(19);
 
+                    b.Property<Guid?>("FromOfficeId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("FromOfficeID")
+                        .HasColumnOrder(20);
+
                     b.Property<Guid>("FromWarehouseId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("FromWarehouseID")
@@ -2316,6 +2702,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnOrder(7);
 
+                    b.Property<Guid?>("ToOfficeId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ToOfficeID")
+                        .HasColumnOrder(21);
+
                     b.Property<Guid>("ToWarehouseId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("ToWarehouseID")
@@ -2338,7 +2729,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AccountId");
 
+                    b.HasIndex("FromOfficeId");
+
                     b.HasIndex("FromWarehouseId");
+
+                    b.HasIndex("ToOfficeId");
 
                     b.HasIndex("ToWarehouseId");
 
@@ -4040,6 +4435,16 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("AccountID")
                         .HasColumnOrder(18);
 
+                    b.Property<decimal>("AdvanceAdjusted")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnOrder(29);
+
+                    b.Property<int?>("BankAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccountID")
+                        .HasColumnOrder(28);
+
                     b.Property<string>("BankAccountNo")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
@@ -4088,6 +4493,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("isActive")
                         .HasColumnOrder(20);
+
+                    b.Property<bool>("IsAdvance")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(27);
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime")
@@ -4165,6 +4574,8 @@ namespace Erp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AccountId");
 
+                    b.HasIndex("BankAccountId");
+
                     b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("SupplierId");
@@ -4185,6 +4596,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnName("PurchasePaymentLineID");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AdvanceAdjusted")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("DiscountAmount")
                         .HasPrecision(18, 2)
@@ -5326,6 +5741,38 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("Warehouses", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.AccountingSetting", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.BankAccount", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Accounting.ChartOfAccount", "ChartOfAccount")
+                        .WithMany()
+                        .HasForeignKey("ChartOfAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ChartOfAccount");
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Accounting.ChartOfAccount", b =>
                 {
                     b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
@@ -5381,6 +5828,21 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.Navigation("Journal");
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.PeriodClosing", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Accounting.PostingAccount", b =>
                 {
                     b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
@@ -5396,6 +5858,46 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("ChartOfAccount");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.TaxDeposit", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Accounting.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.TaxDepositLine", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Procurement.PurchasePayment", null)
+                        .WithMany()
+                        .HasForeignKey("PurchasePaymentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Accounting.TaxDeposit", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("TaxDepositId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Identity.Employee", b =>
@@ -5841,11 +6343,21 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Erp.Core.Domain.Tenancy.Office", null)
+                        .WithMany()
+                        .HasForeignKey("FromOfficeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Erp.Core.Domain.Tenancy.Warehouse", null)
                         .WithMany()
                         .HasForeignKey("FromWarehouseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Office", null)
+                        .WithMany()
+                        .HasForeignKey("ToOfficeId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Erp.Core.Domain.Tenancy.Warehouse", null)
                         .WithMany()
@@ -6186,6 +6698,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Erp.Core.Domain.Accounting.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
                         .WithMany()
                         .HasForeignKey("BusinessUnitId")
@@ -6525,6 +7042,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Accounting.Journal", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Accounting.TaxDeposit", b =>
                 {
                     b.Navigation("Lines");
                 });

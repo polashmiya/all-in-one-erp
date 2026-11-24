@@ -5,12 +5,12 @@
  * Configurable ERP API. `/api/panel/*` serves the internal configuration Panel, `/api/erp/*` serves the client ERP app. Authenticate with the bearer token from the matching `/auth/login`; ERP calls that work on business-unit data also send `X-Business-Unit: {id}`.
  * OpenAPI spec version: v1
  */
-import type { StatementLine } from './statementLine.ts';
+import type { StatementGroup } from './statementGroup.ts';
 
 export interface IncomeStatement {
-  income: StatementLine[];
-  totalIncome: number;
-  expenses: StatementLine[];
-  totalExpenses: number;
+  income: StatementGroup;
+  costOfSales: StatementGroup;
+  grossProfit: number;
+  expenses: StatementGroup;
   netProfit: number;
 }

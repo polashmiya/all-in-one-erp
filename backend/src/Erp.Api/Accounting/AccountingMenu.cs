@@ -8,7 +8,10 @@ public sealed class AccountingMenu : IErpMenuProvider
 
     public const string ChartOfAccounts = "accounting.chart-of-accounts";
     public const string PostingAccounts = "accounting.posting-accounts";
+    public const string BankAccounts = "accounting.bank-accounts";
+    public const string PeriodClosing = "accounting.period-closing";
     public const string Journal = "accounting.journal";
+    public const string TaxDeposit = "accounting.tax-deposit";
     public const string AccountLedger = "accounting.account-ledger";
     public const string SupplierLedger = "accounting.supplier-ledger";
     public const string TrialBalance = "accounting.trial-balance";
@@ -25,11 +28,14 @@ public sealed class AccountingMenu : IErpMenuProvider
             new("setup", new("Account Setup", "হিসাব সেটআপ"), "setting", 10,
             [
                 new("chart-of-accounts", new("Chart of Accounts", "হিসাবের তালিকা"), 10, SetupActions),
+                new("bank-accounts", new("Bank Accounts", "ব্যাংক হিসাব"), 15, SetupActions),
                 new("posting-accounts", new("Posting Accounts", "পোস্টিং হিসাব"), 20, [FeatureActions.View, FeatureActions.Edit]),
+                new("period-closing", new("Period Closing", "হিসাবকাল সমাপ্তি"), 30, [FeatureActions.View, FeatureActions.Edit]),
             ]),
             new("transactions", new("Transactions", "লেনদেন"), "file", 20,
             [
                 new("journal", new("Journal Voucher", "জার্নাল ভাউচার"), 10, FeatureActions.Document),
+                new("tax-deposit", new("VDS/TDS Deposit", "ভিডিএস/টিডিএস জমা"), 20, FeatureActions.Document),
             ]),
             new("reports", new("Reports", "রিপোর্ট"), "bar-chart", 30,
             [

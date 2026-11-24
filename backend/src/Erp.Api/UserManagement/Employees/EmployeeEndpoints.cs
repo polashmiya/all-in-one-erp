@@ -67,7 +67,7 @@ internal static class EmployeeEndpoints
         structure.MapGet("/offices", Offices)
             .WithName("GetOfficeOptions")
             .WithSummary("Offices of the account, each with its business unit as parent")
-            .RequireAnyPermission($"{Feature}.view", $"{UserManagementMenu.User}.view");
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. StockModule.Readers]);
 
         structure.MapGet("/warehouses", Warehouses)
             .WithName("GetWarehouseOptions")
@@ -174,14 +174,14 @@ internal static class EmployeeEndpoints
         db.Offices.AcrossTenants().AsNoTracking()
             .Where(o => o.AccountId == db.CurrentAccountId)
             .OrderBy(o => o.Name)
-            .Select(o => new StructureOption(o.Id, o.Code, o.Name, o.BusinessUnitId, o.IsActive))
+            .Select(o => new StructureOption(o.Id, o.Code, o.Name, o.BusinessUnitId, o.IsActive, null))
             .ToListAsync(cancellationToken);
 
     private static Task<List<StructureOption>> Warehouses(ErpDbContext db, CancellationToken cancellationToken) =>
         db.Warehouses.AcrossTenants().AsNoTracking()
             .Where(w => w.AccountId == db.CurrentAccountId)
             .OrderBy(w => w.Name)
-            .Select(w => new StructureOption(w.Id, w.Code, w.Name, w.BusinessUnitId, w.IsActive))
+            .Select(w => new StructureOption(w.Id, w.Code, w.Name, w.BusinessUnitId, w.IsActive, w.OfficeId))
             .ToListAsync(cancellationToken);
 
     private static async Task<Results<Ok<EmployeeDetail>, NotFound>> Get(int id, ErpDbContext db, CancellationToken cancellationToken) =>
