@@ -1,5 +1,6 @@
 import { featurePath } from '@/common/constants/routes';
-import { pathsOf, PROCUREMENT_LOOKUPS, PROCUREMENT_MODULE } from '../../procurement';
+import { pathsOf, DOCUMENT_LOOKUPS } from '@/common/documents/documents';
+import { PROCUREMENT_MODULE } from '../../procurement';
 
 export const PAYMENT_FEATURE = 'procurement.purchase-payment';
 export const PAYMENT_PATH = featurePath(PROCUREMENT_MODULE, 'purchase-payment');
@@ -7,7 +8,7 @@ export const PAYMENT_PATH = featurePath(PROCUREMENT_MODULE, 'purchase-payment');
 export const paymentPaths = pathsOf(PAYMENT_PATH);
 
 export const PAYMENT_LOOKUPS = {
-  ...PROCUREMENT_LOOKUPS,
+  ...DOCUMENT_LOOKUPS,
   method: 'payment-method',
 } as const;
 

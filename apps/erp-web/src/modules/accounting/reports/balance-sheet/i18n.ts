@@ -1,0 +1,32 @@
+import type { AppResources } from '@erp/ui';
+
+export const balanceSheetResources: AppResources = {
+  en: {
+    'balanceSheet.title': 'Balance Sheet',
+    'balanceSheet.subtitle': 'What {{unit}} owns and owes.',
+    'balanceSheet.asOf': 'As of date',
+    'balanceSheet.assets': 'Assets',
+    'balanceSheet.totalAssets': 'Total assets',
+    'balanceSheet.liabilities': 'Liabilities',
+    'balanceSheet.totalLiabilities': 'Total liabilities',
+    'balanceSheet.equity': 'Equity',
+    'balanceSheet.earnings': 'Profit so far',
+    'balanceSheet.totalEquity': 'Total equity',
+    'balanceSheet.sum': 'Liabilities and equity',
+    'balanceSheet.exportFile': 'balance-sheet',
+  },
+  bn: {
+    'balanceSheet.title': 'উদ্বৃত্তপত্র',
+    'balanceSheet.subtitle': '{{unit}}-এর সম্পদ ও দায়।',
+    'balanceSheet.asOf': 'যে তারিখ পর্যন্ত',
+    'balanceSheet.assets': 'সম্পদ',
+    'balanceSheet.totalAssets': 'মোট সম্পদ',
+    'balanceSheet.liabilities': 'দায়',
+    'balanceSheet.totalLiabilities': 'মোট দায়',
+    'balanceSheet.equity': 'মালিকানা স্বত্ব',
+    'balanceSheet.earnings': 'এ পর্যন্ত মুনাফা',
+    'balanceSheet.totalEquity': 'মোট মালিকানা স্বত্ব',
+    'balanceSheet.sum': 'দায় ও মালিকানা স্বত্ব',
+    'balanceSheet.exportFile': 'balance-sheet',
+  },
+};

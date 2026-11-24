@@ -3,6 +3,7 @@ using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Security;
+using Erp.Infrastructure.Accounting;
 using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Persistence;
 using Erp.Infrastructure.Security;
@@ -19,7 +20,8 @@ public sealed record AccountSetupOutcome(AccountSetupResult? Result, IDictionary
 /// Everything is saved with one SaveChanges, i.e. one transaction: either the whole tree exists or nothing does.
 /// </summary>
 public sealed class AccountSetupService(
-    ErpDbContext db, IPasswordHasher hasher, PermissionCatalog catalog, AccountFeatureService features, LookupDefaults lookups)
+    ErpDbContext db, IPasswordHasher hasher, PermissionCatalog catalog, AccountFeatureService features, LookupDefaults lookups,
+    ChartOfAccountDefaults chart)
 {
     public async Task<AccountSetupOutcome> SetupAsync(AccountSetupRequest request, CancellationToken cancellationToken)
     {
@@ -93,6 +95,7 @@ public sealed class AccountSetupService(
 
         db.ErpUsers.Add(admin);
         await lookups.AddMissingAsync(account.Id, cancellationToken);
+        await chart.AddMissingAsync(account.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return new AccountSetupOutcome(

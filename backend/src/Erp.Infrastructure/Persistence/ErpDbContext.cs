@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Erp.Core.Domain;
+using Erp.Core.Domain.Accounting;
 using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Domain.Inventory;
@@ -165,6 +166,24 @@ public class ErpDbContext : DbContext
     public DbSet<PurchasePayment> PurchasePayments => Set<PurchasePayment>();
 
     public DbSet<PurchasePaymentLine> PurchasePaymentLines => Set<PurchasePaymentLine>();
+
+    public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
+
+    public DbSet<InventoryLine> InventoryLines => Set<InventoryLine>();
+
+    public DbSet<StockBalance> StockBalances => Set<StockBalance>();
+
+    public DbSet<StockAdjustment> StockAdjustments => Set<StockAdjustment>();
+
+    public DbSet<StockTransfer> StockTransfers => Set<StockTransfer>();
+
+    public DbSet<ChartOfAccount> ChartOfAccounts => Set<ChartOfAccount>();
+
+    public DbSet<PostingAccount> PostingAccounts => Set<PostingAccount>();
+
+    public DbSet<Journal> Journals => Set<Journal>();
+
+    public DbSet<JournalLine> JournalLines => Set<JournalLine>();
 
     public DbSet<ApprovalLevel> ApprovalLevels => Set<ApprovalLevel>();
 

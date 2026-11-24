@@ -24,7 +24,7 @@ import type {
 import type {
   ApprovalProgress,
   GetPayableBillsParams,
-  GetProcurementItemOptionsParams,
+  GetPurchaseReportParams,
   HttpValidationProblemDetails,
   ListPurchaseOrdersParams,
   ListPurchasePaymentsParams,
@@ -34,13 +34,13 @@ import type {
   OrderRequisitionOption,
   PayableBill,
   ProblemDetails,
-  ProcurementItemOption,
   PurchaseOrderDetail,
   PurchaseOrderList,
   PurchasePaymentDetail,
   PurchasePaymentList,
   PurchaseReceiveDetail,
   PurchaseReceiveList,
+  PurchaseReport,
   PurchaseReturnDetail,
   PurchaseReturnList,
   ReceiveOrderOption,
@@ -78,152 +78,6 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
-
-export const getGetProcurementItemOptionsUrl = (params?: GetProcurementItemOptionsParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value));
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/erp/procurement/items?${stringifiedParams}`
-    : `/api/erp/procurement/items`;
-};
-
-/**
- * @summary Up to 20 active items matching the search, with their UOM, last cost and purchase VAT
- */
-export const getProcurementItemOptions = async (
-  params?: GetProcurementItemOptionsParams,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<ProcurementItemOption[]> => {
-  return customFetch<ProcurementItemOption[]>(getGetProcurementItemOptionsUrl(params), {
-    ...options,
-    method: 'GET',
-  });
-};
-
-export const getGetProcurementItemOptionsQueryKey = (params?: GetProcurementItemOptionsParams) => {
-  return [`/api/erp/procurement/items`, ...(params ? [params] : [])] as const;
-};
-
-export const getGetProcurementItemOptionsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetProcurementItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getGetProcurementItemOptionsQueryKey(params);
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProcurementItemOptions>>> = ({
-    signal,
-  }) => getProcurementItemOptions(params, { signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getProcurementItemOptions>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetProcurementItemOptionsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getProcurementItemOptions>>
->;
-export type GetProcurementItemOptionsQueryError = ErrorType<ProblemDetails>;
-
-export function useGetProcurementItemOptions<
-  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params: undefined | GetProcurementItemOptionsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getProcurementItemOptions>>,
-          TError,
-          Awaited<ReturnType<typeof getProcurementItemOptions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetProcurementItemOptions<
-  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetProcurementItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getProcurementItemOptions>>,
-          TError,
-          Awaited<ReturnType<typeof getProcurementItemOptions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetProcurementItemOptions<
-  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetProcurementItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-/**
- * @summary Up to 20 active items matching the search, with their UOM, last cost and purchase VAT
- */
-
-export function useGetProcurementItemOptions<
-  TData = Awaited<ReturnType<typeof getProcurementItemOptions>>,
-  TError = ErrorType<ProblemDetails>,
->(
-  params?: GetProcurementItemOptionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getProcurementItemOptions>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetProcurementItemOptionsQueryOptions(params, options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
 
 export const getListPurchaseRequisitionsUrl = (params?: ListPurchaseRequisitionsParams) => {
   const normalizedParams = new URLSearchParams();
@@ -5560,3 +5414,137 @@ export const useRejectPurchasePayment = <
 > => {
   return useMutation(getRejectPurchasePaymentMutationOptions(options), queryClient);
 };
+export const getGetPurchaseReportUrl = (params?: GetPurchaseReportParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/erp/procurement/purchase-report?${stringifiedParams}`
+    : `/api/erp/procurement/purchase-report`;
+};
+
+/**
+ * @summary Approved goods receives with returns, payments and due, by receive, item or supplier
+ */
+export const getPurchaseReport = async (
+  params?: GetPurchaseReportParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PurchaseReport> => {
+  return customFetch<PurchaseReport>(getGetPurchaseReportUrl(params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPurchaseReportQueryKey = (params?: GetPurchaseReportParams) => {
+  return [`/api/erp/procurement/purchase-report`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetPurchaseReportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPurchaseReport>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetPurchaseReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReport>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPurchaseReportQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseReport>>> = ({ signal }) =>
+    getPurchaseReport(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPurchaseReport>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetPurchaseReportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPurchaseReport>>
+>;
+export type GetPurchaseReportQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPurchaseReport<
+  TData = Awaited<ReturnType<typeof getPurchaseReport>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: undefined | GetPurchaseReportParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReport>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseReport>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseReport>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseReport<
+  TData = Awaited<ReturnType<typeof getPurchaseReport>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetPurchaseReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReport>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseReport>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseReport>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPurchaseReport<
+  TData = Awaited<ReturnType<typeof getPurchaseReport>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetPurchaseReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReport>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Approved goods receives with returns, payments and due, by receive, item or supplier
+ */
+
+export function useGetPurchaseReport<
+  TData = Awaited<ReturnType<typeof getPurchaseReport>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params?: GetPurchaseReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseReport>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPurchaseReportQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

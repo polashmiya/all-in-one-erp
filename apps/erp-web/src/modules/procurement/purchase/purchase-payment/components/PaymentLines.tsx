@@ -10,7 +10,7 @@ import {
 import { Button, Form, Table, type TableColumnsType } from 'antd';
 import type { FormListFieldData } from 'antd/es/form/FormList';
 import { useTranslation } from 'react-i18next';
-import { LineTotals } from '../../../components/LineTotals';
+import { LineTotals } from '@/common/documents/LineTotals';
 import {
   cents,
   paymentTotals,
@@ -18,7 +18,7 @@ import {
   type PaymentLine,
   type PaymentValues,
 } from '../payment-form';
-import '../../../procurement.css';
+import '@/common/documents/documents.css';
 
 const AMOUNTS = ['paymentAmount', 'vds', 'tds', 'discountAmount'] as const;
 
@@ -113,8 +113,8 @@ export function PaymentLines() {
           type="text"
           danger
           icon={<DeleteOutlined />}
-          aria-label={t('procurement.lines.remove')}
-          title={t('procurement.lines.remove')}
+          aria-label={t('document.lines.remove')}
+          title={t('document.lines.remove')}
           onClick={() => remove(field.name)}
         />
       ),

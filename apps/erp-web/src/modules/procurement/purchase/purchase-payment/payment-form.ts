@@ -15,7 +15,7 @@ import type { LookupItem, LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
 import { useLookupLists } from '@/common/hooks/useLookupLists';
 import { trimmed, useUnitKey } from '@/common/master-data';
-import type { ApprovalCalls } from '../../components/useApprovalActions';
+import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
 import { CASH_METHOD, PAYMENT_LOOKUP_LISTS, PAYMENT_LOOKUPS } from './constants';
 
 export interface PaymentLine extends Partial<SavePurchasePaymentLine> {

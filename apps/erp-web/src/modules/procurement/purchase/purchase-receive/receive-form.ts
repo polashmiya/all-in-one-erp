@@ -17,8 +17,8 @@ import type { LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
 import { useLookupLists } from '@/common/hooks/useLookupLists';
 import { trimmed, useUnitKey } from '@/common/master-data';
-import type { ApprovalCalls } from '../../components/useApprovalActions';
-import { useUnitWarehouses } from '../../procurement';
+import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
+import { useUnitWarehouses } from '@/common/documents/documents';
 import { RECEIVE_LOOKUP_LISTS, RECEIVE_LOOKUPS } from './constants';
 
 export interface ReceiveLineValue extends SavePurchaseReceiveLine {

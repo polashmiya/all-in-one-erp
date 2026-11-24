@@ -1,10 +1,10 @@
-import type { ProcurementItemOption } from '@erp/api-client';
+import type { DocumentItemOption } from '@erp/api-client';
 import { formatMoney, formatNumber, MoneyInput, PercentInput, usePlaceholder } from '@erp/ui';
 import { Form } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { pricedTotals, priced, type PricedLine } from '../pricing';
-import { QUANTITY_DECIMALS_SHOWN, VAT_MAX } from '../procurement';
-import { LineGrid, type BaseLine, type LineColumn } from './LineGrid';
+import { QUANTITY_DECIMALS_SHOWN, VAT_MAX } from '@/common/documents/documents';
+import { LineGrid, type BaseLine, type LineColumn } from '@/common/documents/LineGrid';
 
 export function PricedLines<L extends BaseLine & PricedLine>({
   description,
@@ -18,7 +18,7 @@ export function PricedLines<L extends BaseLine & PricedLine>({
   description: string;
   note: { name: Extract<keyof L, string>; placeholder: string; maxLength: number };
   newLine: () => Partial<L>;
-  onPick: (option: ProcurementItemOption) => Partial<L>;
+  onPick: (option: DocumentItemOption) => Partial<L>;
   fixed?: boolean;
   headerCharges?: boolean;
   columns?: LineColumn<L>[];
@@ -35,7 +35,7 @@ export function PricedLines<L extends BaseLine & PricedLine>({
 
   const money = (key: 'price' | 'discount') => ({
     key,
-    title: t(`procurement.lines.${key}`),
+    title: t(`document.lines.${key}`),
     className: 'erp-lines__money',
     align: 'end' as const,
     render: (field: { name: number }) => (
@@ -43,7 +43,7 @@ export function PricedLines<L extends BaseLine & PricedLine>({
         <MoneyInput
           compact
           className="erp-w-full"
-          placeholder={placeholder('enter', t(`procurement.lines.${key}`))}
+          placeholder={placeholder('enter', t(`document.lines.${key}`))}
         />
       </Form.Item>
     ),
@@ -62,7 +62,7 @@ export function PricedLines<L extends BaseLine & PricedLine>({
         money('discount'),
         {
           key: 'vat',
-          title: t('procurement.lines.vat'),
+          title: t('document.lines.vat'),
           className: 'erp-lines__number',
           align: 'end',
           render: (field) => (
@@ -70,14 +70,14 @@ export function PricedLines<L extends BaseLine & PricedLine>({
               <PercentInput
                 max={VAT_MAX}
                 className="erp-w-full"
-                placeholder={placeholder('enter', t('procurement.lines.vat'))}
+                placeholder={placeholder('enter', t('document.lines.vat'))}
               />
             </Form.Item>
           ),
         },
         {
           key: 'net',
-          title: t('procurement.lines.net'),
+          title: t('document.lines.net'),
           className: 'erp-lines__amount',
           align: 'end',
           render: (_, line) => formatMoney(priced(line, vatInclusive).net),
@@ -92,32 +92,32 @@ export function PricedLines<L extends BaseLine & PricedLine>({
         return [
           {
             key: 'quantity',
-            label: t('procurement.lines.totalQuantity'),
+            label: t('document.lines.totalQuantity'),
             value: formatNumber(totals.quantity, QUANTITY_DECIMALS_SHOWN),
           },
-          { key: 'vat', label: t('procurement.totals.vat'), value: formatMoney(totals.vat) },
+          { key: 'vat', label: t('document.totals.vat'), value: formatMoney(totals.vat) },
           {
             key: 'items',
-            label: t('procurement.totals.items'),
+            label: t('document.totals.items'),
             value: formatMoney(totals.itemTotal),
           },
           ...(headerCharges
             ? [
                 {
                   key: 'discount',
-                  label: t('procurement.totals.discount'),
+                  label: t('document.totals.discount'),
                   value: formatMoney(headerDiscount),
                 },
                 {
                   key: 'charges',
-                  label: t('procurement.totals.charges'),
+                  label: t('document.totals.charges'),
                   value: formatMoney(charges),
                 },
               ]
             : []),
           {
             key: 'net',
-            label: t('procurement.totals.net'),
+            label: t('document.totals.net'),
             value: formatMoney(totals.net),
             strong: true,
           },

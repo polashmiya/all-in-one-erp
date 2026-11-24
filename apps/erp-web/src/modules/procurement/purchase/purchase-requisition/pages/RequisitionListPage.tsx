@@ -13,8 +13,8 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { EXPORT_PAGE_SIZE, idParam, listParams, useUnitKey } from '@/common/master-data';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { DocumentListPage } from '../../../components/DocumentListPage';
-import { statusParam, type ApprovalView } from '../../../procurement';
+import { DocumentListPage } from '@/common/documents/DocumentListPage';
+import { statusParam, type ApprovalView } from '@/common/documents/documents';
 import { REQUISITION_FEATURE, REQUISITION_LOOKUPS, requisitionPaths } from '../constants';
 import { requisitionCalls, useRequisitionLookups } from '../requisition-form';
 

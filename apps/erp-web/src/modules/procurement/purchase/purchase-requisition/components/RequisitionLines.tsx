@@ -1,8 +1,8 @@
 import { formatMoney, formatNumber, MoneyInput, usePlaceholder } from '@erp/ui';
 import { Form } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { LineGrid } from '../../../components/LineGrid';
-import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
+import { LineGrid } from '@/common/documents/LineGrid';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { LINE_REMARKS_MAX } from '../constants';
 import { emptyLine, lineAmount, type RequisitionLineValue } from '../requisition-form';
 
@@ -49,7 +49,7 @@ export function RequisitionLines() {
       totals={(lines) => [
         {
           key: 'quantity',
-          label: t('procurement.lines.totalQuantity'),
+          label: t('document.lines.totalQuantity'),
           value: formatNumber(
             lines.reduce((sum, line) => sum + (line?.quantity ?? 0), 0),
             QUANTITY_DECIMALS_SHOWN,

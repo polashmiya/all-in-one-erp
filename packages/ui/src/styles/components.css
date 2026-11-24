@@ -1635,6 +1635,12 @@ html[data-content-width='boxed'] .erp-page {
   max-width: none;
 }
 
+.erp-table__filters .ant-picker,
+.erp-table__filters .ant-select {
+  width: 100%;
+  height: var(--erp-control-md);
+}
+
 .erp-filter {
   display: inline-flex;
   align-items: center;

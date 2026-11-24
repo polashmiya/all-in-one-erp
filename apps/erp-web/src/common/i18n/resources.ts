@@ -16,11 +16,25 @@ import { customerProfileResources } from '@/modules/system-setup/partner-managem
 import { supplierProfileResources } from '@/modules/system-setup/partner-management/supplier-profile/i18n';
 import { approvalResources } from '@/common/approval/i18n';
 import { myApprovalsResources } from '@/modules/approval/my-approvals/i18n';
-import { procurementResources } from '@/modules/procurement/i18n';
+import { documentResources } from '@/common/documents/i18n';
 import { purchaseRequisitionResources } from '@/modules/procurement/purchase/purchase-requisition/i18n';
 import { purchaseOrderResources } from '@/modules/procurement/purchase/purchase-order/i18n';
 import { purchaseReceiveResources } from '@/modules/procurement/purchase/purchase-receive/i18n';
 import { purchasePaymentResources } from '@/modules/procurement/purchase/purchase-payment/i18n';
+import { purchaseReportResources } from '@/modules/procurement/reports/purchase-report/i18n';
+import { reportResources } from '@/common/reports/i18n';
+import { stockAdjustmentResources } from '@/modules/inventory/stock/stock-adjustment/i18n';
+import { stockTransferResources } from '@/modules/inventory/stock/stock-transfer/i18n';
+import { stockBalanceResources } from '@/modules/inventory/reports/stock-balance/i18n';
+import { stockLedgerResources } from '@/modules/inventory/reports/stock-ledger/i18n';
+import { accountingResources } from '@/modules/accounting/i18n';
+import { chartOfAccountsResources } from '@/modules/accounting/setup/chart-of-accounts/i18n';
+import { postingAccountsResources } from '@/modules/accounting/setup/posting-accounts/i18n';
+import { journalResources } from '@/modules/accounting/transactions/journal/i18n';
+import { ledgerResources } from '@/modules/accounting/reports/account-ledger/i18n';
+import { trialBalanceResources } from '@/modules/accounting/reports/trial-balance/i18n';
+import { incomeStatementResources } from '@/modules/accounting/reports/income-statement/i18n';
+import { balanceSheetResources } from '@/modules/accounting/reports/balance-sheet/i18n';
 import { purchaseReturnResources } from '@/modules/procurement/purchase/purchase-return/i18n';
 
 const commonErpResources: AppResources = {
@@ -74,10 +88,24 @@ export const erpResources = mergeResources(
   supplierProfileResources,
   approvalResources,
   myApprovalsResources,
-  procurementResources,
+  documentResources,
   purchaseRequisitionResources,
   purchaseOrderResources,
   purchaseReceiveResources,
   purchaseReturnResources,
   purchasePaymentResources,
+  purchaseReportResources,
+  reportResources,
+  stockAdjustmentResources,
+  stockTransferResources,
+  stockBalanceResources,
+  stockLedgerResources,
+  accountingResources,
+  chartOfAccountsResources,
+  postingAccountsResources,
+  journalResources,
+  ledgerResources,
+  trialBalanceResources,
+  incomeStatementResources,
+  balanceSheetResources,
 );

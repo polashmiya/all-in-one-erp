@@ -1,3 +1,4 @@
+using Erp.Api.Documents;
 using System.Text.Json;
 using FluentValidation;
 
@@ -127,7 +128,7 @@ internal sealed class SavePurchaseOrderRequestValidator : AbstractValidator<Save
         RuleFor(x => x.ExpectedReceiveDate).GreaterThanOrEqualTo(x => x.OrderDate).When(x => x.ExpectedReceiveDate is not null)
             .WithMessage("Use a date on or after the order date.");
         RuleFor(x => x.Lines).NotEmpty().WithMessage("Add at least one item.");
-        RuleFor(x => x.Lines.Count).LessThanOrEqualTo(ProcurementData.MaxLines).OverridePropertyName("lines");
+        RuleFor(x => x.Lines.Count).LessThanOrEqualTo(DocumentData.MaxLines).OverridePropertyName("lines");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
             line.RuleFor(l => l.ItemId).GreaterThan(0);

@@ -23,9 +23,9 @@ import { Link, useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentView } from '../../../components/DocumentView';
-import { LinesView } from '../../../components/LinesView';
-import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
+import { DocumentView } from '@/common/documents/DocumentView';
+import { LinesView } from '@/common/documents/LinesView';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { orderPaths } from '../../purchase-order/constants';
 import { RECEIVE_FEATURE, receivePaths } from '../constants';
 import { receiveCalls } from '../receive-form';
@@ -87,26 +87,26 @@ export function ReceiveViewPage() {
           columns={[
             {
               key: 'price',
-              title: t('procurement.lines.price'),
+              title: t('document.lines.price'),
               align: 'end',
               render: (_, line) => formatMoney(line.price),
             },
             {
               key: 'discount',
-              title: t('procurement.lines.discount'),
+              title: t('document.lines.discount'),
               align: 'end',
               render: (_, line) => formatMoney(line.discount),
             },
             {
               key: 'vat',
-              title: t('procurement.lines.vat'),
+              title: t('document.lines.vat'),
               align: 'end',
               render: (_, line) =>
                 `${formatPercent(line.vatPercentage)} · ${formatMoney(line.vatAmount)}`,
             },
             {
               key: 'net',
-              title: t('procurement.lines.net'),
+              title: t('document.lines.net'),
               align: 'end',
               render: (_, line) => formatMoney(line.netAmount),
             },
@@ -125,28 +125,28 @@ export function ReceiveViewPage() {
           totals={[
             {
               key: 'quantity',
-              label: t('procurement.lines.totalQuantity'),
+              label: t('document.lines.totalQuantity'),
               value: formatNumber(receive.totalQuantity, QUANTITY_DECIMALS_SHOWN),
             },
             {
               key: 'vat',
-              label: t('procurement.totals.vat'),
+              label: t('document.totals.vat'),
               value: formatMoney(receive.totalVatAmount),
             },
             {
               key: 'items',
-              label: t('procurement.totals.items'),
+              label: t('document.totals.items'),
               value: formatMoney(receive.itemTotalAmount),
             },
             {
               key: 'discount',
-              label: t('procurement.totals.discount'),
+              label: t('document.totals.discount'),
               value: formatMoney(receive.headerDiscount),
             },
-            { key: 'charges', label: t('procurement.totals.charges'), value: formatMoney(charges) },
+            { key: 'charges', label: t('document.totals.charges'), value: formatMoney(charges) },
             {
               key: 'net',
-              label: t('procurement.totals.net'),
+              label: t('document.totals.net'),
               value: formatMoney(receive.netAmount),
               strong: true,
             },

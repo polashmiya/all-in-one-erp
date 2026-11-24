@@ -1,8 +1,10 @@
+using Erp.Api.Accounting;
 using Erp.Api.Approvals;
 using Erp.Api.Auth;
 using Erp.Api.Drafts;
 using Erp.Api.Endpoints;
 using Erp.Api.Hosting;
+using Erp.Api.Inventory;
 using Erp.Api.Metadata;
 using Erp.Api.Navigation;
 using Erp.Api.Panel.Accounts;
@@ -32,6 +34,7 @@ builder.Services.AddSerilog((services, logger) => logger
     .Enrich.FromLogContext());
 
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ConflictExceptionHandler>();
 builder.Services.AddErpOpenApi();
 builder.Services.AddFrontendCors(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
@@ -45,6 +48,8 @@ builder.Services.AddInventoryModule();
 builder.Services.AddUserManagementModule();
 builder.Services.AddPartnerManagementModule();
 builder.Services.AddProcurementModule();
+builder.Services.AddStockModule();
+builder.Services.AddAccountingModule();
 builder.Services.AddApprovalModule();
 builder.Services.AddDraftsModule(builder.Configuration);
 builder.Services.AddScoped<AccountSetupService>();
@@ -54,6 +59,7 @@ builder.Services.AddScoped<FeatureConfigurationService>();
 var app = builder.Build();
 
 await app.Services.InitializeDatabaseAsync();
+await app.Services.PostEarlierPurchasesAsync();
 
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();

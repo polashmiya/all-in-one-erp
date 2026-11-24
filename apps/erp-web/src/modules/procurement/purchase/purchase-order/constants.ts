@@ -1,5 +1,6 @@
 import { featurePath } from '@/common/constants/routes';
-import { pathsOf, PROCUREMENT_LOOKUPS, PROCUREMENT_MODULE } from '../../procurement';
+import { pathsOf, DOCUMENT_LOOKUPS } from '@/common/documents/documents';
+import { PROCUREMENT_MODULE } from '../../procurement';
 
 export const ORDER_FEATURE = 'procurement.purchase-order';
 export const ORDER_PATH = featurePath(PROCUREMENT_MODULE, 'purchase-order');
@@ -7,7 +8,7 @@ export const ORDER_PATH = featurePath(PROCUREMENT_MODULE, 'purchase-order');
 export const orderPaths = pathsOf(ORDER_PATH);
 
 export const ORDER_LOOKUPS = {
-  ...PROCUREMENT_LOOKUPS,
+  ...DOCUMENT_LOOKUPS,
   paymentType: 'payment-type',
   requisition: 'purchase-requisition',
 } as const;

@@ -1,5 +1,6 @@
 using Erp.Api.Auth;
 using Erp.Api.Panel.Configuration;
+using Erp.Api.Inventory;
 using Erp.Api.PartnerManagement;
 using Erp.Api.Procurement;
 using Erp.Api.Users;
@@ -71,7 +72,7 @@ internal static class EmployeeEndpoints
         structure.MapGet("/warehouses", Warehouses)
             .WithName("GetWarehouseOptions")
             .WithSummary("Warehouses of the account, each with its business unit as parent")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors, .. StockModule.Readers]);
     }
 
     private static async Task<EmployeeList> List(

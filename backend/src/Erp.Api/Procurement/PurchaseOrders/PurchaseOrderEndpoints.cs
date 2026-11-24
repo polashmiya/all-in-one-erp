@@ -1,8 +1,10 @@
 using Erp.Api.Approvals;
+using Erp.Api.Documents;
 using Erp.Api.PartnerManagement;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Procurement;
+using Erp.Core.Modules;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Metadata;
@@ -62,7 +64,7 @@ internal static class PurchaseOrderEndpoints
 
         orders.MapPost("/{id:int}/approve", Approve)
             .WithName("ApprovePurchaseOrder")
-            .RequirePermission($"{Feature}.{ProcurementMenu.Approve}")
+            .RequirePermission($"{Feature}.{FeatureActions.Approve}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -70,7 +72,7 @@ internal static class PurchaseOrderEndpoints
         orders.MapPost("/{id:int}/reject", Reject)
             .WithName("RejectPurchaseOrder")
             .WithSummary("Reject a pending purchase order; the comment is the reason and is required")
-            .RequirePermission($"{Feature}.{ProcurementMenu.Approve}")
+            .RequirePermission($"{Feature}.{FeatureActions.Approve}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -103,7 +105,7 @@ internal static class PurchaseOrderEndpoints
         CancellationToken cancellationToken)
     {
         var orders = db.PurchaseOrders.AsNoTracking().Where(o => o.IsActive);
-        if (ProcurementData.Trimmed(search) is { } term)
+        if (DocumentData.Trimmed(search) is { } term)
         {
             orders = orders.Where(o => o.Code.Contains(term) ||
                 (o.ReferenceNo != null && o.ReferenceNo.Contains(term)) ||
@@ -116,7 +118,7 @@ internal static class PurchaseOrderEndpoints
         if (warehouseId is not null) orders = orders.Where(o => o.WarehouseId == warehouseId);
         if (paymentTypeId is not null) orders = orders.Where(o => o.PaymentTypeId == paymentTypeId);
 
-        var (filtered, counts) = await ProcurementData.ByStatusAsync(orders, status, cancellationToken);
+        var (filtered, counts) = await DocumentData.ByStatusAsync(orders, status, cancellationToken);
         var total = await filtered.CountAsync(cancellationToken);
         var sorted = sort switch
         {
@@ -128,7 +130,7 @@ internal static class PurchaseOrderEndpoints
             _ => filtered.OrderByDescending(o => o.OrderDate).ThenByDescending(o => o.Id),
         };
 
-        var rows = await ProcurementData.Page(sorted, page, pageSize)
+        var rows = await DocumentData.Page(sorted, page, pageSize)
             .Select(o => new
             {
                 o.Id,
@@ -219,7 +221,7 @@ internal static class PurchaseOrderEndpoints
 
     private static Task<Results<Ok<PurchaseOrderDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Close(
         int id, ErpDbContext db, CancellationToken cancellationToken) =>
-        ChangeAsync(id, db, o => Task.FromResult(ProcurementData.Close(o)), cancellationToken);
+        ChangeAsync(id, db, o => Task.FromResult(DocumentData.Close(o)), cancellationToken);
 
     private static async Task<Results<Ok<ApprovalProgress>, NotFound>> Approval(
         int id, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
@@ -234,7 +236,7 @@ internal static class PurchaseOrderEndpoints
     {
         var order = await db.PurchaseOrders.SingleOrDefaultAsync(o => o.Id == id && o.IsActive, cancellationToken);
         if (order is null) return TypedResults.NotFound();
-        if (ProcurementData.Delete(order) is { } problem) return problem;
+        if (DocumentData.Delete(order) is { } problem) return problem;
         await ApprovalFlow.RemoveAsync(db, Feature, id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await RequisitionOrders.SyncAsync(db, [order.RequisitionId], cancellationToken);
@@ -260,15 +262,15 @@ internal static class PurchaseOrderEndpoints
         var (request, errors) = await configs.ApplyRulesAsync(
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
-        var code = await ProcurementData.CodeAsync(db.PurchaseOrders, order, request.Code, errors, cancellationToken);
+        var code = await DocumentData.CodeAsync(db.PurchaseOrders, order, request.Code, errors, cancellationToken);
         await PartnerData.CheckLookupsAsync(db,
         [
             ("paymentTypeId", request.PaymentTypeId, existing?.PaymentTypeId, ProcurementLookups.PaymentType),
             ("itemTypeId", request.ItemTypeId, existing?.ItemTypeId, ItemLookups.ItemType),
         ], errors, cancellationToken);
-        await ProcurementData.CheckWarehouseAsync(db, request.WarehouseId, existing?.WarehouseId, errors, cancellationToken);
+        await DocumentData.CheckWarehouseAsync(db, request.WarehouseId, existing?.WarehouseId, errors, cancellationToken);
         await CheckSourcesAsync(db, request, existing, errors, cancellationToken);
-        var items = await ProcurementData.CheckItemsAsync(
+        var items = await DocumentData.CheckItemsAsync(
             db, [.. request.Lines.Select(l => l.ItemId)], order.Lines.Select(l => l.ItemId), errors, cancellationToken);
 
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
@@ -282,7 +284,7 @@ internal static class PurchaseOrderEndpoints
             Price = line.Price ?? items[line.ItemId].Rate,
             Discount = line.Discount ?? 0,
             VatPercentage = line.VatPercentage ?? items[line.ItemId].VatPercentage,
-            Specification = ProcurementData.Trimmed(line.Specification),
+            Specification = DocumentData.Trimmed(line.Specification),
         }, request.IsVatInclusive)).ToList();
         var itemTotal = lines.Sum(l => l.NetAmount);
         var headerDiscount = request.HeaderDiscount ?? 0;
@@ -314,19 +316,19 @@ internal static class PurchaseOrderEndpoints
         order.NetAmount = itemTotal - order.HeaderDiscount + order.DeliveryCharge + order.LaborCharge + order.OtherCharge;
 
         if (order.Id == 0) db.PurchaseOrders.Add(order);
-        order.Code = code ?? await ProcurementData.NextCodeAsync(db.PurchaseOrders, CodePrefix, cancellationToken);
+        order.Code = code ?? await DocumentData.NextCodeAsync(db.PurchaseOrders, CodePrefix, cancellationToken);
         order.OrderDate = request.OrderDate;
         order.SupplierId = request.SupplierId;
         order.WarehouseId = request.WarehouseId;
         order.RequisitionId = request.RequisitionId;
-        order.ReferenceNo = ProcurementData.Trimmed(request.ReferenceNo);
+        order.ReferenceNo = DocumentData.Trimmed(request.ReferenceNo);
         order.ExpectedReceiveDate = request.ExpectedReceiveDate;
         order.PaymentTypeId = request.PaymentTypeId;
         order.PaymentDays = request.PaymentDays;
         order.IsVatInclusive = request.IsVatInclusive;
         order.ItemTypeId = request.ItemTypeId;
-        order.ShippingAddress = ProcurementData.Trimmed(request.ShippingAddress);
-        order.Remarks = ProcurementData.Trimmed(request.Remarks);
+        order.ShippingAddress = DocumentData.Trimmed(request.ShippingAddress);
+        order.Remarks = DocumentData.Trimmed(request.Remarks);
         order.CustomData = CustomFieldData.ToJson(request.CustomData);
 
         await db.SaveChangesAsync(cancellationToken);
@@ -431,7 +433,7 @@ internal static class PurchaseOrderEndpoints
             Remarks = o.Remarks,
             Status = ApprovalFlow.StatusKey(o.Status),
             ReviewedAt = o.ReviewedAt,
-            ReviewedByName = await ProcurementData.ReviewerNameAsync(db, o.ReviewedById, cancellationToken),
+            ReviewedByName = await DocumentData.ReviewerNameAsync(db, o.ReviewedById, cancellationToken),
             ReviewComment = o.ReviewComment,
             TotalQuantity = o.TotalQuantity,
             ReceivedQuantity = o.ReceivedQuantity,

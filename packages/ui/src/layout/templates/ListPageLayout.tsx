@@ -6,6 +6,7 @@ import type { ActionItem } from '../../components/actions/types';
 import { useRunAction } from '../../components/actions/useRunAction';
 import { useHotkey } from '../../hooks/useHotkey';
 import { FilterSelect, type FilterOption } from '../../components/dropdown/FilterSelect';
+import { DateFilter } from '../../components/filters/DateFilter';
 import { FilterBar, QuickViews, SearchInput } from '../../components/filters/filters';
 import { DataTable, type DataTableEmpty } from '../../components/table/DataTable';
 import { RowActions } from '../../components/table/RowActions';
@@ -19,7 +20,9 @@ import { DraftTable } from './DraftTable';
 export interface ListFilterDef<F> {
   key: Extract<keyof F, string>;
   label: string;
-  options: FilterOption[];
+  options?: FilterOption[];
+  type?: 'date';
+  render?: (value: string | null, onChange: (value: string | null) => void) => ReactNode;
 }
 
 export interface ListViewDef<V extends string> {
@@ -143,15 +146,22 @@ export function ListPageLayout<
     <div className="erp-table__filters">
       <span className="erp-table__filters-title">{t('common.filters')}</span>
       <div className="erp-table__filters-grid">
-        {filters.map((filter) => (
-          <FilterSelect
-            key={filter.key}
-            label={filter.label}
-            options={filter.options}
-            value={(state.filters[filter.key] as string | null | undefined) ?? null}
-            onChange={(value) => state.setFilter(filter.key, value as F[typeof filter.key])}
-          />
-        ))}
+        {filters.map((filter) => {
+          const value = (state.filters[filter.key] as string | null | undefined) ?? null;
+          const change = (next: string | null) =>
+            state.setFilter(filter.key, next as F[typeof filter.key]);
+          if (filter.render) return <div key={filter.key}>{filter.render(value, change)}</div>;
+          const Control = filter.type === 'date' ? DateFilter : FilterSelect;
+          return (
+            <Control
+              key={filter.key}
+              label={filter.label}
+              options={filter.options ?? []}
+              value={value}
+              onChange={change}
+            />
+          );
+        })}
       </div>
     </div>
   );

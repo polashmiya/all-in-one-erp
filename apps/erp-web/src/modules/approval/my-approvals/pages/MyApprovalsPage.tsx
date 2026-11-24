@@ -21,7 +21,7 @@ import {
   TitleCell,
   useListState,
 } from '@erp/ui';
-import { keepPreviousData, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData } from '@tanstack/react-query';
 import { App, type TableColumnsType } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +31,7 @@ import { appConfig } from '@/common/config/app.config';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { listParams, useUnitKey } from '@/common/master-data';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { PROCUREMENT_API } from '@/modules/procurement/procurement';
+import { useRefreshDocuments } from '@/common/documents/documents';
 import {
   APPROVAL_DOCUMENTS,
   INBOX_VIEWS,
@@ -41,13 +41,11 @@ import {
 
 type Filters = { feature: string | null };
 
-const APPROVALS_API = '/api/erp/approvals';
-
 export function MyApprovalsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const navigate = useNavigate();
-  const client = useQueryClient();
+  const refresh = useRefreshDocuments();
   const unit = useAuthStore(selectCurrentUnit);
   const access = useFeatureAccess(MY_APPROVALS_FEATURE);
   const [review, setReview] = useState<{ row: ApprovalInboxRow; mode: ReviewMode }>();
@@ -95,11 +93,7 @@ export function MyApprovalsPage() {
           code: row.code,
         }),
       );
-      await client.invalidateQueries({
-        predicate: ({ queryKey }) =>
-          typeof queryKey[0] === 'string' &&
-          (queryKey[0].startsWith(APPROVALS_API) || queryKey[0].startsWith(PROCUREMENT_API)),
-      });
+      await refresh();
     } catch (error) {
       void message.error(problemMessage(error, t('master.failed')));
       throw error;

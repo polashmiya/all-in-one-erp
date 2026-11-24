@@ -13,8 +13,8 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { EXPORT_PAGE_SIZE, idParam, listParams, useUnitKey } from '@/common/master-data';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { DocumentListPage } from '../../../components/DocumentListPage';
-import { statusParam, type ApprovalView } from '../../../procurement';
+import { DocumentListPage } from '@/common/documents/DocumentListPage';
+import { statusParam, type ApprovalView } from '@/common/documents/documents';
 import { RECEIVE_FEATURE, RECEIVE_LOOKUPS, receivePaths } from '../constants';
 import { receiveCalls, useReceiveLookups } from '../receive-form';
 
@@ -69,7 +69,7 @@ export function ReceiveListPage() {
       data={query.data}
       loading={query.isFetching || config.isPending}
       onRefresh={() => void query.refetch()}
-      amount={{ label: t('procurement.totals.net'), value: (row) => row.netAmount }}
+      amount={{ label: t('document.totals.net'), value: (row) => row.netAmount }}
       exportFile={t('receive.exportFile')}
       fetchAll={() =>
         listPurchaseReceives({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then(

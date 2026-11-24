@@ -30,8 +30,13 @@ public static class FeatureActions
     public const string Delete = "delete";
     public const string Export = "export";
     public const string Import = "import";
+    public const string Approve = "approve";
 
     public static readonly IReadOnlyList<string> Standard = [View, Create, Edit, Delete, Export, Import];
+
+    public static readonly IReadOnlyList<string> Document = [View, Create, Edit, Delete, Export, Approve];
+
+    public static readonly IReadOnlyList<string> Report = [View, Export];
 
     public static string Describe(string action) => action switch
     {

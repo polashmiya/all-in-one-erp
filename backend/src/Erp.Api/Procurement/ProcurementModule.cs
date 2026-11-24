@@ -1,7 +1,9 @@
 using Erp.Api.Approvals;
+using Erp.Api.Documents;
 using Erp.Api.Procurement.PurchaseOrders;
 using Erp.Api.Procurement.PurchasePayments;
 using Erp.Api.Procurement.PurchaseReceives;
+using Erp.Api.Procurement.PurchaseReports;
 using Erp.Api.Procurement.PurchaseReturns;
 using Erp.Api.Procurement.PurchaseRequisitions;
 using Erp.Core.Authorization;
@@ -20,6 +22,7 @@ public static class ProcurementModule
             .. PurchaseReceiveEndpoints.Editors,
             .. PurchaseReturnEndpoints.Editors,
             .. PurchasePaymentEndpoints.Editors,
+            $"{ProcurementMenu.PurchaseReport}.view",
         ];
 
     public static IServiceCollection AddProcurementModule(this IServiceCollection services)
@@ -47,16 +50,11 @@ public sealed class ProcurementEndpoints : IErpEndpoints
     {
         var group = erp.MapGroup("/procurement").WithTags("Procurement");
 
-        group.MapGet("/items", (string? search, ErpDbContext db, CancellationToken cancellationToken) =>
-                ProcurementData.ItemsAsync(db, search, cancellationToken))
-            .WithName("GetProcurementItemOptions")
-            .WithSummary("Up to 20 active items matching the search, with their UOM, last cost and purchase VAT")
-            .RequireAnyPermission(ProcurementModule.Editors);
-
         PurchaseRequisitionEndpoints.Map(group);
         PurchaseOrderEndpoints.Map(group);
         PurchaseReceiveEndpoints.Map(group);
         PurchaseReturnEndpoints.Map(group);
         PurchasePaymentEndpoints.Map(group);
+        PurchaseReportEndpoints.Map(group);
     }
 }

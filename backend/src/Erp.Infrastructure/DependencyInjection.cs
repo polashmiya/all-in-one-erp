@@ -2,6 +2,7 @@ using Erp.Core.Authorization;
 using Erp.Core.Modules;
 using Erp.Core.Security;
 using Erp.Core.Notifications;
+using Erp.Infrastructure.Accounting;
 using Erp.Infrastructure.Authorization;
 using Erp.Infrastructure.Email;
 using Erp.Infrastructure.Metadata;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<FeatureConfigService>();
         services.AddSingleton<LookupCatalog>();
         services.AddScoped<LookupDefaults>();
+        services.AddScoped<ChartOfAccountDefaults>();
         services.AddSingleton<IPermissionProvider, MenuPermissionProvider>();
         services.AddSingleton<PermissionCatalog>();
         services.AddScoped<IPermissionService, PermissionService>();

@@ -1,9 +1,11 @@
 using Erp.Api.Approvals;
+using Erp.Api.Documents;
 using Erp.Api.PartnerManagement;
 using Erp.Api.UserManagement.Employees;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Procurement;
+using Erp.Core.Modules;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Metadata;
@@ -58,7 +60,7 @@ internal static class PurchaseRequisitionEndpoints
 
         requisitions.MapPost("/{id:int}/approve", Approve)
             .WithName("ApprovePurchaseRequisition")
-            .RequirePermission($"{Feature}.{ProcurementMenu.Approve}")
+            .RequirePermission($"{Feature}.{FeatureActions.Approve}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -66,7 +68,7 @@ internal static class PurchaseRequisitionEndpoints
         requisitions.MapPost("/{id:int}/reject", Reject)
             .WithName("RejectPurchaseRequisition")
             .WithSummary("Reject a pending requisition; the comment is the reason and is required")
-            .RequirePermission($"{Feature}.{ProcurementMenu.Approve}")
+            .RequirePermission($"{Feature}.{FeatureActions.Approve}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -99,7 +101,7 @@ internal static class PurchaseRequisitionEndpoints
         CancellationToken cancellationToken)
     {
         var requisitions = db.PurchaseRequisitions.AsNoTracking().Where(r => r.IsActive);
-        if (ProcurementData.Trimmed(search) is { } term)
+        if (DocumentData.Trimmed(search) is { } term)
         {
             requisitions = requisitions.Where(r => r.Code.Contains(term) ||
                 (r.Remarks != null && r.Remarks.Contains(term)) ||
@@ -111,7 +113,7 @@ internal static class PurchaseRequisitionEndpoints
         if (requestTypeId is not null) requisitions = requisitions.Where(r => r.RequestTypeId == requestTypeId);
         if (departmentId is not null) requisitions = requisitions.Where(r => r.DepartmentId == departmentId);
 
-        var (filtered, counts) = await ProcurementData.ByStatusAsync(requisitions, status, cancellationToken);
+        var (filtered, counts) = await DocumentData.ByStatusAsync(requisitions, status, cancellationToken);
         var total = await filtered.CountAsync(cancellationToken);
         var sorted = sort switch
         {
@@ -123,7 +125,7 @@ internal static class PurchaseRequisitionEndpoints
             _ => filtered.OrderByDescending(r => r.RequestDate).ThenByDescending(r => r.Id),
         };
 
-        var rows = await ProcurementData.Page(sorted, page, pageSize)
+        var rows = await DocumentData.Page(sorted, page, pageSize)
             .Select(r => new
             {
                 r.Id,
@@ -196,7 +198,7 @@ internal static class PurchaseRequisitionEndpoints
 
     private static Task<Results<Ok<RequisitionDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Close(
         int id, ErpDbContext db, CancellationToken cancellationToken) =>
-        ChangeAsync(id, db, r => Task.FromResult(ProcurementData.Close(r)), cancellationToken);
+        ChangeAsync(id, db, r => Task.FromResult(DocumentData.Close(r)), cancellationToken);
 
     private static async Task<Results<Ok<ApprovalProgress>, NotFound>> Approval(
         int id, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
@@ -211,7 +213,7 @@ internal static class PurchaseRequisitionEndpoints
     {
         var requisition = await db.PurchaseRequisitions.SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
         if (requisition is null) return TypedResults.NotFound();
-        if (ProcurementData.Delete(requisition) is { } problem) return problem;
+        if (DocumentData.Delete(requisition) is { } problem) return problem;
         await ApprovalFlow.RemoveAsync(db, Feature, id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.NoContent();
@@ -235,7 +237,7 @@ internal static class PurchaseRequisitionEndpoints
         var (request, errors) = await configs.ApplyRulesAsync(
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
-        var code = await ProcurementData.CodeAsync(db.PurchaseRequisitions, requisition, request.Code, errors, cancellationToken);
+        var code = await DocumentData.CodeAsync(db.PurchaseRequisitions, requisition, request.Code, errors, cancellationToken);
         await PartnerData.CheckLookupsAsync(db,
         [
             ("requestTypeId", request.RequestTypeId, existing?.RequestTypeId, ProcurementLookups.RequestType),
@@ -244,15 +246,15 @@ internal static class PurchaseRequisitionEndpoints
             ("departmentId", request.DepartmentId, existing?.DepartmentId, EmployeeLookups.Department),
             ("sectionId", request.SectionId, existing?.SectionId, EmployeeLookups.DepartmentSection),
         ], errors, cancellationToken);
-        await ProcurementData.CheckWarehouseAsync(db, request.WarehouseId, existing?.WarehouseId, errors, cancellationToken);
+        await DocumentData.CheckWarehouseAsync(db, request.WarehouseId, existing?.WarehouseId, errors, cancellationToken);
         await CheckPeopleAsync(db, request, existing, errors, cancellationToken);
-        var items = await ProcurementData.CheckItemsAsync(
+        var items = await DocumentData.CheckItemsAsync(
             db, [.. request.Lines.Select(l => l.ItemId)], requisition.Rows.Select(r => r.ItemId), errors, cancellationToken);
 
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
 
         if (requisition.Id == 0) db.PurchaseRequisitions.Add(requisition);
-        requisition.Code = code ?? await ProcurementData.NextCodeAsync(db.PurchaseRequisitions, CodePrefix, cancellationToken);
+        requisition.Code = code ?? await DocumentData.NextCodeAsync(db.PurchaseRequisitions, CodePrefix, cancellationToken);
         requisition.RequestDate = request.RequestDate;
         requisition.DueDate = request.DueDate;
         requisition.WarehouseId = request.WarehouseId;
@@ -263,8 +265,8 @@ internal static class PurchaseRequisitionEndpoints
         requisition.SectionId = request.SectionId;
         requisition.EmployeeId = request.EmployeeId;
         requisition.BuyerId = request.BuyerId;
-        requisition.ProjectName = ProcurementData.Trimmed(request.ProjectName);
-        requisition.Remarks = ProcurementData.Trimmed(request.Remarks);
+        requisition.ProjectName = DocumentData.Trimmed(request.ProjectName);
+        requisition.Remarks = DocumentData.Trimmed(request.Remarks);
         requisition.CustomData = CustomFieldData.ToJson(request.CustomData);
 
         requisition.Rows.Clear();
@@ -280,7 +282,7 @@ internal static class PurchaseRequisitionEndpoints
                 Quantity = line.Quantity,
                 Rate = rate,
                 Amount = Math.Round(line.Quantity * rate, 2),
-                Remarks = ProcurementData.Trimmed(line.Remarks),
+                Remarks = DocumentData.Trimmed(line.Remarks),
             });
         }
 
@@ -305,7 +307,7 @@ internal static class PurchaseRequisitionEndpoints
         {
             if (id is not null && id != current && !await db.Employees.AnyAsync(e => e.Id == id && e.IsActive, cancellationToken))
             {
-                errors[field] = [ProcurementData.ChooseFromList];
+                errors[field] = [DocumentData.ChooseFromList];
             }
         }
     }
@@ -377,7 +379,7 @@ internal static class PurchaseRequisitionEndpoints
             Remarks = r.Remarks,
             Status = ApprovalFlow.StatusKey(r.Status),
             ReviewedAt = r.ReviewedAt,
-            ReviewedByName = await ProcurementData.ReviewerNameAsync(db, r.ReviewedById, cancellationToken),
+            ReviewedByName = await DocumentData.ReviewerNameAsync(db, r.ReviewedById, cancellationToken),
             ReviewComment = r.ReviewComment,
             TotalQuantity = r.TotalQuantity,
             TotalAmount = r.TotalAmount,

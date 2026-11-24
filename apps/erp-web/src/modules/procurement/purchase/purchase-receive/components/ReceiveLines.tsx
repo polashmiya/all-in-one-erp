@@ -1,7 +1,7 @@
 import { formatNumber } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import { PricedLines } from '../../../components/PricedLines';
-import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { BATCH_MAX } from '../constants';
 import { emptyLine, type ReceiveLine } from '../receive-form';
 

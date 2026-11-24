@@ -13,8 +13,8 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { EXPORT_PAGE_SIZE, idParam, listParams, useUnitKey } from '@/common/master-data';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { DocumentListPage } from '../../../components/DocumentListPage';
-import { statusParam, type ApprovalView } from '../../../procurement';
+import { DocumentListPage } from '@/common/documents/DocumentListPage';
+import { statusParam, type ApprovalView } from '@/common/documents/documents';
 import { PAYMENT_FEATURE, PAYMENT_LOOKUPS, paymentPaths } from '../constants';
 import { paymentCalls, usePaymentLookups } from '../payment-form';
 
@@ -69,8 +69,8 @@ export function PaymentListPage() {
       amount={{ label: t('payment.totals.payment'), value: (row) => row.paymentAmount }}
       lines={{
         label: t('payment.col.bills'),
-        count: (row) => row.billCount,
-        subtitle: (count) => t('payment.billCount', { count }),
+        value: (row) => row.billCount,
+        subtitle: (row) => t('payment.billCount', { count: row.billCount }),
       }}
       exportFile={t('payment.exportFile')}
       fetchAll={() =>

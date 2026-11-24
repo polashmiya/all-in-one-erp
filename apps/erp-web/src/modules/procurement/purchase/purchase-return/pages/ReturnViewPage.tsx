@@ -23,9 +23,9 @@ import { Link, useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentView } from '../../../components/DocumentView';
-import { LinesView } from '../../../components/LinesView';
-import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
+import { DocumentView } from '@/common/documents/DocumentView';
+import { LinesView } from '@/common/documents/LinesView';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { receivePaths } from '../../purchase-receive/constants';
 import { RETURN_FEATURE, returnPaths } from '../constants';
 import { returnCalls } from '../return-form';
@@ -89,26 +89,26 @@ export function ReturnViewPage() {
           columns={[
             {
               key: 'price',
-              title: t('procurement.lines.price'),
+              title: t('document.lines.price'),
               align: 'end',
               render: (_, line) => formatMoney(line.price),
             },
             {
               key: 'discount',
-              title: t('procurement.lines.discount'),
+              title: t('document.lines.discount'),
               align: 'end',
               render: (_, line) => formatMoney(line.discount),
             },
             {
               key: 'vat',
-              title: t('procurement.lines.vat'),
+              title: t('document.lines.vat'),
               align: 'end',
               render: (_, line) =>
                 `${formatPercent(line.vatPercentage)} · ${formatMoney(line.vatAmount)}`,
             },
             {
               key: 'net',
-              title: t('procurement.lines.net'),
+              title: t('document.lines.net'),
               align: 'end',
               render: (_, line) => formatMoney(line.netAmount),
             },
@@ -121,17 +121,17 @@ export function ReturnViewPage() {
           totals={[
             {
               key: 'quantity',
-              label: t('procurement.lines.totalQuantity'),
+              label: t('document.lines.totalQuantity'),
               value: formatNumber(purchaseReturn.totalQuantity, QUANTITY_DECIMALS_SHOWN),
             },
             {
               key: 'vat',
-              label: t('procurement.totals.vat'),
+              label: t('document.totals.vat'),
               value: formatMoney(purchaseReturn.totalVatAmount),
             },
             {
               key: 'net',
-              label: t('procurement.totals.net'),
+              label: t('document.totals.net'),
               value: formatMoney(purchaseReturn.netAmount),
               strong: true,
             },

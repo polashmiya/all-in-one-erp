@@ -17,9 +17,9 @@ import { useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentView } from '../../../components/DocumentView';
-import { LinesView } from '../../../components/LinesView';
-import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
+import { DocumentView } from '@/common/documents/DocumentView';
+import { LinesView } from '@/common/documents/LinesView';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { REQUISITION_FEATURE, requisitionPaths } from '../constants';
 import { requisitionCalls } from '../requisition-form';
 
@@ -111,7 +111,7 @@ export function RequisitionViewPage() {
           totals={[
             {
               key: 'quantity',
-              label: t('procurement.lines.totalQuantity'),
+              label: t('document.lines.totalQuantity'),
               value: formatNumber(requisition.totalQuantity, QUANTITY_DECIMALS_SHOWN),
             },
             {

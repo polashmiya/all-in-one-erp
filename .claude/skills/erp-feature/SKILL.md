@@ -98,15 +98,17 @@ Every screen in both apps looks and works the same way. The shared templates alr
 
 **Which template**
 
-| Screen                         | Template                                                                            |
-| ------------------------------ | ----------------------------------------------------------------------------------- |
-| List of records                | `ListPageLayout`; for code/name/active records always `MasterListPage`              |
-| Create / edit, many fields     | `FormPageLayout` (config-driven: `useFormSections`)                                 |
-| Create / edit, up to ~6 fields | `MasterFormModal` (ERP) or `FormModal`                                              |
-| Record details                 | `DetailsPageLayout` (config-driven: `useViewTabs`)                                  |
-| Quick look from a list         | `AppDrawer`                                                                         |
-| Multi-step setup               | `WizardLayout`                                                                      |
-| Summary numbers                | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals |
+| Screen                               | Template                                                                            |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| List of records                      | `ListPageLayout`; for code/name/active records always `MasterListPage`              |
+| Create / edit, many fields           | `FormPageLayout` (config-driven: `useFormSections`)                                 |
+| Create / edit, up to ~6 fields       | `MasterFormModal` (ERP) or `FormModal`                                              |
+| Approval document (list, form, view) | `common/documents`: `DocumentListPage`, `DocumentForm`, `DocumentView`, `LineGrid`  |
+| Report                               | `common/reports/ReportPage`                                                         |
+| Record details                       | `DetailsPageLayout` (config-driven: `useViewTabs`)                                  |
+| Quick look from a list               | `AppDrawer`                                                                         |
+| Multi-step setup                     | `WizardLayout`                                                                      |
+| Summary numbers                      | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals |
 
 **Page header.** A title, one line of description, and actions on the right: Export (default) first, then New (primary). Only one primary button per page.
 

@@ -13,7 +13,7 @@ import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentForm } from '../../../components/DocumentForm';
+import { DocumentForm } from '@/common/documents/DocumentForm';
 import { SourcePicker } from '../../../components/SourcePicker';
 import { ReturnLines } from '../components/ReturnLines';
 import { RETURN_FEATURE, returnPaths } from '../constants';
@@ -50,7 +50,7 @@ export function ReturnFormPage() {
     <PageState
       loading={loading}
       missing={!loading && ((id > 0 && !record) || !config.data || locked)}
-      missingTitle={locked ? t('procurement.locked') : t('return.notFound')}
+      missingTitle={locked ? t('document.locked') : t('return.notFound')}
       missingActions={[
         record
           ? { key: 'back', label: record.code, to: returnPaths.view(record.id) }

@@ -1,5 +1,6 @@
 import { featurePath } from '@/common/constants/routes';
-import { pathsOf, PROCUREMENT_LOOKUPS, PROCUREMENT_MODULE } from '../../procurement';
+import { pathsOf, DOCUMENT_LOOKUPS } from '@/common/documents/documents';
+import { PROCUREMENT_MODULE } from '../../procurement';
 
 export const REQUISITION_FEATURE = 'procurement.purchase-requisition';
 export const REQUISITION_PATH = featurePath(PROCUREMENT_MODULE, 'purchase-requisition');
@@ -7,7 +8,7 @@ export const REQUISITION_PATH = featurePath(PROCUREMENT_MODULE, 'purchase-requis
 export const requisitionPaths = pathsOf(REQUISITION_PATH);
 
 export const REQUISITION_LOOKUPS = {
-  ...PROCUREMENT_LOOKUPS,
+  ...DOCUMENT_LOOKUPS,
   requestType: 'requisition-type',
   purchaseMethod: 'purchase-method',
   department: 'employee-department',

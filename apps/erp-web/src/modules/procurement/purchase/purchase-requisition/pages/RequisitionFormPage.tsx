@@ -12,7 +12,7 @@ import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentForm } from '../../../components/DocumentForm';
+import { DocumentForm } from '@/common/documents/DocumentForm';
 import { RequisitionLines } from '../components/RequisitionLines';
 import { REQUISITION_FEATURE, requisitionPaths } from '../constants';
 import {
@@ -50,7 +50,7 @@ export function RequisitionFormPage() {
     <PageState
       loading={loading}
       missing={!loading && ((id > 0 && !record) || !config.data || locked)}
-      missingTitle={locked ? t('procurement.locked') : t('requisition.notFound')}
+      missingTitle={locked ? t('document.locked') : t('requisition.notFound')}
       missingActions={[
         record
           ? { key: 'back', label: record.code, to: requisitionPaths.view(record.id) }

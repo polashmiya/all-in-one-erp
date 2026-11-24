@@ -1,3 +1,4 @@
+using Erp.Api.Documents;
 using System.Text.Json;
 using FluentValidation;
 
@@ -143,7 +144,7 @@ internal sealed class SavePurchaseReceiveRequestValidator : AbstractValidator<Sa
         RuleFor(x => x.PurchaseOrderId).GreaterThan(0).WithMessage("Purchase order is required.");
         RuleFor(x => x.WarehouseId).NotEmpty();
         RuleFor(x => x.Lines).NotEmpty().WithMessage("Add at least one item.");
-        RuleFor(x => x.Lines.Count).LessThanOrEqualTo(ProcurementData.MaxLines).OverridePropertyName("lines");
+        RuleFor(x => x.Lines.Count).LessThanOrEqualTo(DocumentData.MaxLines).OverridePropertyName("lines");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
             line.RuleFor(l => l.ItemId).GreaterThan(0);

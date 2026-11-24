@@ -1,3 +1,5 @@
+using Erp.Api.Accounting;
+using Erp.Api.Procurement;
 using Erp.Api.Procurement.PurchaseOrders;
 using Erp.Api.Procurement.PurchasePayments;
 using Erp.Api.Procurement.PurchaseReceives;
@@ -42,6 +44,8 @@ internal static class SupplierEndpoints
                 .. PurchaseReceiveEndpoints.Editors,
                 .. PurchaseReturnEndpoints.Editors,
                 .. PurchasePaymentEndpoints.Editors,
+                $"{ProcurementMenu.PurchaseReport}.view",
+                .. AccountingModule.SupplierReaders,
             ]);
 
         suppliers.MapGet("/{id:int}", Get)

@@ -13,8 +13,8 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { EXPORT_PAGE_SIZE, idParam, listParams, useUnitKey } from '@/common/master-data';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
-import { DocumentListPage } from '../../../components/DocumentListPage';
-import { statusParam, type ApprovalView } from '../../../procurement';
+import { DocumentListPage } from '@/common/documents/DocumentListPage';
+import { statusParam, type ApprovalView } from '@/common/documents/documents';
 import { ORDER_FEATURE, ORDER_LOOKUPS, orderPaths } from '../constants';
 import { orderCalls, useOrderLookups } from '../order-form';
 
@@ -69,7 +69,7 @@ export function OrderListPage() {
       data={query.data}
       loading={query.isFetching || config.isPending}
       onRefresh={() => void query.refetch()}
-      amount={{ label: t('procurement.totals.net'), value: (row) => row.netAmount }}
+      amount={{ label: t('document.totals.net'), value: (row) => row.netAmount }}
       exportFile={t('order.exportFile')}
       fetchAll={() =>
         listPurchaseOrders({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)

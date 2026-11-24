@@ -1,8 +1,10 @@
 using Erp.Api.Approvals;
+using Erp.Api.Documents;
 using Erp.Api.PartnerManagement;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Procurement;
+using Erp.Core.Modules;
 using Erp.Core.Tenancy;
 using Erp.Core.Validation;
 using Erp.Infrastructure.Metadata;
@@ -61,7 +63,7 @@ internal static class PurchasePaymentEndpoints
 
         payments.MapPost("/{id:int}/approve", Approve)
             .WithName("ApprovePurchasePayment")
-            .RequirePermission($"{Feature}.{ProcurementMenu.Approve}")
+            .RequirePermission($"{Feature}.{FeatureActions.Approve}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -69,7 +71,7 @@ internal static class PurchasePaymentEndpoints
         payments.MapPost("/{id:int}/reject", Reject)
             .WithName("RejectPurchasePayment")
             .WithSummary("Reject a pending payment; the comment is the reason and is required")
-            .RequirePermission($"{Feature}.{ProcurementMenu.Approve}")
+            .RequirePermission($"{Feature}.{FeatureActions.Approve}")
             .Validate<ReviewRequest>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -94,7 +96,7 @@ internal static class PurchasePaymentEndpoints
         CancellationToken cancellationToken)
     {
         var payments = db.PurchasePayments.AsNoTracking().Where(p => p.IsActive);
-        if (ProcurementData.Trimmed(search) is { } term)
+        if (DocumentData.Trimmed(search) is { } term)
         {
             payments = payments.Where(p => p.Code.Contains(term) ||
                 (p.PayeeName != null && p.PayeeName.Contains(term)) ||
@@ -107,7 +109,7 @@ internal static class PurchasePaymentEndpoints
         if (supplierId is not null) payments = payments.Where(p => p.SupplierId == supplierId);
         if (paymentMethodId is not null) payments = payments.Where(p => p.PaymentMethodId == paymentMethodId);
 
-        var (filtered, counts) = await ProcurementData.ByStatusAsync(payments, status, cancellationToken);
+        var (filtered, counts) = await DocumentData.ByStatusAsync(payments, status, cancellationToken);
         var total = await filtered.CountAsync(cancellationToken);
         var sorted = sort switch
         {
@@ -117,7 +119,7 @@ internal static class PurchasePaymentEndpoints
             _ => filtered.OrderByDescending(p => p.PaymentDate).ThenByDescending(p => p.Id),
         };
 
-        var rows = await ProcurementData.Page(sorted, page, pageSize)
+        var rows = await DocumentData.Page(sorted, page, pageSize)
             .Select(p => new
             {
                 p.Id,
@@ -209,20 +211,20 @@ internal static class PurchasePaymentEndpoints
 
     private static Task<Results<Ok<PurchasePaymentDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Approve(
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
-        ChangeAsync(id, db, p => ApprovalFlow.ActAsync(db, current, Feature, p, true, request.Comment, cancellationToken), cancellationToken);
+        ChangeAsync(id, db, current, p => ApprovalFlow.ActAsync(db, current, Feature, p, true, request.Comment, cancellationToken), cancellationToken);
 
     private static async Task<Results<Ok<PurchasePaymentDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Reject(
         int id, ReviewRequest request, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken) =>
         ApprovalFlow.MissingReason(request) is { } missing
             ? missing
-            : await ChangeAsync(id, db, p => ApprovalFlow.ActAsync(db, current, Feature, p, false, request.Comment, cancellationToken),
+            : await ChangeAsync(id, db, current, p => ApprovalFlow.ActAsync(db, current, Feature, p, false, request.Comment, cancellationToken),
                 cancellationToken);
 
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
     {
         var payment = await db.PurchasePayments.Include(p => p.Lines).SingleOrDefaultAsync(p => p.Id == id && p.IsActive, cancellationToken);
         if (payment is null) return TypedResults.NotFound();
-        if (ProcurementData.Delete(payment) is { } problem) return problem;
+        if (DocumentData.Delete(payment) is { } problem) return problem;
         await ApprovalFlow.RemoveAsync(db, Feature, id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await PayableBills.SyncAsync(db, payment.Lines.Select(l => l.PurchaseReceiveId), cancellationToken);
@@ -230,11 +232,13 @@ internal static class PurchasePaymentEndpoints
     }
 
     private static async Task<Results<Ok<PurchasePaymentDetail>, NotFound, ValidationProblem, ProblemHttpResult>> ChangeAsync(
-        int id, ErpDbContext db, Func<PurchasePayment, Task<ProblemHttpResult?>> change, CancellationToken cancellationToken)
+        int id, ErpDbContext db, ICurrentContext current, Func<PurchasePayment, Task<ProblemHttpResult?>> change,
+        CancellationToken cancellationToken)
     {
         var payment = await db.PurchasePayments.Include(p => p.Lines).SingleOrDefaultAsync(p => p.Id == id && p.IsActive, cancellationToken);
         if (payment is null) return TypedResults.NotFound();
         if (await change(payment) is { } problem) return problem;
+        if (payment.Status == ApprovalStatus.Approved && await PurchasePosting.PaymentAsync(db, current, payment, cancellationToken) is { } refused) return refused;
         await db.SaveChangesAsync(cancellationToken);
         await PayableBills.SyncAsync(db, payment.Lines.Select(l => l.PurchaseReceiveId), cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
@@ -248,7 +252,7 @@ internal static class PurchasePaymentEndpoints
         var (request, errors) = await configs.ApplyRulesAsync(
             current.AccountId!.Value, current.BusinessUnitId!.Value, Feature, sent, existing, cancellationToken);
 
-        var code = await ProcurementData.CodeAsync(db.PurchasePayments, payment, request.Code, errors, cancellationToken);
+        var code = await DocumentData.CodeAsync(db.PurchasePayments, payment, request.Code, errors, cancellationToken);
         await PartnerData.CheckLookupsAsync(db,
             [("paymentMethodId", request.PaymentMethodId, existing?.PaymentMethodId, ProcurementLookups.PaymentMethod)], errors,
             cancellationToken);
@@ -302,15 +306,15 @@ internal static class PurchasePaymentEndpoints
         payment.DiscountAmount = lines.Sum(l => l.DiscountAmount);
 
         if (payment.Id == 0) db.PurchasePayments.Add(payment);
-        payment.Code = code ?? await ProcurementData.NextCodeAsync(db.PurchasePayments, CodePrefix, cancellationToken);
+        payment.Code = code ?? await DocumentData.NextCodeAsync(db.PurchasePayments, CodePrefix, cancellationToken);
         payment.PaymentDate = request.PaymentDate;
         payment.SupplierId = request.SupplierId;
         payment.PaymentMethodId = request.PaymentMethodId;
-        payment.PayeeName = ProcurementData.Trimmed(request.PayeeName);
-        payment.BankAccountNo = ProcurementData.Trimmed(request.BankAccountNo);
-        payment.InstrumentNo = ProcurementData.Trimmed(request.InstrumentNo);
+        payment.PayeeName = DocumentData.Trimmed(request.PayeeName);
+        payment.BankAccountNo = DocumentData.Trimmed(request.BankAccountNo);
+        payment.InstrumentNo = DocumentData.Trimmed(request.InstrumentNo);
         payment.InstrumentDate = request.InstrumentDate;
-        payment.Remarks = ProcurementData.Trimmed(request.Remarks);
+        payment.Remarks = DocumentData.Trimmed(request.Remarks);
         payment.CustomData = CustomFieldData.ToJson(request.CustomData);
 
         await db.SaveChangesAsync(cancellationToken);
@@ -379,7 +383,7 @@ internal static class PurchasePaymentEndpoints
             Remarks = p.Remarks,
             Status = ApprovalFlow.StatusKey(p.Status),
             ReviewedAt = p.ReviewedAt,
-            ReviewedByName = await ProcurementData.ReviewerNameAsync(db, p.ReviewedById, cancellationToken),
+            ReviewedByName = await DocumentData.ReviewerNameAsync(db, p.ReviewedById, cancellationToken),
             ReviewComment = p.ReviewComment,
             PaymentAmount = p.PaymentAmount,
             Vds = p.Vds,

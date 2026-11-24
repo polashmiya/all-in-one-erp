@@ -18,12 +18,12 @@ import { Link, useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentView } from '../../../components/DocumentView';
-import { LineTotals } from '../../../components/LineTotals';
+import { DocumentView } from '@/common/documents/DocumentView';
+import { LineTotals } from '@/common/documents/LineTotals';
 import { receivePaths } from '../../purchase-receive/constants';
 import { PAYMENT_FEATURE, paymentPaths } from '../constants';
 import { paymentCalls } from '../payment-form';
-import '../../../procurement.css';
+import '@/common/documents/documents.css';
 
 type MoneyKey =
   'billAmount' | 'due' | 'paymentAmount' | 'vds' | 'tds' | 'discountAmount' | 'settledAmount';

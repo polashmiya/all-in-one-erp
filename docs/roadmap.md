@@ -450,6 +450,67 @@ Left open:
 
 - Ask the owner whether the legacy return table differs; the screen follows the GRN columns for now.
 
+## Done: phase 23 — Purchase Payment (2026-11-24)
+
+- Based on the legacy `DuePayment` and `DuePaymentRow` scripts. Migration `PurchasePayment`: tables `PurchasePayment`
+  (number, date, supplier, payment method, payee, bank account no., cheque no. and date, remarks, totals, status,
+  review, `CustomData`) and `PurchasePaymentLine` (GRN, payment, VDS, TDS, discount), and `PurchaseReceive.PaidAmount`.
+  Bulk transaction, LC, loan, exchange rate and advance columns stay out.
+- A line pays one approved GRN of the supplier. Settled = payment + VDS + TDS + discount and cannot be more than the
+  due (net − returns − other payments). Saving, rejecting or deleting recounts `PaidAmount` (`PayableBills`).
+- Lookup list `payment-method` (Cash, Cheque, Bank transfer, Mobile banking). Choosing a supplier loads the bills that
+  are due; cash hides the bank and cheque fields. The GRN view shows paid and due.
+- Checked with `PurchasePaymentTests` and a Playwright run in Chrome.
+
+## Done: phase 24 — Purchase Report, Inventory and Accounting (2026-11-24)
+
+- Owner asked to finish Procurement with its report and to post stock and accounts for every transaction through two
+  common functions, based on the legacy `InventoryHeader`, `InventoryLine`, `SubLedgerHeader` and `SubLedgerRow`
+  scripts. Names (account, branch, item, partner), reconcile, bulk, project and bank columns of those scripts stay out.
+- **`StockPosting.PostAsync`** (`Erp.Api/Inventory`) writes `InventoryHeader`/`InventoryLine` (quantity and value, in
+  positive and out negative), keeps `StockBalance` per warehouse and item, and sets the item's average cost. Stock out
+  uses the warehouse's average cost and is refused when there is not enough stock.
+- **`AccountPosting.PostAsync`** (`Erp.Api/Accounting`) writes a balanced journal in `SubLedgerHeader`/`SubLedgerRow`
+  (debit positive, credit negative). It takes posting keys; `PostingAccount` maps each key to an account.
+- Both run in the same save as the **last approval**, so a record is approved and posted together or not at all. A
+  unique index allows one posting per record. New transactions (sales and so on) must use these two functions.
+
+  | Transaction           | Stock                                      | Debit                      | Credit                                        |
+  | --------------------- | ------------------------------------------ | -------------------------- | --------------------------------------------- |
+  | Purchase receive      | in, at net cost with header charges shared | Inventory, VAT receivable¹ | Accounts payable                              |
+  | Purchase return       | out, at average cost                       | Accounts payable           | Inventory, VAT receivable¹, price difference² |
+  | Purchase payment      | —                                          | Accounts payable           | Cash / bank / mobile, VDS, TDS, discount      |
+  | Adjustment: opening   | in                                         | Inventory                  | Opening balance                               |
+  | Adjustment: stock in  | in                                         | Inventory                  | Stock gain                                    |
+  | Adjustment: stock out | out, at average cost                       | Stock loss                 | Inventory                                     |
+  | Stock transfer        | out of one warehouse, in to another        | —                          | —                                             |
+  | Manual journal        | —                                          | chosen                     | chosen                                        |
+
+  ¹ Only for items with rebatable VAT; otherwise VAT is part of the stock cost. ² Debit when the cost is higher.
+
+- Migration `InventoryAndAccounting`. Every account gets a default chart of accounts and posting accounts at startup
+  and when it is created (`ChartOfAccountDefaults`). Purchases approved before this phase are posted once at startup
+  (`PostingBackfill`); one that cannot be posted is logged as a warning.
+- New menus. **Inventory**: Stock Adjustment, Stock Transfer, Stock Balance, Stock Ledger. **Accounting**: Chart of
+  Accounts (shared by the account's business units), Posting Accounts, Journal Voucher, Account Ledger, Supplier
+  Ledger, Trial Balance, Income Statement, Balance Sheet. **Procurement**: Purchase Report (by receive, item, supplier).
+- Adjustments, transfers and manual journals are configurable, have multi-level approval and are in My Approvals. Only
+  approved journals count in the ledgers. A manual journal cannot use the inventory account, and needs a supplier on
+  accounts payable, so stock value and supplier balances always match the books.
+- Shared code moved out of Procurement: API `Erp.Api/Documents` (`DocumentData`, item search `/api/erp/documents/items`)
+  and ERP `common/documents`. `common/reports/ReportPage` is the template for every report; `ListPageLayout` filters
+  can be a date or a custom control. `modules/document-registry.ts` maps a record type to its label and page.
+- Two people saving the same thing at the same moment get a 409 instead of a server error (`ConflictExceptionHandler`).
+- Checked with `StockAndAccountingTests`, all other tests and a Playwright run in Chrome over the whole flow.
+
+Left open, ask the owner:
+
+- An approved record cannot be cancelled; correct it with a return, an adjustment or a manual journal.
+- Closing an accounting period and closing the year.
+- Several bank accounts on a payment (all cheque and bank payments go to one Bank account now), bank reconciliation.
+- Stock transfer to another business unit (items belong to one business unit).
+- Advance payments, VDS/TDS deposit screen, sales side (stock out, receivable, cost of goods sold).
+
 Still open for later, ask the owner:
 
 1. **Custom fields in the list** (column, filter, CSV export): needs the owner's answer from phase 6.
@@ -458,17 +519,18 @@ Still open for later, ask the owner:
 
 ## Where we are
 
-Last updated 2026-11-23. Phases 0 to 22 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-24. Phases 0 to 24 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
-supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return) and
+supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return, Purchase
+Payment, Purchase Report), Inventory, Accounting and
 multi-level approval.
-Next: Purchase Payment (needs its table script), then "Still open for later".
+Next: owner to choose from "Left open" of phase 24 (sales is the natural next module), then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
 `DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
-`PurchaseReturn`.
+`PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`.
 
 ## Working on another machine
 

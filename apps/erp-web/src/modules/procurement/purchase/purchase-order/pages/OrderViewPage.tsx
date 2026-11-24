@@ -17,9 +17,9 @@ import { useParams } from 'react-router';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { DocumentView } from '../../../components/DocumentView';
-import { LinesView } from '../../../components/LinesView';
-import { QUANTITY_DECIMALS_SHOWN } from '../../../procurement';
+import { DocumentView } from '@/common/documents/DocumentView';
+import { LinesView } from '@/common/documents/LinesView';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { ORDER_FEATURE, orderPaths } from '../constants';
 import { orderCalls } from '../order-form';
 
@@ -79,32 +79,32 @@ export function OrderViewPage() {
           columns={[
             {
               key: 'price',
-              title: t('procurement.lines.price'),
+              title: t('document.lines.price'),
               align: 'end',
               render: (_, line) => formatMoney(line.price),
             },
             {
               key: 'discount',
-              title: t('procurement.lines.discount'),
+              title: t('document.lines.discount'),
               align: 'end',
               render: (_, line) => formatMoney(line.discount),
             },
             {
               key: 'vat',
-              title: t('procurement.lines.vat'),
+              title: t('document.lines.vat'),
               align: 'end',
               render: (_, line) =>
                 `${formatPercent(line.vatPercentage)} · ${formatMoney(line.vatAmount)}`,
             },
             {
               key: 'net',
-              title: t('procurement.lines.net'),
+              title: t('document.lines.net'),
               align: 'end',
               render: (_, line) => formatMoney(line.netAmount),
             },
             {
               key: 'received',
-              title: t('procurement.lines.received'),
+              title: t('document.lines.received'),
               align: 'end',
               render: (_, line) => formatNumber(line.receivedQuantity, QUANTITY_DECIMALS_SHOWN),
             },
@@ -117,28 +117,28 @@ export function OrderViewPage() {
           totals={[
             {
               key: 'quantity',
-              label: t('procurement.lines.totalQuantity'),
+              label: t('document.lines.totalQuantity'),
               value: formatNumber(order.totalQuantity, QUANTITY_DECIMALS_SHOWN),
             },
             {
               key: 'vat',
-              label: t('procurement.totals.vat'),
+              label: t('document.totals.vat'),
               value: formatMoney(order.totalVatAmount),
             },
             {
               key: 'items',
-              label: t('procurement.totals.items'),
+              label: t('document.totals.items'),
               value: formatMoney(order.itemTotalAmount),
             },
             {
               key: 'discount',
-              label: t('procurement.totals.discount'),
+              label: t('document.totals.discount'),
               value: formatMoney(order.headerDiscount),
             },
-            { key: 'charges', label: t('procurement.totals.charges'), value: formatMoney(charges) },
+            { key: 'charges', label: t('document.totals.charges'), value: formatMoney(charges) },
             {
               key: 'net',
-              label: t('procurement.totals.net'),
+              label: t('document.totals.net'),
               value: formatMoney(order.netAmount),
               strong: true,
             },

@@ -1,6 +1,7 @@
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Identity;
 using Erp.Core.Modules;
+using Erp.Infrastructure.Accounting;
 using Erp.Infrastructure.Metadata;
 using Erp.Infrastructure.Tenancy;
 using Erp.Metadata;
@@ -44,10 +45,12 @@ public static class DatabaseInitializer
         }
 
         var lookups = provider.GetRequiredService<LookupDefaults>();
+        var chart = provider.GetRequiredService<ChartOfAccountDefaults>();
         await lookups.SyncTypesAsync(cancellationToken);
         foreach (var accountId in await db.Accounts.Select(a => a.Id).ToListAsync(cancellationToken))
         {
             await lookups.AddMissingAsync(accountId, cancellationToken);
+            await chart.AddMissingAsync(accountId, cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);

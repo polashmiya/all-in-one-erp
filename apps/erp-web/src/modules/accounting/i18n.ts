@@ -1,0 +1,38 @@
+import type { AppResources } from '@erp/ui';
+
+export const accountingResources: AppResources = {
+  en: {
+    'accounting.type.asset': 'Asset',
+    'accounting.type.liability': 'Liability',
+    'accounting.type.equity': 'Equity',
+    'accounting.type.income': 'Income',
+    'accounting.type.expense': 'Expense',
+    'accounting.debit': 'Debit',
+    'accounting.credit': 'Credit',
+    'accounting.balance': 'Balance',
+    'accounting.opening': 'Opening balance',
+    'accounting.closing': 'Closing balance',
+    'accounting.dr': '{{amount}} Dr',
+    'accounting.cr': '{{amount}} Cr',
+    'accounting.code': 'Code',
+    'accounting.account': 'Account',
+    'accounting.amount': 'Amount',
+  },
+  bn: {
+    'accounting.type.asset': 'সম্পদ',
+    'accounting.type.liability': 'দায়',
+    'accounting.type.equity': 'মালিকানা স্বত্ব',
+    'accounting.type.income': 'আয়',
+    'accounting.type.expense': 'ব্যয়',
+    'accounting.debit': 'ডেবিট',
+    'accounting.credit': 'ক্রেডিট',
+    'accounting.balance': 'স্থিতি',
+    'accounting.opening': 'প্রারম্ভিক স্থিতি',
+    'accounting.closing': 'সমাপনী স্থিতি',
+    'accounting.dr': '{{amount}} ডেবিট',
+    'accounting.cr': '{{amount}} ক্রেডিট',
+    'accounting.code': 'কোড',
+    'accounting.account': 'হিসাব',
+    'accounting.amount': 'টাকা',
+  },
+};
