@@ -22,6 +22,7 @@
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@fontsource-variable/inter": "^5.2.0",
     "@fontsource-variable/manrope": "5.2.5",
+    "@fontsource-variable/onest": "^5.3.1",
     "@fontsource-variable/open-sans": "5.2.5",
     "@fontsource-variable/roboto": "5.2.5",
     "@fontsource/hind-siliguri": "^5.2.0",

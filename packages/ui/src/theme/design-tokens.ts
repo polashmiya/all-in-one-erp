@@ -51,12 +51,14 @@ export const fontSize = {
   hero: 36,
 } as const;
 
-export const controlHeight = { xs: 22, sm: 30, md: 34, input: 38, lg: 46, xl: 48 } as const;
+export const controlHeight = { xs: 22, sm: 30, md: 34, input: 30, lg: 46, xl: 48 } as const;
+
+export const checkSize = 20;
 
 export const breakpoints = { sm: 576, md: 768, lg: 992, xl: 1200 } as const;
 
 export const fontFamily =
-  "'Inter Variable', 'Inter', 'Hind Siliguri', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+  "'Onest Variable', 'Onest', 'Hind Siliguri', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
 export const shadows = {
   light: {
@@ -78,7 +80,7 @@ export const surfaces: Record<ThemeMode, Record<string, string>> = {
     panel: '#F7F8FA',
     surface: '#FFFFFF',
     headerBorder: '#ECEEF1',
-    border: '#D5DAE3',
+    border: '#CED4DA',
     borderSecondary: '#E8EAEE',
     borderStrong: '#B8C0CC',
     borderHover: '#9AA6B8',
@@ -90,7 +92,10 @@ export const surfaces: Record<ThemeMode, Record<string, string>> = {
     text: '#1F2937',
     textSecondary: '#4B5563',
     textMuted: '#5F6B7A',
-    placeholder: '#8A94A3',
+    placeholder: '#5C5F66',
+    fieldIcon: '#868E96',
+    fieldDisabled: '#E9ECEF',
+    fieldDisabledText: '#495057',
     chartBar: '#E3E6EB',
     chartBarHover: '#CFD4DC',
     tooltipBg: '#0E1320',
@@ -119,7 +124,10 @@ export const surfaces: Record<ThemeMode, Record<string, string>> = {
     text: '#D1D5DB',
     textSecondary: '#A3AAB6',
     textMuted: '#8B93A1',
-    placeholder: '#6B7280',
+    placeholder: '#8B93A1',
+    fieldIcon: '#8B93A1',
+    fieldDisabled: 'rgba(255, 255, 255, 0.08)',
+    fieldDisabledText: '#A3AAB6',
     chartBar: 'rgba(255, 255, 255, 0.14)',
     chartBarHover: 'rgba(255, 255, 255, 0.24)',
     tooltipBg: '#F3F4F6',

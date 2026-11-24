@@ -136,6 +136,14 @@
   color: var(--erp-text-muted);
 }
 
+.erp-auth__form .ant-form-item {
+  margin-bottom: var(--erp-space-lg);
+}
+
+.erp-auth__form .ant-form-item-label {
+  padding-bottom: var(--erp-space-xs);
+}
+
 .erp-auth__form .ant-form-item-label > label {
   font-weight: 500;
   color: var(--erp-text);

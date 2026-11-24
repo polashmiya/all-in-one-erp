@@ -7,7 +7,7 @@ import {
   type UiPrefs,
 } from './appearance';
 import { tableHeadColors, type Brand, type ThemeMode } from './brand';
-import { controlHeight, fontFamily, shadows, surfaces, tones } from './design-tokens';
+import { checkSize, controlHeight, fontFamily, shadows, surfaces, tones } from './design-tokens';
 
 export type { ThemeMode } from './brand';
 
@@ -28,6 +28,12 @@ export function buildTheme({ mode, compact, brand, prefs }: ThemeOptions): Theme
   const light = mode === 'light';
   const algorithm = [light ? theme.defaultAlgorithm : theme.darkAlgorithm];
   if (compact) algorithm.push(theme.compactAlgorithm);
+  const field = {
+    fontSize: fontSize.md,
+    fontSizeLG: fontSize.base,
+    colorText: brand.textStrong,
+    colorTextDisabled: surfaces[mode].fieldDisabledText,
+  };
 
   return {
     algorithm,
@@ -51,6 +57,8 @@ export function buildTheme({ mode, compact, brand, prefs }: ThemeOptions): Theme
       colorTextDescription: brand.textMuted,
       colorTextPlaceholder: surfaces[mode].placeholder,
       colorFillAlter: brand.tableHeaderBg,
+      colorBgContainerDisabled: surfaces[mode].fieldDisabled,
+      controlInteractiveSize: checkSize,
       controlOutline: brand.primarySoft,
       controlOutlineWidth: 3,
       borderRadius: radius.md,
@@ -78,6 +86,12 @@ export function buildTheme({ mode, compact, brand, prefs }: ThemeOptions): Theme
         defaultBorderColor: brand.border,
         primaryColor: brand.primaryInk,
       },
+      Input: field,
+      InputNumber: field,
+      Select: field,
+      TreeSelect: field,
+      Cascader: field,
+      DatePicker: field,
       Card: { headerFontSize: fontSize.lg, headerHeight: 52, paddingLG: 20 },
       Menu: {
         itemBorderRadius: radius.md,
@@ -124,7 +138,8 @@ export function buildTheme({ mode, compact, brand, prefs }: ThemeOptions): Theme
         defaultColor: brand.textSecondary,
       },
       Switch: { trackHeight: 24, trackMinWidth: 40, handleSize: 20 },
-      Checkbox: { borderRadiusSM: radius.xs },
+      Checkbox: { borderRadiusSM: radius.xs, fontSize: fontSize.md },
+      Radio: { radioSize: checkSize, fontSize: fontSize.md },
       Steps: { iconSize: 30 },
       Modal: { borderRadiusLG: radius.xl },
       Popover: { borderRadiusLG: radius.xl },

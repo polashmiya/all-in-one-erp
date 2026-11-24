@@ -1,6 +1,7 @@
 import type { FontKey } from './appearance';
 
 const loaders: Partial<Record<FontKey, () => Promise<unknown>>> = {
+  inter: () => import('@fontsource-variable/inter/index.css'),
   roboto: () => import('@fontsource-variable/roboto/index.css'),
   openSans: () => import('@fontsource-variable/open-sans/index.css'),
   manrope: () => import('@fontsource-variable/manrope/index.css'),

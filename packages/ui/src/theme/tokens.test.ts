@@ -106,7 +106,7 @@ describe('buildTheme', () => {
     expect(config.token?.colorPrimary).toBe('#0F766E');
     expect(config.token?.colorBgLayout).toBe('#F7F8FA');
     expect(config.token?.borderRadius).toBe(8);
-    expect(config.token?.controlHeight).toBe(38);
+    expect(config.token?.controlHeight).toBe(30);
     expect(config.token?.fontFamily).toBe(fontFamily);
   });
 

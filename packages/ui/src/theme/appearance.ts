@@ -1,6 +1,14 @@
 import { fontSize, radius } from './design-tokens';
 
-export const fontKeys = ['inter', 'roboto', 'openSans', 'manrope', 'poppins', 'system'] as const;
+export const fontKeys = [
+  'onest',
+  'inter',
+  'roboto',
+  'openSans',
+  'manrope',
+  'poppins',
+  'system',
+] as const;
 export const fontScales = ['sm', 'md', 'lg', 'xl'] as const;
 export const radiusStyles = ['sharp', 'soft', 'round'] as const;
 export const contentWidths = ['fluid', 'boxed'] as const;
@@ -29,7 +37,7 @@ export interface UiPrefs {
 }
 
 export const defaultUiPrefs: UiPrefs = {
-  font: 'inter',
+  font: 'onest',
   fontScale: 'md',
   radius: 'soft',
   contentWidth: 'fluid',
@@ -44,6 +52,7 @@ const fallbackStack =
   "'Hind Siliguri', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
 export const fontStacks: Record<FontKey, string> = {
+  onest: `'Onest Variable', 'Onest', ${fallbackStack}`,
   inter: `'Inter Variable', 'Inter', ${fallbackStack}`,
   roboto: `'Roboto Variable', 'Roboto', ${fallbackStack}`,
   openSans: `'Open Sans Variable', 'Open Sans', ${fallbackStack}`,
@@ -53,6 +62,7 @@ export const fontStacks: Record<FontKey, string> = {
 };
 
 export const fontNames: Record<FontKey, string> = {
+  onest: 'Onest',
   inter: 'Inter',
   roboto: 'Roboto',
   openSans: 'Open Sans',

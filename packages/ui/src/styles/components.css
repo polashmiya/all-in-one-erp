@@ -1254,11 +1254,6 @@ html[data-content-width='boxed'] .erp-page {
   background: var(--erp-chart-bar);
 }
 
-.erp-req {
-  margin-inline-start: var(--erp-space-xs);
-  color: var(--erp-required);
-}
-
 .erp-field-label {
   display: inline-flex;
   align-items: center;
@@ -1306,29 +1301,6 @@ html[data-content-width='boxed'] .erp-page {
 
 .erp-field-span-4 {
   grid-column: 1 / -1;
-}
-
-.erp-form .ant-form-item {
-  margin-bottom: var(--erp-space-lg);
-}
-
-.erp-form .ant-form-item-label {
-  padding-bottom: var(--erp-space-xs);
-  line-height: 18px;
-}
-
-.erp-form .ant-form-item-label > label {
-  font-size: var(--erp-font-md);
-  line-height: 18px;
-  font-weight: 500;
-  color: var(--erp-text);
-  height: auto;
-}
-
-.erp-form .ant-form-item-extra,
-.erp-form .ant-form-item-explain {
-  font-size: var(--erp-font-sm);
-  margin-top: var(--erp-space-xs);
 }
 
 .erp-form-card {
@@ -1442,7 +1414,7 @@ html[data-content-width='boxed'] .erp-page {
   align-items: center;
   gap: 10px;
   min-height: var(--erp-control-input);
-  font-size: var(--erp-font-base);
+  font-size: var(--erp-font-md);
 }
 
 .erp-checklist {
@@ -1592,7 +1564,7 @@ html[data-content-width='boxed'] .erp-page {
 .erp-search.ant-input-affix-wrapper {
   width: var(--erp-search-w);
   max-width: 100%;
-  height: var(--erp-control-md);
+  height: var(--erp-control-input);
 }
 
 .erp-search .anticon-search {
@@ -1638,7 +1610,6 @@ html[data-content-width='boxed'] .erp-page {
 .erp-table__filters .ant-picker,
 .erp-table__filters .ant-select {
   width: 100%;
-  height: var(--erp-control-md);
 }
 
 .erp-filter {
@@ -1646,15 +1617,15 @@ html[data-content-width='boxed'] .erp-page {
   align-items: center;
   justify-content: space-between;
   gap: var(--erp-space-sm);
-  height: var(--erp-control-md);
+  height: var(--erp-control-input);
   max-width: var(--erp-filter-max-w);
   padding: 0 var(--erp-space-md);
   border: 1px solid var(--erp-border);
   border-radius: var(--erp-radius-md);
   background: var(--erp-surface);
-  color: var(--erp-text);
+  color: var(--erp-text-strong);
   font: inherit;
-  font-size: var(--erp-font-base);
+  font-size: var(--erp-font-md);
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
@@ -1683,12 +1654,7 @@ html[data-content-width='boxed'] .erp-page {
 }
 
 .erp-filter__placeholder {
-  color: var(--erp-text-2);
-}
-
-.erp-filter__chev {
-  font-size: 10px;
-  color: var(--erp-text-muted);
+  color: var(--erp-placeholder);
 }
 
 .erp-quickview__count {

@@ -1,4 +1,4 @@
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { Select, Spin, Typography, type SelectProps } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +51,6 @@ export function LookupSelect({
       allowClear
       filterOption={false}
       onSearch={setQuery}
-      suffixIcon={<SearchOutlined />}
       placeholder={placeholder ?? t('field.searchPlaceholder')}
       notFoundContent={loading ? <Spin size="small" /> : t('field.noMatches')}
       optionRender={(option) => (

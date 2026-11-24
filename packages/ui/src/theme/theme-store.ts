@@ -55,10 +55,11 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'erp.ui.preferences',
-      version: 2,
-      migrate: (persisted) => {
+      version: 3,
+      migrate: (persisted, version) => {
         const saved = (persisted ?? {}) as Partial<ThemeState>;
         const state = { ...defaultAppearance, ...saved, ...sanitizeUiPrefs(saved) };
+        if (version < 3 && state.font === 'inter') state.font = defaultAppearance.font;
         if (!modes.includes(state.mode)) state.mode = defaultAppearance.mode;
         if (!siderStyles.includes(state.sider)) state.sider = 'light';
         if (state.preset !== CUSTOM_PRESET && !themePresets.some((p) => p.key === state.preset))

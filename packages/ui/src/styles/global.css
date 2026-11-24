@@ -1,9 +1,10 @@
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/onest';
 @import '@fontsource/hind-siliguri/400.css';
 @import '@fontsource/hind-siliguri/500.css';
 @import '@fontsource/hind-siliguri/600.css';
 @import '@fontsource/hind-siliguri/700.css';
 @import './shell.css';
+@import './fields.css';
 @import './components.css';
 @import './auth.css';
 
@@ -23,8 +24,8 @@ body,
 body {
   font-family: var(
     --erp-font-family,
-    'Inter Variable',
-    'Inter',
+    'Onest Variable',
+    'Onest',
     'Hind Siliguri',
     system-ui,
     -apple-system,
@@ -39,7 +40,6 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv11', 'ss01';
   transition: background-color 0.2s ease;
 }
 
@@ -47,8 +47,8 @@ html[lang='bn'] body {
   line-height: 1.65;
 }
 
-html[data-font]:not([data-font='inter']) body {
-  font-feature-settings: normal;
+html[data-font='inter'] body {
+  font-feature-settings: 'cv11', 'ss01';
 }
 
 html[data-motion='false'] *,

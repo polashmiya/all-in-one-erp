@@ -215,6 +215,9 @@ importers:
       '@fontsource-variable/manrope':
         specifier: 5.2.5
         version: 5.2.5
+      '@fontsource-variable/onest':
+        specifier: ^5.3.1
+        version: 5.3.1
       '@fontsource-variable/open-sans':
         specifier: 5.2.5
         version: 5.2.5
@@ -667,6 +670,9 @@ packages:
 
   '@fontsource-variable/manrope@5.2.5':
     resolution: {integrity: sha512-6Mo3ldtgAhxvSSyy+bLbFRjkiYhVo6RLcasJfj9Du5k2nX16/RwjQdBbZJfvsofVt6GqQ+O6AVkazmS3Xw5R9A==}
+
+  '@fontsource-variable/onest@5.3.1':
+    resolution: {integrity: sha512-xaaw6G4HDB2/RczsWLD/2bnib4ykmQlTlBUN3GOEOiyErilZukQWVJG95h9zwAy0i8KY+QzDa+COPfqhI72Acw==}
 
   '@fontsource-variable/open-sans@5.2.5':
     resolution: {integrity: sha512-++xRfkZAxNP4e1Spm5W11iVcoYfXcNVTV5MDit60t7grRk10hy9C7XQd/jv+0TDFIfHbK9EzyBp3M3CHPesroA==}
@@ -2849,6 +2855,8 @@ snapshots:
   '@fontsource-variable/inter@5.3.0': {}
 
   '@fontsource-variable/manrope@5.2.5': {}
+
+  '@fontsource-variable/onest@5.3.1': {}
 
   '@fontsource-variable/open-sans@5.2.5': {}
 
