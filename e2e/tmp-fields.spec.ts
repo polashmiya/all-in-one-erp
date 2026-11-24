@@ -71,7 +71,7 @@ test('erp', async ({ browser }) => {
   await snap('user-form');
   await page.evaluate(() => {
     const key = 'erp.ui.preferences';
-    const saved = JSON.parse(localStorage.getItem(key)!);
+    const saved = { state: {}, version: 2 } as any;
     saved.state.mode = 'dark';
     saved.state.font = 'inter';
     saved.version = 2;

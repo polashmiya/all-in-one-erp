@@ -63,7 +63,7 @@ export function RoleUsers({
     >
       <Flex vertical gap="middle">
         {canAssign && (
-          <Flex gap="small">
+          <Flex align="center" gap="small">
             <Select
               mode="multiple"
               className="erp-w-full"

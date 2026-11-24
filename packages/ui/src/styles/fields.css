@@ -30,7 +30,15 @@
 .erp-form .ant-form-item-explain {
   min-height: 0;
   margin-top: var(--erp-space-xxs);
+}
+
+.erp-form .ant-form-item-extra,
+.erp-form .ant-form-item-explain-error {
   font-size: var(--erp-font-sm);
+}
+
+.erp-form .ant-form-item-margin-offset {
+  display: none;
 }
 
 .ant-select-arrow .ant-select-suffix,

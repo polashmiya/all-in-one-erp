@@ -927,11 +927,11 @@ html[data-content-width='boxed'] .erp-page {
 
 .erp-form-block > .erp-detail-section {
   gap: var(--erp-space-md);
-  padding: var(--erp-space-lg) var(--erp-space-xl) var(--erp-space-xs);
+  padding: var(--erp-space-lg) var(--erp-space-xl) var(--erp-space-md);
 }
 
 .erp-form-block .erp-dl {
-  padding-bottom: var(--erp-space-lg);
+  padding-bottom: var(--erp-space-sm);
 }
 
 .erp-split__side .erp-field-grid > * {
