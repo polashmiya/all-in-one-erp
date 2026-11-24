@@ -16,7 +16,7 @@ public static class ErpAuthEndpoints
 
     public static IEndpointRouteBuilder MapErpAuthEndpoints(this IEndpointRouteBuilder erp)
     {
-        var auth = erp.MapGroup("/auth").WithTags("ErpAuth");
+        var auth = erp.MapGroup("/auth").WithTags("ErpAuth").IgnoreLostBusinessUnit();
 
         auth.MapPost("/login", Login)
             .WithName("ErpLogin")
@@ -29,7 +29,7 @@ public static class ErpAuthEndpoints
 
         auth.MapGet("/me", Me)
             .WithName("GetErpSession")
-            .WithSummary("The signed-in user and their business units")
+            .WithSummary("The signed-in user, their business units and their permissions in the selected one")
             .AllowBeforePasswordChange()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
@@ -79,7 +79,7 @@ public static class ErpAuthEndpoints
     }
 
     private static async Task<Results<Ok<ErpSessionResponse>, UnauthorizedHttpResult>> Me(
-        ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
+        ICurrentContext current, ErpDbContext db, IPermissionService permissions, CancellationToken cancellationToken)
     {
         // Tenant filter applies: the user must belong to the account in the token.
         var user = await db.ErpUsers.Include(u => u.Account)
@@ -87,7 +87,8 @@ public static class ErpAuthEndpoints
         if (user is null) return TypedResults.Unauthorized();
 
         var units = await GetBusinessUnitsAsync(db, user, cancellationToken);
-        return TypedResults.Ok(new ErpSessionResponse(ToDto(user), units, LastUsed(user, units)));
+        var granted = await permissions.GetCurrentAsync(cancellationToken);
+        return TypedResults.Ok(new ErpSessionResponse(ToDto(user), units, LastUsed(user, units), Sorted(granted)));
     }
 
     private static async Task<Results<Ok<SelectUnitResponse>, ProblemHttpResult, UnauthorizedHttpResult>> SelectUnit(
@@ -115,8 +116,10 @@ public static class ErpAuthEndpoints
         var unit = (await GetBusinessUnitsAsync(db, user, cancellationToken)).Single(u => u.Id == request.BusinessUnitId);
         var granted = await permissions.GetAsync(userId, accountId, request.BusinessUnitId, current.IsAccountAdmin, cancellationToken);
 
-        return TypedResults.Ok(new SelectUnitResponse(unit, granted.Codes.Order(StringComparer.Ordinal).ToList()));
+        return TypedResults.Ok(new SelectUnitResponse(unit, Sorted(granted)));
     }
+
+    private static List<string> Sorted(PermissionSet permissions) => permissions.Codes.Order(StringComparer.Ordinal).ToList();
 
     /// <summary>
     /// Active units the user can work in. A primary admin sees every active unit of the account; their role name

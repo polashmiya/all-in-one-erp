@@ -75,7 +75,9 @@ export const useAuthStore = create<AuthState>()(
             user: session.user,
             businessUnits: session.businessUnits,
             lastBusinessUnitId: session.lastBusinessUnitId,
-            ...(stillAllowed ? {} : { currentBusinessUnitId: null, permissions: [] }),
+            ...(stillAllowed
+              ? { permissions: session.permissions }
+              : { currentBusinessUnitId: null, permissions: [] }),
           };
         }),
       selectUnit: (selection) =>

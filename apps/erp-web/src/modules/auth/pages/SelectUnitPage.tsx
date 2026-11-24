@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { redirectTarget } from '@/common/guards/redirect';
-import { endSession } from '@/common/services/api-client';
+import { endSession, queryClient } from '@/common/services/api-client';
 import { useAuthStore } from '@/common/store/auth-store';
 import { AuthLayout } from '../components/AuthLayout';
 
@@ -33,7 +33,9 @@ export function SelectUnitPage() {
   const proceed = async (unitId = chosen) => {
     if (!unitId || select.isPending) return;
     try {
-      selectUnit(await select.mutateAsync({ data: { businessUnitId: unitId } }));
+      const selection = await select.mutateAsync({ data: { businessUnitId: unitId } });
+      queryClient.clear();
+      selectUnit(selection);
       navigate(redirectTarget(location.state), { replace: true });
     } catch {
       void message.error(t('auth.switchFailed'));

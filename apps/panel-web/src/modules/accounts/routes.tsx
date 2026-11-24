@@ -72,6 +72,13 @@ export const accountsRoutes: RouteObject[] = [
     ],
   },
   {
+    path: 'feature-permissions/:id?',
+    lazy: async () => ({
+      Component: (await import('./account-features/pages/FeaturePermissionPage'))
+        .FeaturePermissionPage,
+    }),
+  },
+  {
     path: 'configuration',
     lazy: async () => ({
       Component: (await import('./account-workspace/pages/ConfigurationWorkspacePage'))

@@ -114,6 +114,36 @@ public sealed class AuthEndpointTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Erp_session_returns_the_permissions_of_the_selected_unit()
+    {
+        var login = await factory.ErpAdminLoginAsync();
+        var selected = await (await factory.CreateClient(login.AccessToken)
+            .PostAsJsonAsync("/api/erp/auth/select-unit", new SelectUnitRequest(factory.DhakaId)))
+            .Content.ReadFromJsonAsync<SelectUnitResponse>();
+
+        var inUnit = await factory.CreateClient(login.AccessToken, factory.DhakaId).GetFromJsonAsync<ErpSessionResponse>("/api/erp/auth/me");
+        var noUnit = await factory.CreateClient(login.AccessToken).GetFromJsonAsync<ErpSessionResponse>("/api/erp/auth/me");
+
+        Assert.Equal(selected!.Permissions, inUnit!.Permissions);
+        Assert.Empty(noUnit!.Permissions);
+    }
+
+    [Fact]
+    public async Task A_lost_business_unit_does_not_lock_the_user_out_of_their_session()
+    {
+        var login = await factory.ErpAdminLoginAsync();
+        var client = factory.CreateClient(login.AccessToken, Guid.NewGuid());
+
+        var session = await client.GetFromJsonAsync<ErpSessionResponse>("/api/erp/auth/me");
+        var select = await client.PostAsJsonAsync("/api/erp/auth/select-unit", new SelectUnitRequest(factory.DhakaId));
+        var navigation = await client.GetAsync("/api/erp/navigation");
+
+        Assert.Empty(session!.Permissions);
+        Assert.Equal(HttpStatusCode.OK, select.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, navigation.StatusCode);
+    }
+
+    [Fact]
     public async Task Select_unit_returns_role_and_every_permission_for_an_account_admin()
     {
         var login = await factory.ErpAdminLoginAsync();

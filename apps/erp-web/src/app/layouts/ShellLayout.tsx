@@ -28,7 +28,9 @@ export function ShellLayout() {
     })),
   );
   const { status } = useSystemStatus();
-  const session = useGetErpSession({ query: { staleTime: appConfig.sessionStaleMs } });
+  const session = useGetErpSession({
+    query: { staleTime: appConfig.sessionStaleMs, refetchInterval: appConfig.sessionStaleMs },
+  });
   const select = useSelectBusinessUnit();
   const navigation = useErpNavigation();
 

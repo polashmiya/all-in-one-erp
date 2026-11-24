@@ -16,6 +16,7 @@ public static class PanelMenuSynchronizer
     [
         new("accounts", "Accounts", "অ্যাকাউন্ট", "bank", "/accounts", 10),
         new("configuration", "Screen configuration", "স্ক্রিন কনফিগারেশন", "setting", "/configuration", 20),
+        new("feature-permissions", "Feature permission", "ফিচার অনুমতি", "safety", "/feature-permissions", 25),
         new("erp-users", "ERP users", "ERP ইউজার", "team", "/erp-users", 30),
     ];
 

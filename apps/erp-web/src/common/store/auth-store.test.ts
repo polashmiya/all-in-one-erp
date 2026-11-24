@@ -79,23 +79,26 @@ describe('auth store', () => {
       user: login().user,
       businessUnits: [dhaka],
       lastBusinessUnitId: 'dhk',
+      permissions: [],
     });
 
     expect(store().currentBusinessUnitId).toBeNull();
     expect(store().permissions).toEqual([]);
   });
 
-  it('refreshing the session keeps a unit that is still accessible', () => {
+  it('refreshing the session keeps an accessible unit and takes its latest permissions', () => {
     store().signIn(login());
-    store().selectUnit({ businessUnit: dhaka, permissions: [] });
+    store().selectUnit({ businessUnit: dhaka, permissions: ['inventory.item.view'] });
 
     store().refreshSession({
       user: login().user,
       businessUnits: [dhaka, ctg],
       lastBusinessUnitId: 'dhk',
+      permissions: ['procurement.purchase-order.view'],
     });
 
     expect(store().currentBusinessUnitId).toBe('dhk');
+    expect(store().permissions).toEqual(['procurement.purchase-order.view']);
   });
 
   it('signing out clears everything', () => {

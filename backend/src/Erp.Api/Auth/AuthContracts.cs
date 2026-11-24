@@ -34,7 +34,8 @@ public sealed record ErpLoginResponse(
 public sealed record ErpSessionResponse(
     ErpUserDto User,
     IReadOnlyList<BusinessUnitAccessDto> BusinessUnits,
-    Guid? LastBusinessUnitId);
+    Guid? LastBusinessUnitId,
+    IReadOnlyList<string> Permissions);
 
 public sealed record SelectUnitRequest(Guid BusinessUnitId);
 

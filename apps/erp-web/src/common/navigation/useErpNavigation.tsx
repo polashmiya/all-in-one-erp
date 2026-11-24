@@ -34,7 +34,9 @@ export function toMenuNodes(modules: ErpMenuModule[]): MenuNode[] {
 }
 
 export function useErpNavigation() {
-  const query = useGetErpNavigation({ query: { staleTime: appConfig.sessionStaleMs } });
+  const query = useGetErpNavigation({
+    query: { staleTime: appConfig.sessionStaleMs, refetchInterval: appConfig.sessionStaleMs },
+  });
   const modules = useMemo(() => toMenuNodes(query.data ?? []), [query.data]);
   const menu = useMemo(() => [dashboard, ...modules], [modules]);
 

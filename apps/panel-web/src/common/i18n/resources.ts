@@ -1,6 +1,7 @@
 import { mergeResources, type AppResources } from '@erp/ui';
 import { authResources } from '@/modules/auth/i18n';
 import { accountApprovalResources } from '@/modules/accounts/account-approvals/i18n';
+import { accountFeatureResources } from '@/modules/accounts/account-features/i18n';
 import { erpUserResources } from '@/modules/erp-users/i18n';
 
 const commonPanelResources: AppResources = {
@@ -62,7 +63,11 @@ const commonPanelResources: AppResources = {
     'unitMenus.saved': 'Business unit screens saved.',
     'menus.selected': '{{count}} of {{total}} features selected',
     'menus.selectAll': 'Select all',
-    'menus.clear': 'Clear',
+    'menus.clear': 'Unselect all',
+    'menus.search': 'Search features...',
+    'menus.noMatch': 'Nothing matches “{{query}}”.',
+    'menus.expandAll': 'Expand all',
+    'menus.collapseAll': 'Collapse all',
     'menus.none': 'No menus given yet.',
     'menus.empty': 'No ERP menus are defined yet.',
     'menus.adminNote':
@@ -522,7 +527,11 @@ const commonPanelResources: AppResources = {
     'unitMenus.saved': 'বিজনেস ইউনিটের স্ক্রিন সংরক্ষিত হয়েছে।',
     'menus.selected': '{{total}}টির মধ্যে {{count}}টি ফিচার নির্বাচিত',
     'menus.selectAll': 'সব নির্বাচন',
-    'menus.clear': 'মুছুন',
+    'menus.clear': 'সব বাদ দিন',
+    'menus.search': 'ফিচার খুঁজুন...',
+    'menus.noMatch': '“{{query}}” পাওয়া যায়নি।',
+    'menus.expandAll': 'সব খুলুন',
+    'menus.collapseAll': 'সব গুটান',
     'menus.none': 'এখনো কোনো মেনু দেওয়া হয়নি।',
     'menus.empty': 'এখনো কোনো ERP মেনু তৈরি হয়নি।',
     'menus.adminNote':
@@ -930,4 +939,5 @@ export const panelResources = mergeResources(
   authResources,
   erpUserResources,
   accountApprovalResources,
+  accountFeatureResources,
 );

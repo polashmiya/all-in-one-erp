@@ -1,6 +1,6 @@
 import { AppstoreOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { LocalizedLabel } from '@erp/api-client';
-import { localize, resolveIcon, useLanguageStore } from '@erp/ui';
+import { localize, resolveIcon, SearchInput, useLanguageStore } from '@erp/ui';
 import {
   Button,
   Empty,
@@ -12,14 +12,17 @@ import {
   Typography,
   type TreeDataNode,
 } from 'antd';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState, type Key } from 'react';
 import { useTranslation } from 'react-i18next';
-import { limitCatalog, useFeatureCatalog } from './feature-catalog';
+import { limitCatalog, searchCatalog, useFeatureCatalog } from './feature-catalog';
 
 function useLabel() {
   const language = useLanguageStore((s) => s.language);
-  return (label: LocalizedLabel) =>
-    localize({ en: label.en, ...(label.bn ? { bn: label.bn } : {}) }, language);
+  return useCallback(
+    (label: LocalizedLabel) =>
+      localize({ en: label.en, ...(label.bn ? { bn: label.bn } : {}) }, language),
+    [language],
+  );
 }
 
 export function FeatureAccessTree({
@@ -34,33 +37,54 @@ export function FeatureAccessTree({
   const { t } = useTranslation();
   const label = useLabel();
   const catalog = useFeatureCatalog();
+  const [query, setQuery] = useState('');
+  const [expanded, setExpanded] = useState<Key[]>();
   const { modules, allCodes } = useMemo(
     () => limitCatalog(catalog.modules, available),
     [catalog.modules, available],
   );
+  const visible = useMemo(() => searchCatalog(modules, query, label), [modules, query, label]);
   const loading = catalog.loading;
-  const selected = useMemo(() => value ?? [], [value]);
+  const selected = useMemo(
+    () => (value ?? []).filter((code) => allCodes.includes(code)),
+    [value, allCodes],
+  );
+  const groups = visible.modules.flatMap((module) => [
+    `module:${module.key}`,
+    ...module.subModules.map((sub) => `sub:${module.key}.${sub.key}`),
+  ]);
+  const setVisible = (codes: string[]) =>
+    onChange?.([...selected.filter((code) => !visible.allCodes.includes(code)), ...codes]);
 
   const treeData = useMemo<TreeDataNode[]>(
     () =>
-      modules.map((module) => {
-        const codes = module.subModules.flatMap((s) => s.features.map((f) => f.code));
-        const chosen = codes.filter((c) => selected.includes(c)).length;
+      visible.modules.map((module) => {
+        const count = (codes: string[]) => {
+          const chosen = codes.filter((c) => selected.includes(c)).length;
+          return (
+            <Tag bordered={false} color={chosen ? 'processing' : 'default'} className="erp-flush">
+              {chosen}/{codes.length}
+            </Tag>
+          );
+        };
         return {
           key: `module:${module.key}`,
           icon: resolveIcon(module.icon) ?? <AppstoreOutlined />,
           title: (
             <Space size={8}>
               <Typography.Text strong>{label(module.label)}</Typography.Text>
-              <Tag bordered={false} color={chosen ? 'processing' : 'default'} className="erp-flush">
-                {chosen}/{codes.length}
-              </Tag>
+              {count(module.subModules.flatMap((s) => s.features.map((f) => f.code)))}
             </Space>
           ),
           children: module.subModules.map((subModule) => ({
             key: `sub:${module.key}.${subModule.key}`,
             icon: resolveIcon(subModule.icon) ?? <AppstoreOutlined />,
-            title: <Typography.Text>{label(subModule.label)}</Typography.Text>,
+            title: (
+              <Space size={8}>
+                <Typography.Text>{label(subModule.label)}</Typography.Text>
+                {count(subModule.features.map((f) => f.code))}
+              </Space>
+            ),
             children: subModule.features.map((feature) => ({
               key: feature.code,
               isLeaf: true,
@@ -77,20 +101,34 @@ export function FeatureAccessTree({
           })),
         };
       }),
-    [modules, selected, label],
+    [visible.modules, selected, label],
   );
 
   return (
     <div>
       <Flex justify="space-between" align="center" gap={12} wrap className="acc-toolbar">
-        <Typography.Text type="secondary">
-          {t('menus.selected', { count: selected.length, total: allCodes.length })}
-        </Typography.Text>
-        <Space>
-          <Button size="small" onClick={() => onChange?.(allCodes)} disabled={loading}>
+        <Space wrap>
+          <SearchInput
+            label={t('menus.search')}
+            placeholder={t('menus.search')}
+            value={query}
+            onChange={setQuery}
+          />
+          <Typography.Text type="secondary">
+            {t('menus.selected', { count: selected.length, total: allCodes.length })}
+          </Typography.Text>
+        </Space>
+        <Space wrap>
+          <Button size="small" onClick={() => setExpanded(groups)} disabled={loading || !!query}>
+            {t('menus.expandAll')}
+          </Button>
+          <Button size="small" onClick={() => setExpanded([])} disabled={loading || !!query}>
+            {t('menus.collapseAll')}
+          </Button>
+          <Button size="small" onClick={() => setVisible(visible.allCodes)} disabled={loading}>
             {t('menus.selectAll')}
           </Button>
-          <Button size="small" onClick={() => onChange?.([])} disabled={loading}>
+          <Button size="small" onClick={() => setVisible([])} disabled={loading}>
             {t('menus.clear')}
           </Button>
         </Space>
@@ -98,20 +136,24 @@ export function FeatureAccessTree({
       <div className="erp-boxed">
         {loading ? (
           <Skeleton active paragraph={{ rows: 5 }} title={false} />
-        ) : modules.length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('menus.empty')} />
+        ) : visible.modules.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={query ? t('menus.noMatch', { query }) : t('menus.empty')}
+          />
         ) : (
           <Tree
             checkable
             showIcon
             blockNode
             selectable={false}
-            defaultExpandAll
+            expandedKeys={expanded && !query ? expanded : groups}
+            onExpand={(keys) => !query && setExpanded(keys)}
             treeData={treeData}
-            checkedKeys={selected}
+            checkedKeys={selected.filter((code) => visible.allCodes.includes(code))}
             onCheck={(checked) => {
               const keys = Array.isArray(checked) ? checked : checked.checked;
-              onChange?.(keys.map(String).filter((key) => allCodes.includes(key)));
+              setVisible(keys.map(String).filter((key) => allCodes.includes(key)));
             }}
           />
         )}

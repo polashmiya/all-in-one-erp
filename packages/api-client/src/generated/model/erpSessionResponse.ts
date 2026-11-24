@@ -13,4 +13,5 @@ export interface ErpSessionResponse {
   businessUnits: BusinessUnitAccessDto[];
   /** @nullable */
   lastBusinessUnitId: string | null;
+  permissions: string[];
 }

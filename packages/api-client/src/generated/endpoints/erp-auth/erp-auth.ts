@@ -171,7 +171,7 @@ export const getGetErpSessionUrl = () => {
 };
 
 /**
- * @summary The signed-in user and their business units
+ * @summary The signed-in user, their business units and their permissions in the selected one
  */
 export const getErpSession = async (
   options?: Parameters<typeof customFetch>[1],
@@ -257,7 +257,7 @@ export function useGetErpSession<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary The signed-in user and their business units
+ * @summary The signed-in user, their business units and their permissions in the selected one
  */
 
 export function useGetErpSession<

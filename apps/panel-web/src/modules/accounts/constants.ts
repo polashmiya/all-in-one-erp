@@ -2,6 +2,7 @@ export const ACCOUNT_PATHS = {
   list: '/accounts',
   create: '/accounts/new',
   workspace: '/configuration',
+  featuresOf: (id: string) => `/feature-permissions/${id}`,
   detail: (id: string) => `/accounts/${id}`,
   edit: (id: string) => `/accounts/${id}/edit`,
   theme: (id: string) => `/accounts/${id}/theme`,

@@ -1,4 +1,4 @@
-import { useGetErpMenuCatalog, type ErpMenuModule } from '@erp/api-client';
+import { useGetErpMenuCatalog, type ErpMenuModule, type LocalizedLabel } from '@erp/api-client';
 import { useMemo } from 'react';
 
 export function useFeatureCatalog() {
@@ -9,6 +9,26 @@ export function useFeatureCatalog() {
     [modules],
   );
   return { modules, allCodes, loading: query.isPending };
+}
+
+export function searchCatalog(
+  modules: ErpMenuModule[],
+  query: string,
+  label: (text: LocalizedLabel) => string,
+) {
+  const term = query.trim().toLowerCase();
+  const codes = modules.flatMap((module) =>
+    module.subModules.flatMap((sub) =>
+      sub.features
+        .filter((feature) =>
+          [label(module.label), label(sub.label), label(feature.label), feature.code].some((text) =>
+            text.toLowerCase().includes(term),
+          ),
+        )
+        .map((feature) => feature.code),
+    ),
+  );
+  return limitCatalog(modules, codes);
 }
 
 export function limitCatalog(modules: ErpMenuModule[], available?: string[]) {

@@ -2,6 +2,14 @@ using Erp.Core.Authorization;
 
 namespace Erp.Api.Hosting;
 
+public sealed record IgnoreLostBusinessUnitMetadata;
+
+public static class BusinessUnitHeaderExtensions
+{
+    public static TBuilder IgnoreLostBusinessUnit<TBuilder>(this TBuilder builder) where TBuilder : IEndpointConventionBuilder =>
+        builder.WithMetadata(new IgnoreLostBusinessUnitMetadata());
+}
+
 /// <summary>
 /// Group filter on /api/erp: validates X-Business-Unit against the caller's access and, if allowed, makes it the
 /// request's business unit. A missing header leaves the unit unset (unit-scoped endpoints then reject the call).
@@ -33,6 +41,8 @@ public sealed class BusinessUnitHeaderFilter : IEndpointFilter
 
         if (!allowed)
         {
+            if (http.GetEndpoint()?.Metadata.GetMetadata<IgnoreLostBusinessUnitMetadata>() is not null) return await next(context);
+
             return TypedResults.Problem(
                 title: "Business unit not accessible",
                 detail: "You do not have access to this business unit, or it is inactive.",

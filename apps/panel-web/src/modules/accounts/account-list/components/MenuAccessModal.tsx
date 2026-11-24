@@ -1,10 +1,9 @@
-import { ApiError, getGetAccountQueryKey, useUpdateAccountFeatures } from '@erp/api-client';
 import { AppModal } from '@erp/ui';
-import { useQueryClient } from '@tanstack/react-query';
-import { Alert, App } from 'antd';
+import { Alert } from 'antd';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FeatureAccessTree } from '../../components/FeatureAccess';
+import { useSaveFeatures } from '../../components/useSaveFeatures';
 
 export function MenuAccessModal({
   accountId,
@@ -20,29 +19,18 @@ export function MenuAccessModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
-  const queryClient = useQueryClient();
   const [codes, setCodes] = useState(initial);
-  const update = useUpdateAccountFeatures();
+  const features = useSaveFeatures(accountId);
 
   useEffect(() => {
     if (open) setCodes(initial);
   }, [open, initial]);
 
-  const save = async () => {
-    try {
-      await update.mutateAsync({ id: accountId, data: { featureCodes: codes } });
-      await queryClient.invalidateQueries({ queryKey: getGetAccountQueryKey(accountId) });
-      void message.success(t('menus.saved'));
-      onClose();
-    } catch (error) {
-      void message.error(
-        error instanceof ApiError
-          ? (Object.values(error.fieldErrors)[0]?.[0] ?? error.message)
-          : t('menus.saveFailed'),
-      );
-    }
-  };
+  const save = () =>
+    features
+      .save(codes)
+      .then(onClose)
+      .catch(() => undefined);
 
   return (
     <AppModal
@@ -51,7 +39,7 @@ export function MenuAccessModal({
       size="lg"
       title={t('menus.editTitle', { account: accountName })}
       okText={t('menus.save')}
-      okLoading={update.isPending}
+      okLoading={features.saving}
       onOk={save}
     >
       <div className="erp-stack">
