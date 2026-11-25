@@ -2,9 +2,12 @@ using System.Net.Http.Json;
 using Erp.Api.Accounting.ChartOfAccounts;
 using Erp.Api.Accounting.Journals;
 using Erp.Api.Approvals;
+using Erp.Api.Inventory;
+using Erp.Api.Sales.SalesCollections;
 using Erp.Api.Sales.SalesDeliveries;
 using Erp.Api.Sales.SalesOrders;
 using Erp.Api.Sales.SalesQuotations;
+using Erp.Api.Sales.SalesReturns;
 using Erp.Core.Domain.Partners;
 using Erp.Infrastructure.Persistence;
 using Erp.Tests.Infrastructure;
@@ -18,6 +21,8 @@ internal static class SalesTestData
     public const string QuotationsUrl = "/api/erp/sales/sales-quotations";
     public const string OrdersUrl = "/api/erp/sales/sales-orders";
     public const string DeliveriesUrl = "/api/erp/sales/sales-deliveries";
+    public const string ReturnsUrl = "/api/erp/sales/sales-returns";
+    public const string CollectionsUrl = "/api/erp/sales/sales-collections";
 
     public static async Task<HttpClient> SalesAdminAsync(ApiFactory factory, Guid unitId)
     {
@@ -281,5 +286,103 @@ internal static class SalesTestData
         PackQuantity = null,
         WarrantyDescription = null,
         WarrantyExpiredDate = null,
+    };
+
+    public static async Task<SalesDeliveryDetail> DeliveredAsync(HttpClient admin, SaveSalesDeliveryRequest request)
+    {
+        var delivery = await ReadAsync<SalesDeliveryDetail>(await admin.PostAsJsonAsync(DeliveriesUrl, request));
+        return await ApproveAsync<SalesDeliveryDetail>(admin, DeliveriesUrl, delivery.Id);
+    }
+
+    public static async Task<decimal> OnHandAsync(HttpClient admin, int itemId, Guid warehouseId) =>
+        (await admin.GetFromJsonAsync<List<StockOnHand>>($"/api/erp/inventory/on-hand?warehouseId={warehouseId}&itemIds={itemId}"))!
+            .Single().Quantity;
+
+    public static SaveSalesReturnRequest Return(SalesDeliveryDetail delivery, decimal quantity, bool damaged = false) => new()
+    {
+        Code = null,
+        ReturnDate = Today,
+        DeliveryId = delivery.Id,
+        WarehouseId = delivery.WarehouseId,
+        OfficeId = null,
+        SalesForceId = null,
+        Phone = null,
+        ReturnTypeId = null,
+        ReturnReasonId = null,
+        ReceivedById = null,
+        ReturnRequestNo = null,
+        ReturnRefNo = null,
+        ReturnRefDate = null,
+        ReturnRefAmount = null,
+        CreditNoteNo = null,
+        CreditNoteDate = null,
+        ChallanNo = null,
+        VatChallanNo = null,
+        DeliveryMethodId = null,
+        PickupAddress = null,
+        IsExchange = false,
+        ChargeRefundAmount = null,
+        DeductionLabel = null,
+        DeductionValue = null,
+        RefundAmount = null,
+        PaymentMethodId = null,
+        BankAccountId = null,
+        InstrumentNo = null,
+        InstrumentDate = null,
+        Remarks = null,
+        Narration = null,
+        Lines = [.. delivery.Lines.Select(l => new SaveSalesReturnLine
+        {
+            DeliveryLineId = l.Id,
+            Quantity = quantity,
+            IsDamaged = damaged,
+            ItemDescription = null,
+            Batch = null,
+            ItemSerial = null,
+            Remarks = null,
+        })],
+    };
+
+    public static SaveSalesCollectionRequest Collection(int customerId, params SaveSalesCollectionLine[] lines) => new()
+    {
+        Code = null,
+        CollectionDate = Today,
+        CustomerId = customerId,
+        IsAdvance = false,
+        AdvanceAmount = null,
+        OfficeId = null,
+        CollectedById = null,
+        MoneyReceiptNo = null,
+        ReferenceNo = null,
+        PaymentMethodId = null,
+        BankAccountId = null,
+        CustomerBankName = null,
+        CustomerBankBranch = null,
+        InstrumentTypeId = null,
+        InstrumentNo = null,
+        InstrumentDate = null,
+        DepositDate = null,
+        TransactionNo = null,
+        VdsCertificateNo = null,
+        VdsCertificateDate = null,
+        AitCertificateNo = null,
+        AitCertificateDate = null,
+        CurrencyId = null,
+        ExchangeRate = null,
+        Remarks = null,
+        Narration = null,
+        Lines = lines,
+    };
+
+    public static SaveSalesCollectionLine Bill(int deliveryId, decimal amount) => new()
+    {
+        DeliveryId = deliveryId,
+        CollectionAmount = amount,
+        Vds = null,
+        Ait = null,
+        DiscountAmount = null,
+        ExpenseAmount = null,
+        AdvanceAdjusted = null,
+        Remarks = null,
     };
 }

@@ -46,6 +46,10 @@ public class SalesDelivery : SalesDocument
 
     public decimal ReturnAmount { get; set; }
 
+    public decimal ReturnAdjusted { get; set; }
+
+    public decimal CollectedAmount { get; set; }
+
     public decimal InterestRate { get; set; }
 
     public decimal NetAmountWithInterest { get; set; }
@@ -148,6 +152,8 @@ public class SalesDeliveryLine : SalesDocumentLine
     public Guid WarehouseId { get; set; }
 
     public decimal ChangeQuantity { get; set; }
+
+    public decimal ReturnedQuantity { get; set; }
 
     public DateOnly? WarrantyExpiredDate { get; set; }
 

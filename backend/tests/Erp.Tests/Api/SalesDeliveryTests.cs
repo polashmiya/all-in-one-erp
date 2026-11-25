@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using Erp.Api.Accounting.ChartOfAccounts;
 using Erp.Api.Accounting.Journals;
 using Erp.Api.Approvals;
-using Erp.Api.Inventory;
 using Erp.Api.Sales.SalesDeliveries;
 using Erp.Api.Sales.SalesOrders;
 using Erp.Tests.Infrastructure;
@@ -194,8 +193,4 @@ public sealed class SalesDeliveryTests(ApiFactory factory)
 
     private static async Task<DeliveryOrderOption?> OptionAsync(HttpClient admin, int orderId) =>
         (await admin.GetFromJsonAsync<List<DeliveryOrderOption>>($"{DeliveriesUrl}/orders"))!.Find(o => o.Id == orderId);
-
-    private static async Task<decimal> OnHandAsync(HttpClient admin, int itemId, Guid warehouseId) =>
-        (await admin.GetFromJsonAsync<List<StockOnHand>>($"/api/erp/inventory/on-hand?warehouseId={warehouseId}&itemIds={itemId}"))!
-            .Single().Quantity;
 }

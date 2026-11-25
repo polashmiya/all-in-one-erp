@@ -14,10 +14,14 @@ public sealed class SalesLookups : ILookupProvider
     public const string PaymentTerms = "payment-terms";
     public const string DeliveryMethod = "delivery-method";
     public const string InstallmentType = "installment-type";
+    public const string ReturnType = "sales-return-type";
+    public const string ReturnReason = "sales-return-reason";
+    public const string InstrumentType = "instrument-type";
 
     public const string Customer = "customer";
     public const string Quotation = "sales-quotation";
     public const string Order = "sales-order";
+    public const string Delivery = "sales-delivery";
     public const string DeliveryType = "sales-delivery-type";
     public const string BankAccount = "bank-account";
     public const string ChargeAccount = "charge-account";
@@ -83,6 +87,31 @@ public sealed class SalesLookups : ILookupProvider
             new("MONTHLY", new("Monthly", "মাসিক")),
             new("QUARTERLY", new("Quarterly", "ত্রৈমাসিক")),
             new("YEARLY", new("Yearly", "বার্ষিক")),
+        ]),
+        new(ReturnType, new("Sales return type", "বিক্রয় ফেরতের ধরন"),
+        [
+            new("RETURN", new("Return", "ফেরত"), IsDefault: true),
+            new("PARTIAL", new("Partial return", "আংশিক ফেরত")),
+            new("DAMAGE", new("Damage return", "ক্ষতিগ্রস্ত ফেরত")),
+            new("EXPIRED", new("Expired return", "মেয়াদোত্তীর্ণ ফেরত")),
+            new("EXCHANGE", new("Exchange", "বদল")),
+        ]),
+        new(ReturnReason, new("Sales return reason", "বিক্রয় ফেরতের কারণ"),
+        [
+            new("DAMAGED", new("Damaged", "ক্ষতিগ্রস্ত")),
+            new("WRONG", new("Wrong item", "ভুল আইটেম")),
+            new("EXPIRED", new("Expired", "মেয়াদোত্তীর্ণ")),
+            new("QUALITY", new("Poor quality", "নিম্নমানের")),
+            new("EXCESS", new("Excess quantity", "অতিরিক্ত পরিমাণ")),
+            new("NOTNEEDED", new("Not needed", "প্রয়োজন নেই")),
+        ]),
+        new(InstrumentType, new("Instrument type", "ইনস্ট্রুমেন্টের ধরন"),
+        [
+            new("CHEQUE", new("Cheque", "চেক")),
+            new("PAYORDER", new("Pay order", "পে অর্ডার")),
+            new("DD", new("Demand draft", "ডিমান্ড ড্রাফট")),
+            new("EFT", new("EFT / RTGS", "EFT / RTGS")),
+            new("CARD", new("Card", "কার্ড")),
         ]),
     ];
 }

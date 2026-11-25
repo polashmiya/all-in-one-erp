@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router';
 import { accountLedgerRoutes } from './reports/account-ledger/routes';
 import { balanceSheetRoutes } from './reports/balance-sheet/routes';
 import { incomeStatementRoutes } from './reports/income-statement/routes';
+import { customerLedgerRoutes } from './reports/customer-ledger/routes';
 import { supplierLedgerRoutes } from './reports/supplier-ledger/routes';
 import { trialBalanceRoutes } from './reports/trial-balance/routes';
 import { chartOfAccountsRoutes } from './setup/chart-of-accounts/routes';
@@ -20,6 +21,7 @@ export const accountingRoutes: RouteObject[] = [
   ...journalRoutes,
   ...accountLedgerRoutes,
   ...supplierLedgerRoutes,
+  ...customerLedgerRoutes,
   ...trialBalanceRoutes,
   ...incomeStatementRoutes,
   ...balanceSheetRoutes,

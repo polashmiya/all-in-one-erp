@@ -11,6 +11,7 @@ export interface SalesDeliveryLineDetail {
   orderLineId: number | null;
   /** @nullable */
   remaining: number | null;
+  returnedQuantity: number;
   /** @nullable */
   batch: string | null;
   /** @nullable */

@@ -30,6 +30,8 @@ public sealed class ChartOfAccountDefaults(ErpDbContext db)
         new("1250", "Advance to suppliers", AccountType.CurrentAsset, "1", Key: PostingKeys.SupplierAdvance),
         new("1300", "Inventory", AccountType.CurrentAsset, "1", Key: PostingKeys.Inventory),
         new("1400", "VAT receivable", AccountType.CurrentAsset, "1", Key: PostingKeys.VatReceivable),
+        new("1410", "VDS receivable", AccountType.CurrentAsset, "1", Key: PostingKeys.VdsReceivable),
+        new("1420", "Advance income tax", AccountType.CurrentAsset, "1", Key: PostingKeys.AitReceivable),
         new("1450", "Security deposits", AccountType.CurrentAsset, "1"),
         new("2100", "Furniture and fixtures", AccountType.NonCurrentAsset, "2"),
         new("2200", "Office equipment", AccountType.NonCurrentAsset, "2"),
@@ -47,6 +49,7 @@ public sealed class ChartOfAccountDefaults(ErpDbContext db)
         new("5200", "Retained earnings", AccountType.Equity, "5", Key: PostingKeys.RetainedEarnings),
         new("5300", "Opening balance", AccountType.Equity, "5", Key: PostingKeys.OpeningBalance),
         new("6100", "Sales", AccountType.Income, "6", Key: PostingKeys.Sales),
+        new("6120", "Sales return", AccountType.Income, "6", Key: PostingKeys.SalesReturn),
         new("6150", "Sales discount", AccountType.Income, "6", Key: PostingKeys.SalesDiscount),
         new("6200", "Purchase discount received", AccountType.Income, "6", Key: PostingKeys.PurchaseDiscount),
         new("6300", "Stock gain", AccountType.Income, "6", Key: PostingKeys.StockGain),
@@ -59,7 +62,7 @@ public sealed class ChartOfAccountDefaults(ErpDbContext db)
         new("8320", "Rent", AccountType.Expense, "8"),
         new("8330", "Utilities", AccountType.Expense, "8"),
         new("8340", "Transport", AccountType.Expense, "8"),
-        new("8350", "Bank charges", AccountType.Expense, "8"),
+        new("8350", "Bank charges", AccountType.Expense, "8", Key: PostingKeys.BankCharge),
         new("8360", "Depreciation", AccountType.Expense, "8"),
     ];
 

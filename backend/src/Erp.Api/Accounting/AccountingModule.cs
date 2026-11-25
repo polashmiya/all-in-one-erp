@@ -6,8 +6,10 @@ using Erp.Api.Accounting.PeriodClosings;
 using Erp.Api.Accounting.TaxDeposits;
 using Erp.Api.Approvals;
 using Erp.Api.Procurement.PurchasePayments;
+using Erp.Api.Sales.SalesCollections;
 using Erp.Api.Sales.SalesDeliveries;
 using Erp.Api.Sales.SalesOrders;
+using Erp.Api.Sales.SalesReturns;
 using Erp.Core.Modules;
 using Erp.Metadata;
 
@@ -34,6 +36,8 @@ public static class AccountingModule
             .. TaxDepositEndpoints.Editors,
             .. SalesOrderEndpoints.Editors,
             .. SalesDeliveryEndpoints.Editors,
+            .. SalesReturnEndpoints.Editors,
+            .. SalesCollectionEndpoints.Editors,
         ];
 
     public static IServiceCollection AddAccountingModule(this IServiceCollection services)

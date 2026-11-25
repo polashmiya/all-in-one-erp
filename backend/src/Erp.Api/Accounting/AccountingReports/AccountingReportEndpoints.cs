@@ -65,6 +65,11 @@ internal static class AccountingReportEndpoints
             .WithSummary("Bills, returns and payments of one supplier with the running balance")
             .RequirePermission($"{AccountingMenu.SupplierLedger}.view");
 
+        reports.MapGet("/customer-ledger", CustomerLedger)
+            .WithName("GetCustomerLedger")
+            .WithSummary("Sales, returns and collections of one customer with the running balance")
+            .RequirePermission($"{AccountingMenu.CustomerLedger}.view");
+
         reports.MapGet("/trial-balance", TrialBalance)
             .WithName("GetTrialBalance")
             .RequirePermission($"{AccountingMenu.TrialBalance}.view");
@@ -91,6 +96,10 @@ internal static class AccountingReportEndpoints
     private static Task<LedgerReport> SupplierLedger(
         int supplierId, DateOnly? from, DateOnly? to, int? page, int? pageSize, ErpDbContext db, CancellationToken cancellationToken) =>
         LedgerAsync(db, Posted(db).Where(l => l.SupplierId == supplierId), from, to, page, pageSize, cancellationToken);
+
+    private static Task<LedgerReport> CustomerLedger(
+        int customerId, DateOnly? from, DateOnly? to, int? page, int? pageSize, ErpDbContext db, CancellationToken cancellationToken) =>
+        LedgerAsync(db, Posted(db).Where(l => l.CustomerId == customerId), from, to, page, pageSize, cancellationToken);
 
     private static async Task<LedgerReport> LedgerAsync(
         ErpDbContext db, IQueryable<JournalLine> lines, DateOnly? from, DateOnly? to, int? page, int? pageSize,

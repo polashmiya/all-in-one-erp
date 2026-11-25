@@ -13,6 +13,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QUANTITY_DECIMALS_SHOWN, VAT_MAX } from '@/common/documents/documents';
 import { LineGrid, type LineColumn } from '@/common/documents/LineGrid';
+import type { LineTotal } from '@/common/documents/LineTotals';
 import { salesPrices, salesTotals, type SalesHeader } from '../pricing';
 import { DESCRIPTION_MAX, SD_MAX, WARRANTY_MAX, type SalesLineValue } from '../sales-document';
 import { DiscountInput } from './DiscountInput';
@@ -35,6 +36,8 @@ export function SalesLines<L extends SalesLineValue>({
   columns = [],
   offers = true,
   locked,
+  warranty = true,
+  settlement = [],
 }: {
   description: string;
   header: SalesHeader;
@@ -43,6 +46,8 @@ export function SalesLines<L extends SalesLineValue>({
   columns?: LineColumn<L>[];
   offers?: boolean;
   locked?: boolean;
+  warranty?: boolean;
+  settlement?: LineTotal[];
 }) {
   const { t } = useTranslation();
   const placeholder = usePlaceholder();
@@ -99,16 +104,18 @@ export function SalesLines<L extends SalesLineValue>({
           {percent(name, 'sdPercentage', t('sales.lines.sd'), SD_MAX)}
           {percent(name, 'vatPercentage', t('document.lines.vat'), VAT_MAX)}
           {percent(name, 'aitPercentage', t('sales.lines.ait'), VAT_MAX)}
-          <Field name={[name, 'warrantyInMonth']} label={t('sales.lines.warranty')}>
-            <InputNumber<number>
-              min={0}
-              max={WARRANTY_MAX}
-              precision={0}
-              controls={false}
-              className="erp-w-full"
-              placeholder={placeholder('enter', t('sales.lines.warranty'))}
-            />
-          </Field>
+          {warranty && (
+            <Field name={[name, 'warrantyInMonth']} label={t('sales.lines.warranty')}>
+              <InputNumber<number>
+                min={0}
+                max={WARRANTY_MAX}
+                precision={0}
+                controls={false}
+                className="erp-w-full"
+                placeholder={placeholder('enter', t('sales.lines.warranty'))}
+              />
+            </Field>
+          )}
           {fields(name)}
         </FieldGrid>
       )}
@@ -177,6 +184,7 @@ export function SalesLines<L extends SalesLineValue>({
             ? []
             : [money('reductions', t('sales.totals.reductions'), totals.reductions)]),
           { ...money('total', t('sales.totals.total'), totals.total), strong: true },
+          ...settlement,
         ];
       }}
     />

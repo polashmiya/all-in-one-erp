@@ -34,6 +34,7 @@ import type {
   FiscalYearRequest,
   GetAccountLedgerParams,
   GetBalanceSheetParams,
+  GetCustomerLedgerParams,
   GetIncomeStatementParams,
   GetPendingTaxesParams,
   GetSupplierLedgerParams,
@@ -4322,6 +4323,141 @@ export function useGetSupplierLedger<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetSupplierLedgerQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetCustomerLedgerUrl = (params: GetCustomerLedgerParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/erp/accounting/reports/customer-ledger?${stringifiedParams}`
+    : `/api/erp/accounting/reports/customer-ledger`;
+};
+
+/**
+ * @summary Sales, returns and collections of one customer with the running balance
+ */
+export const getCustomerLedger = async (
+  params: GetCustomerLedgerParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<LedgerReport> => {
+  return customFetch<LedgerReport>(getGetCustomerLedgerUrl(params), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetCustomerLedgerQueryKey = (params?: GetCustomerLedgerParams) => {
+  return [`/api/erp/accounting/reports/customer-ledger`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetCustomerLedgerQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCustomerLedger>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: GetCustomerLedgerParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerLedger>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCustomerLedgerQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerLedger>>> = ({ signal }) =>
+    getCustomerLedger(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomerLedger>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCustomerLedgerQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCustomerLedger>>
+>;
+export type GetCustomerLedgerQueryError = ErrorType<ProblemDetails>;
+
+export function useGetCustomerLedger<
+  TData = Awaited<ReturnType<typeof getCustomerLedger>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: GetCustomerLedgerParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerLedger>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCustomerLedger>>,
+          TError,
+          Awaited<ReturnType<typeof getCustomerLedger>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerLedger<
+  TData = Awaited<ReturnType<typeof getCustomerLedger>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: GetCustomerLedgerParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerLedger>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCustomerLedger>>,
+          TError,
+          Awaited<ReturnType<typeof getCustomerLedger>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerLedger<
+  TData = Awaited<ReturnType<typeof getCustomerLedger>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: GetCustomerLedgerParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerLedger>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Sales, returns and collections of one customer with the running balance
+ */
+
+export function useGetCustomerLedger<
+  TData = Awaited<ReturnType<typeof getCustomerLedger>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  params: GetCustomerLedgerParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerLedger>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetCustomerLedgerQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;

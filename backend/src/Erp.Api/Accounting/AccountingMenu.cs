@@ -14,6 +14,7 @@ public sealed class AccountingMenu : IErpMenuProvider
     public const string TaxDeposit = "accounting.tax-deposit";
     public const string AccountLedger = "accounting.account-ledger";
     public const string SupplierLedger = "accounting.supplier-ledger";
+    public const string CustomerLedger = "accounting.customer-ledger";
     public const string TrialBalance = "accounting.trial-balance";
     public const string IncomeStatement = "accounting.income-statement";
     public const string BalanceSheet = "accounting.balance-sheet";
@@ -41,6 +42,7 @@ public sealed class AccountingMenu : IErpMenuProvider
             [
                 new("account-ledger", new("Account Ledger", "হিসাব খতিয়ান"), 10, FeatureActions.Report),
                 new("supplier-ledger", new("Supplier Ledger", "সরবরাহকারী খতিয়ান"), 20, FeatureActions.Report),
+                new("customer-ledger", new("Customer Ledger", "গ্রাহক খতিয়ান"), 25, FeatureActions.Report),
                 new("trial-balance", new("Trial Balance", "রেওয়ামিল"), 30, FeatureActions.Report),
                 new("income-statement", new("Income Statement", "আয় বিবরণী"), 40, FeatureActions.Report),
                 new("balance-sheet", new("Balance Sheet", "উদ্বৃত্তপত্র"), 50, FeatureActions.Report),

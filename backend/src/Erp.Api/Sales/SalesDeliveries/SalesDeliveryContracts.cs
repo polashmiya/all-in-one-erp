@@ -155,6 +155,8 @@ public sealed record ConfirmDeliveryRequest
     public required string? Remarks { get; init; }
 }
 
+public sealed record DeliveryFollowUp(string Feature, int Id, string Code, DateOnly Date, decimal Amount, string Status);
+
 public sealed record SalesDeliveryLineDetail : SalesLineDetail
 {
     [JsonConstructor]
@@ -168,6 +170,7 @@ public sealed record SalesDeliveryLineDetail : SalesLineDetail
     {
         OrderLineId = l.OrderLineId;
         Remaining = remaining;
+        ReturnedQuantity = l.ReturnedQuantity;
         Batch = l.Batch;
         ItemSerial = l.ItemSerial;
         PackQuantity = l.PackQuantity;
@@ -179,6 +182,7 @@ public sealed record SalesDeliveryLineDetail : SalesLineDetail
 
     public required int? OrderLineId { get; init; }
     public required decimal? Remaining { get; init; }
+    public required decimal ReturnedQuantity { get; init; }
     public required string? Batch { get; init; }
     public required string? ItemSerial { get; init; }
     public required string? PackQuantity { get; init; }
@@ -196,7 +200,8 @@ public sealed record SalesDeliveryDetail : SalesDocumentDetail
     }
 
     [SetsRequiredMembers]
-    public SalesDeliveryDetail(SalesDelivery d, SalesNames names, decimal advanceAvailable, Dictionary<int, decimal> remaining)
+    public SalesDeliveryDetail(SalesDelivery d, SalesNames names, decimal advanceAvailable, Dictionary<int, decimal> remaining,
+        IReadOnlyList<DeliveryFollowUp> followUps)
         : base(d, names)
     {
         Type = SalesDeliveryEndpoints.TypeKey(d.Type);
@@ -238,6 +243,10 @@ public sealed record SalesDeliveryDetail : SalesDocumentDetail
         GrnCollectionDate = d.GrnCollectionDate;
         ConfirmRemarks = d.ConfirmRemarks;
         TotalCost = d.Lines.Sum(l => l.CostTotal);
+        ReturnAmount = d.ReturnAmount;
+        ReturnAdjusted = d.ReturnAdjusted;
+        CollectedAmount = d.CollectedAmount;
+        FollowUps = followUps;
         Lines =
         [
             .. d.Lines.OrderBy(l => l.Sequence).Select(l => new SalesDeliveryLineDetail(
@@ -284,6 +293,10 @@ public sealed record SalesDeliveryDetail : SalesDocumentDetail
     public required DateOnly? GrnCollectionDate { get; init; }
     public required string? ConfirmRemarks { get; init; }
     public required decimal TotalCost { get; init; }
+    public required decimal ReturnAmount { get; init; }
+    public required decimal ReturnAdjusted { get; init; }
+    public required decimal CollectedAmount { get; init; }
+    public required IReadOnlyList<DeliveryFollowUp> FollowUps { get; init; }
     public required IReadOnlyList<SalesDeliveryLineDetail> Lines { get; init; }
 }
 

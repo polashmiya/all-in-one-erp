@@ -5,6 +5,7 @@
  * Configurable ERP API. `/api/panel/*` serves the internal configuration Panel, `/api/erp/*` serves the client ERP app. Authenticate with the bearer token from the matching `/auth/login`; ERP calls that work on business-unit data also send `X-Business-Unit: {id}`.
  * OpenAPI spec version: v1
  */
+import type { DeliveryFollowUp } from './deliveryFollowUp.ts';
 import type { SalesDeliveryDetailCustomData } from './salesDeliveryDetailCustomData.ts';
 import type { SalesDeliveryLineDetail } from './salesDeliveryLineDetail.ts';
 
@@ -75,6 +76,10 @@ export interface SalesDeliveryDetail {
   /** @nullable */
   confirmRemarks: string | null;
   totalCost: number;
+  returnAmount: number;
+  returnAdjusted: number;
+  collectedAmount: number;
+  followUps: DeliveryFollowUp[];
   lines: SalesDeliveryLineDetail[];
   id: number;
   code: string;

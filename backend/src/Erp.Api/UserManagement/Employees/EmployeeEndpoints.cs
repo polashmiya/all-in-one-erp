@@ -39,7 +39,7 @@ internal static class EmployeeEndpoints
         employees.MapGet("/options", Options)
             .WithName("GetEmployeeOptions")
             .WithSummary("Every employee of the account, for dropdowns")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.create", $"{UserManagementMenu.User}.edit", $"{PartnerManagementMenu.Customer}.view", .. ProcurementModule.Editors, .. SalesModule.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.create", $"{UserManagementMenu.User}.edit", $"{PartnerManagementMenu.Customer}.view", .. ProcurementModule.Editors, .. SalesModule.Readers]);
 
         employees.MapGet("/{id:int}", Get)
             .WithName("GetEmployee")
@@ -68,12 +68,12 @@ internal static class EmployeeEndpoints
         structure.MapGet("/offices", Offices)
             .WithName("GetOfficeOptions")
             .WithSummary("Offices of the account, each with its business unit as parent")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. StockModule.Readers, .. SalesModule.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. StockModule.Readers, .. SalesModule.Readers]);
 
         structure.MapGet("/warehouses", Warehouses)
             .WithName("GetWarehouseOptions")
             .WithSummary("Warehouses of the account, each with its business unit as parent")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors, .. StockModule.Readers, .. SalesModule.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors, .. StockModule.Readers, .. SalesModule.Readers]);
     }
 
     private static async Task<EmployeeList> List(

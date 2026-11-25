@@ -4,8 +4,10 @@ import {
   CheckSquareOutlined,
   HomeOutlined,
   IdcardOutlined,
+  RollbackOutlined,
   ShoppingOutlined,
   UserOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
 import {
   getGetEmployeeOptionsQueryKey,
@@ -21,16 +23,21 @@ import {
   ForbiddenResult,
   formatDate,
   formatMoney,
+  formatNumber,
   useDisclosure,
 } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { DocumentView } from '@/common/documents/DocumentView';
+import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { SalesLinesView } from '../../../components/SalesLinesView';
+import { COLLECTION_FEATURE, collectionPaths } from '../../sales-collection/constants';
+import { RETURN_FEATURE, returnPaths } from '../../sales-return/constants';
 import { ConfirmDeliveryModal } from '../components/ConfirmDeliveryModal';
+import { DeliveryFollowUps } from '../components/DeliveryFollowUps';
 import { DELIVERY_FEATURE, deliveryPaths } from '../constants';
 import { deliveryCalls } from '../delivery-form';
 
@@ -38,6 +45,9 @@ export function DeliveryViewPage() {
   const { t } = useTranslation();
   const id = Number(useParams().id);
   const access = useFeatureAccess(DELIVERY_FEATURE);
+  const navigate = useNavigate();
+  const returns = useFeatureAccess(RETURN_FEATURE);
+  const collections = useFeatureAccess(COLLECTION_FEATURE);
   const confirm = useDisclosure();
   const config = useFeatureConfig(DELIVERY_FEATURE, access.view);
   const query = useGetSalesDelivery(id, {
@@ -110,6 +120,24 @@ export function DeliveryViewPage() {
             hidden: !access.edit || delivery.status !== 'approved' || delivery.isConfirmed,
             onClick: () => confirm.onOpen(),
           },
+          {
+            key: 'return',
+            label: t('salesDelivery.return'),
+            icon: <RollbackOutlined />,
+            hidden:
+              !returns.create ||
+              delivery.status !== 'approved' ||
+              delivery.lines.every((line) => line.returnedQuantity >= line.quantity),
+            onClick: () => navigate(returnPaths.fromDelivery(delivery.id)),
+          },
+          {
+            key: 'collect',
+            label: t('salesDelivery.collect'),
+            icon: <WalletOutlined />,
+            hidden:
+              !collections.create || delivery.status !== 'approved' || delivery.pendingAmount <= 0,
+            onClick: () => navigate(collectionPaths.fromCustomer(delivery.customerId)),
+          },
         ]}
         sections={[
           {
@@ -122,6 +150,8 @@ export function DeliveryViewPage() {
                     money('net', t('sales.totals.total'), delivery.netAmount),
                     money('advance', t('salesDelivery.advanceUsed'), delivery.advanceBalanceAdjust),
                     money('received', t('salesDelivery.received'), delivery.receiveAmount),
+                    money('collected', t('salesDelivery.collected'), delivery.collectedAmount),
+                    money('returned', t('salesDelivery.returnAdjusted'), delivery.returnAdjusted),
                     money('due', t('salesDelivery.due'), delivery.pendingAmount),
                     ...(delivery.totalNoOfInstallment
                       ? [
@@ -145,6 +175,9 @@ export function DeliveryViewPage() {
               </DetailSection>
             ),
           },
+          ...(delivery.followUps.length
+            ? [{ key: 'followUps', content: <DeliveryFollowUps rows={delivery.followUps} /> }]
+            : []),
           ...(delivery.isConfirmed
             ? [
                 {
@@ -208,6 +241,14 @@ export function DeliveryViewPage() {
         lines={
           <SalesLinesView<SalesDeliveryDetail>
             record={delivery}
+            columns={[
+              {
+                key: 'returned',
+                title: t('salesDelivery.lines.returned'),
+                align: 'end',
+                render: (_, line) => formatNumber(line.returnedQuantity, QUANTITY_DECIMALS_SHOWN),
+              },
+            ]}
             details={(line) => [
               { key: 'batch', label: t('salesDelivery.lines.batch'), value: line.batch },
               { key: 'serial', label: t('salesDelivery.lines.serial'), value: line.itemSerial },

@@ -581,7 +581,6 @@ Left open, ask the owner:
 
 - Can the approver change the quantity or price of a line (`ApproveQuantity`, `ApprovePrice`)? Legacy copies them.
 - Print or PDF of the quotation letter, and terms and conditions (legacy has a separate table).
-- Sales Return, Collection and Report wait for their table scripts.
 
 ## Done: phase 27 — Sales Order and Sales Delivery (2026-11-25)
 
@@ -612,23 +611,58 @@ Left open, ask the owner:
 
 - Should the customer's credit limit stop an order or a delivery?
 - Items with "Sell below zero stock": stock posting still refuses them.
-- Customer Ledger report, print of order, challan and invoice, attachments.
+- Print of order, challan and invoice, attachments.
+
+## Done: phase 28 — Sales Return, Sales Collection and Sales Reports (2026-11-25)
+
+- Owner asked for all three without scripts: "design it yourself, keep more information". Migration
+  `SalesReturnAndCollection` (`SalesReturn`, `SalesReturnLine`, `SalesCollection`, `SalesCollectionLine`; the delivery got
+  `ReturnAdjusted`, `CollectedAmount` and the line `ReturnedQuantity`).
+- **Sales Return** (`SR-00001`) is only against one approved delivery, at the delivered price, discount and taxes. A pending
+  return already takes the quantity and the due. The special discount of the delivery goes back in proportion. Optional:
+  charge refund (up to the delivery's charges), deduction, refund, credit note, request and reference numbers, exchange flag.
+  Settlement order: first the due of the delivery, then the refund, the rest becomes customer advance. A line can be
+  damaged: it does not enter stock and its cost becomes a loss. A confirmed delivery can be returned.
+- **Sales Collection** (`SC-00001`) settles many deliveries of one customer, or is an advance. Each bill has collection, VDS,
+  AIT, discount, bank charge and "from advance"; together not more than the due. Cash, or bank with cheque details.
+- **Customer advance** (`CustomerAdvances`) = approved advance collections + advance of approved returns + what is left on
+  closed orders − what live collections use.
+- **Guards** (`SalesCancel`). A delivery with live returns or collections cannot be cancelled; a return or collection whose
+  advance is used cannot be cancelled. Cancelling reverses stock and journals.
+- **Posting.** Return: debit Sales return, VAT payable, SD payable, the charge account, Inventory, Stock loss; credit
+  Accounts receivable, cash or bank, Advance from customers, Sales discount (special), Other income (deduction), Cost of
+  goods sold (at the delivery's cost). Collection: debit cash or bank, VDS receivable, Advance income tax, Sales discount,
+  Bank charge, Advance from customers; credit Accounts receivable. Advance: debit cash or bank, credit Advance from
+  customers. New posting keys `sales-return`, `vds-receivable`, `ait-receivable`, `bank-charge`.
+- **Reports.** Sales Report (by delivery, item, category, customer, sales force, month: returns, cost, profit, received, due),
+  Collection Report (by collection, customer, method, collector, date), Customer Due (by customer or bill, ageing 30/60/90,
+  credit limit; a customer opens a new collection) and **Customer Ledger** under Accounting. Reports count
+  approved documents only.
+- The delivery view has "Take return", "Collect payment" and the list of its returns and collections.
+- Checked with `SalesReturnTests`, `SalesCollectionTests`, all other tests and a Playwright run in Chrome over the whole flow.
+
+Left open, ask the owner:
+
+- Return without a delivery (old sales), refund of a customer advance in cash, and cheque clearing or bounce.
+- Currency and exchange rate are kept, nothing is converted.
+- VDS and AIT receivable are posted; there is no certificate follow-up screen.
+- `ItemProfileTests` and `ItemManagementTests` use random 3-character category codes, so a run fails now and then.
 
 ## Where we are
 
-Last updated 2026-11-25. Phases 0 to 27 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-25. Phases 0 to 28 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
 supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return, Purchase
 Payment, Purchase Report), Inventory, Accounting,
-multi-level approval, Sales Quotation, Sales Order and Sales Delivery.
-Next: Sales Return, Collection and Report (need their table scripts), then "Still open for later".
+multi-level approval and Sales (Quotation, Order, Delivery, Return, Collection, reports).
+Next: "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
 `DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
 `PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`, `CancelBanksAndClosing`, `AccountGroupNames`,
-`SalesQuotation`, `SalesOrderAndDelivery`.
+`SalesQuotation`, `SalesOrderAndDelivery`, `SalesReturnAndCollection`.
 
 ## Working on another machine
 

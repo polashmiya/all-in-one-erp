@@ -22,7 +22,7 @@ internal static class OrderDeliveries
             .ToDictionary(g => g.Key, g => (g.Sum(l => l.Quantity), g.Sum(l => l.DiscountAmount)));
     }
 
-    public static decimal Discount(SalesOrderLine line, decimal quantity, (decimal Quantity, decimal Discount) used) =>
+    public static decimal Discount(SalesLine line, decimal quantity, (decimal Quantity, decimal Discount) used) =>
         quantity >= line.Quantity - used.Quantity
             ? Math.Max(0, line.DiscountAmount - used.Discount)
             : SalesPricing.Round(line.DiscountAmount * quantity / line.Quantity);
@@ -53,8 +53,9 @@ internal static class OrderDeliveries
             order.DeliveredQuantity = order.Lines.Sum(l => l.DeliveredQuantity);
             order.IsCompleted = order.Lines.All(l => l.DeliveredQuantity >= l.Quantity);
             order.AdjustedAmount = own.Sum(d => d.AdvanceBalanceAdjust);
-            order.ReceiveAmount = order.AdvanceAmount + own.Where(d => d.Status != ApprovalStatus.Pending).Sum(d => d.ReceiveAmount);
-            order.PendingAmount = order.NetAmount - order.ReceiveAmount;
+            order.ReceiveAmount = order.AdvanceAmount + own.Where(d => d.Status != ApprovalStatus.Pending)
+                .Sum(d => d.ReceiveAmount + d.CollectedAmount);
+            order.PendingAmount = order.NetAmount - order.ReceiveAmount - own.Sum(d => d.ReturnAdjusted);
         }
 
         await db.SaveChangesAsync(cancellationToken);

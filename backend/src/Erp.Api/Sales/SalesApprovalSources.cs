@@ -57,3 +57,39 @@ internal sealed class SalesDeliveryApprovalSource : IApprovalSource
                 db.ErpUsers.Where(u => u.Id == d.CreatedById).Select(u => u.FullName).FirstOrDefault(),
                 d.CreatedAt));
 }
+
+internal sealed class SalesReturnApprovalSource : IApprovalSource
+{
+    public string Feature => SalesMenu.SalesReturn;
+
+    public IQueryable<ApprovalDocumentInfo> Documents(ErpDbContext db, ApprovalStatus? status, IReadOnlyCollection<int>? ids) =>
+        db.SalesReturns
+            .Where(d => d.IsActive && (status == null || d.Status == status) && (ids == null || ids.Contains(d.Id)))
+            .Select(d => new ApprovalDocumentInfo(
+                d.Id,
+                d.Code,
+                d.ReturnDate,
+                d.CustomerName,
+                d.NetAmount,
+                d.Status,
+                db.ErpUsers.Where(u => u.Id == d.CreatedById).Select(u => u.FullName).FirstOrDefault(),
+                d.CreatedAt));
+}
+
+internal sealed class SalesCollectionApprovalSource : IApprovalSource
+{
+    public string Feature => SalesMenu.SalesCollection;
+
+    public IQueryable<ApprovalDocumentInfo> Documents(ErpDbContext db, ApprovalStatus? status, IReadOnlyCollection<int>? ids) =>
+        db.SalesCollections
+            .Where(d => d.IsActive && (status == null || d.Status == status) && (ids == null || ids.Contains(d.Id)))
+            .Select(d => new ApprovalDocumentInfo(
+                d.Id,
+                d.Code,
+                d.CollectionDate,
+                d.CustomerName,
+                d.SettledAmount,
+                d.Status,
+                db.ErpUsers.Where(u => u.Id == d.CreatedById).Select(u => u.FullName).FirstOrDefault(),
+                d.CreatedAt));
+}

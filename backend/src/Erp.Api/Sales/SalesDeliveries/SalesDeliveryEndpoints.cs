@@ -350,9 +350,8 @@ internal static class SalesDeliveryEndpoints
         ApprovalFlow.MissingReason(request) is { } missing
             ? missing
             : await ChangeAsync(id, db,
-                d => ApprovalFlow.CancelAsync(db, current, Feature, d, request.Comment, async () => d.IsConfirmed
-                    ? ApprovalFlow.InUse("The customer has already received it. Use a sales return.")
-                    : await StockPosting.CancelAsync(db, current, Feature, d.Id, d.DeliveryDate, cancellationToken), cancellationToken),
+                d => ApprovalFlow.CancelAsync(db, current, Feature, d, request.Comment, () =>
+                    SalesCancel.DeliveryAsync(db, current, d, cancellationToken), cancellationToken),
                 cancellationToken);
 
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
@@ -570,6 +569,24 @@ internal static class SalesDeliveryEndpoints
             available = await OrderDeliveries.AdvanceAvailableAsync(db, order, id, cancellationToken);
         }
 
-        return new SalesDeliveryDetail(delivery, await SalesData.NamesAsync(db, delivery, cancellationToken), available, remaining);
+        var returns = await db.SalesReturns.AsNoTracking()
+            .Where(r => r.DeliveryId == id && r.IsActive)
+            .OrderByDescending(r => r.Id)
+            .Select(r => new { r.Id, r.Code, r.ReturnDate, r.NetAmount, r.Status })
+            .ToListAsync(cancellationToken);
+        var collections = await db.SalesCollections.AsNoTracking()
+            .Where(c => c.IsActive && c.Lines.Any(l => l.DeliveryId == id))
+            .OrderByDescending(c => c.Id)
+            .Select(c => new { c.Id, c.Code, c.CollectionDate, Amount = c.Lines.Where(l => l.DeliveryId == id).Sum(l => l.SettledAmount), c.Status })
+            .ToListAsync(cancellationToken);
+        List<DeliveryFollowUp> followUps =
+        [
+            .. returns.Select(r => new DeliveryFollowUp(
+                SalesMenu.SalesReturn, r.Id, r.Code, r.ReturnDate, r.NetAmount, ApprovalFlow.StatusKey(r.Status))),
+            .. collections.Select(c => new DeliveryFollowUp(
+                SalesMenu.SalesCollection, c.Id, c.Code, c.CollectionDate, c.Amount, ApprovalFlow.StatusKey(c.Status))),
+        ];
+
+        return new SalesDeliveryDetail(delivery, await SalesData.NamesAsync(db, delivery, cancellationToken), available, remaining, followUps);
     }
 }

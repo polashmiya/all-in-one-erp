@@ -83,7 +83,7 @@ internal static class SalesMapping
         builder.ColumnOrder([nameof(SalesLine.Id)]);
     }
 
-    private static void MapColumns<T>(this EntityTypeBuilder<T> builder) where T : class
+    public static void MapColumns<T>(this EntityTypeBuilder<T> builder) where T : class
     {
         foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {

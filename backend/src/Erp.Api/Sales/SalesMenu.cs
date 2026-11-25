@@ -9,6 +9,11 @@ public sealed class SalesMenu : IErpMenuProvider
     public const string SalesQuotation = "sales.sales-quotation";
     public const string SalesOrder = "sales.sales-order";
     public const string SalesDelivery = "sales.sales-delivery";
+    public const string SalesReturn = "sales.sales-return";
+    public const string SalesCollection = "sales.sales-collection";
+    public const string SalesReport = "sales.sales-report";
+    public const string CollectionReport = "sales.collection-report";
+    public const string CustomerDue = "sales.customer-due";
 
     public IEnumerable<MenuModule> GetModules() =>
     [
@@ -25,6 +30,8 @@ public sealed class SalesMenu : IErpMenuProvider
             new("reports", new("Reports", "রিপোর্ট"), "bar-chart", 20,
             [
                 new("sales-report", new("Sales Report", "বিক্রয় রিপোর্ট"), 10, FeatureActions.Report),
+                new("collection-report", new("Collection Report", "আদায় রিপোর্ট"), 20, FeatureActions.Report),
+                new("customer-due", new("Customer Due", "গ্রাহকের বাকি"), 30, FeatureActions.Report),
             ]),
         ]),
     ];

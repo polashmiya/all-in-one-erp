@@ -174,6 +174,10 @@ public class ErpDbContext : DbContext
 
     public DbSet<SalesDelivery> SalesDeliveries => Set<SalesDelivery>();
 
+    public DbSet<SalesReturn> SalesReturns => Set<SalesReturn>();
+
+    public DbSet<SalesCollection> SalesCollections => Set<SalesCollection>();
+
     public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
 
     public DbSet<InventoryLine> InventoryLines => Set<InventoryLine>();

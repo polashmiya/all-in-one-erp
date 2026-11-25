@@ -18,6 +18,9 @@ import { approvalResources } from '@/common/approval/i18n';
 import { myApprovalsResources } from '@/modules/approval/my-approvals/i18n';
 import { documentResources } from '@/common/documents/i18n';
 import { salesResources } from '@/modules/sales/i18n';
+import { salesReportsResources } from '@/modules/sales/reports/i18n';
+import { salesCollectionResources } from '@/modules/sales/sales/sales-collection/i18n';
+import { salesReturnResources } from '@/modules/sales/sales/sales-return/i18n';
 import { salesDeliveryResources } from '@/modules/sales/sales/sales-delivery/i18n';
 import { salesOrderResources } from '@/modules/sales/sales/sales-order/i18n';
 import { salesQuotationResources } from '@/modules/sales/sales/sales-quotation/i18n';
@@ -100,6 +103,9 @@ export const erpResources = mergeResources(
   salesQuotationResources,
   salesOrderResources,
   salesDeliveryResources,
+  salesReturnResources,
+  salesCollectionResources,
+  salesReportsResources,
   purchaseRequisitionResources,
   purchaseOrderResources,
   purchaseReceiveResources,

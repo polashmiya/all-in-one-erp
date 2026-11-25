@@ -8,7 +8,11 @@ public static class PostingKeys
     public const string AccountsReceivable = "accounts-receivable";
     public const string CustomerAdvance = "customer-advance";
     public const string Sales = "sales";
+    public const string SalesReturn = "sales-return";
     public const string SalesDiscount = "sales-discount";
+    public const string VdsReceivable = "vds-receivable";
+    public const string AitReceivable = "ait-receivable";
+    public const string BankCharge = "bank-charge";
     public const string OtherIncome = "other-income";
     public const string CostOfGoodsSold = "cost-of-goods-sold";
     public const string VatPayable = "vat-payable";
@@ -30,6 +34,6 @@ public static class PostingKeys
     [
         Inventory, AccountsPayable, SupplierAdvance, VatReceivable, VdsPayable, TdsPayable, Cash, Bank, MobileBanking, PurchaseDiscount,
         PriceDifference, StockGain, StockLoss, OpeningBalance, RetainedEarnings, AccountsReceivable, CustomerAdvance, Sales, SalesDiscount, OtherIncome,
-        CostOfGoodsSold, VatPayable, SdPayable,
+        CostOfGoodsSold, VatPayable, SdPayable, SalesReturn, VdsReceivable, AitReceivable, BankCharge,
     ];
 }
