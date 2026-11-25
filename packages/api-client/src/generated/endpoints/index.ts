@@ -24,6 +24,7 @@ export * from './panel-lookups/panel-lookups.ts';
 export * from './panel-navigation/panel-navigation.ts';
 export * from './partner-management/partner-management.ts';
 export * from './procurement/procurement.ts';
+export * from './sales/sales.ts';
 export * from './system/system.ts';
 export * from './units-of-measure/units-of-measure.ts';
 export * from './user-management/user-management.ts';

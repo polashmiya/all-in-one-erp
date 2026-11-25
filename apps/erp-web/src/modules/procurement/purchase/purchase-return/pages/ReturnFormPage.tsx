@@ -14,7 +14,7 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { DocumentForm } from '@/common/documents/DocumentForm';
-import { SourcePicker } from '../../../components/SourcePicker';
+import { SourcePicker } from '@/common/documents/SourcePicker';
 import { ReturnLines } from '../components/ReturnLines';
 import { RETURN_FEATURE, returnPaths } from '../constants';
 import {

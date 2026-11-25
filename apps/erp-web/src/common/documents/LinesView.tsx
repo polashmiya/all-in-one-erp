@@ -1,8 +1,10 @@
 import { DetailSection, formatNumber, TitleCell } from '@erp/ui';
 import { Table, type TableColumnsType } from 'antd';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QUANTITY_DECIMALS_SHOWN } from './documents';
 import { LineTotals, type LineTotal } from './LineTotals';
+import './documents.css';
 
 interface ViewLine {
   id: number;
@@ -16,10 +18,12 @@ export function LinesView<T extends ViewLine>({
   rows,
   columns,
   totals,
+  details,
 }: {
   rows: T[];
   columns: TableColumnsType<T>;
   totals: LineTotal[];
+  details?: (line: T) => ReactNode;
 }) {
   const { t } = useTranslation();
 
@@ -52,6 +56,15 @@ export function LinesView<T extends ViewLine>({
           dataSource={rows}
           columns={allColumns}
           scroll={{ x: 'max-content' }}
+          expandable={
+            details && {
+              expandedRowRender: (line) => (
+                <div className="erp-lines__details">{details(line)}</div>
+              ),
+              expandedRowKeys: rows.map((line) => line.id),
+              showExpandColumn: false,
+            }
+          }
         />
         <div className="erp-lines__footer">
           <span />

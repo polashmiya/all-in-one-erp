@@ -1,7 +1,13 @@
 import { EditOutlined } from '@ant-design/icons';
 import type { FeatureConfig } from '@erp/api-client';
 import { useViewTabs } from '@erp/metadata-engine';
-import { DetailsPageLayout, StatusTag, type RecordMeta } from '@erp/ui';
+import {
+  DetailsPageLayout,
+  StatusTag,
+  type DetailsSection,
+  type RecordMeta,
+  type RowAction,
+} from '@erp/ui';
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +39,8 @@ export function DocumentView<T extends ViewDocument>({
   meta,
   lines,
   renderers,
+  sections = [],
+  moreActions = [],
 }: {
   document: T;
   config: FeatureConfig;
@@ -44,6 +52,8 @@ export function DocumentView<T extends ViewDocument>({
   meta: RecordMeta[];
   lines: ReactNode;
   renderers?: Record<string, (record: T) => ReactNode>;
+  sections?: DetailsSection[];
+  moreActions?: RowAction[];
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -53,12 +63,13 @@ export function DocumentView<T extends ViewDocument>({
     queryKey: useUnitKey(calls.progressKey(document.id)),
     queryFn: () => calls.progress(document.id),
   });
-  const sections = useDocumentSections(document, progress.data);
+  const recordSections = useDocumentSections(document, progress.data);
   const { actions, modal } = useApprovalActions(feature, calls, (action) => {
     if (action === 'deleted') void navigate(paths.list, { replace: true });
   });
-  const [approve, ...more] = actions(document, !!progress.data?.canAct);
-  const extra = [{ key: 'lines', content: lines }, ...sections];
+  const [approve, ...rest] = actions(document, !!progress.data?.canAct);
+  const more = [...moreActions, ...rest];
+  const extra = [{ key: 'lines', content: lines }, ...sections, ...recordSections];
 
   return (
     <>

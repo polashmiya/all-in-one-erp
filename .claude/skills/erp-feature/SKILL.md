@@ -98,17 +98,17 @@ Every screen in both apps looks and works the same way. The shared templates alr
 
 **Which template**
 
-| Screen                               | Template                                                                            |
-| ------------------------------------ | ----------------------------------------------------------------------------------- |
-| List of records                      | `ListPageLayout`; for code/name/active records always `MasterListPage`              |
-| Create / edit, many fields           | `FormPageLayout` (config-driven: `useFormSections`)                                 |
-| Create / edit, up to ~6 fields       | `MasterFormModal` (ERP) or `FormModal`                                              |
-| Approval document (list, form, view) | `common/documents`: `DocumentListPage`, `DocumentForm`, `DocumentView`, `LineGrid`  |
-| Report                               | `common/reports/ReportPage`                                                         |
-| Record details                       | `DetailsPageLayout` (config-driven: `useViewTabs`)                                  |
-| Quick look from a list               | `AppDrawer`                                                                         |
-| Multi-step setup                     | `WizardLayout`                                                                      |
-| Summary numbers                      | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals |
+| Screen                               | Template                                                                                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| List of records                      | `ListPageLayout`; for code/name/active records always `MasterListPage`                                                     |
+| Create / edit, many fields           | `FormPageLayout` (config-driven: `useFormSections`)                                                                        |
+| Create / edit, up to ~6 fields       | `MasterFormModal` (ERP) or `FormModal`                                                                                     |
+| Approval document (list, form, view) | `common/documents`: `DocumentListPage`, `DocumentForm`, `DocumentView`, `LineGrid` (`details` for a second line of fields) |
+| Report                               | `common/reports/ReportPage`                                                                                                |
+| Record details                       | `DetailsPageLayout` (config-driven: `useViewTabs`)                                                                         |
+| Quick look from a list               | `AppDrawer`                                                                                                                |
+| Multi-step setup                     | `WizardLayout`                                                                                                             |
+| Summary numbers                      | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals                                        |
 
 **Page header.** A title, one line of description, and actions on the right: Export (default) first, then New (primary). Only one primary button per page.
 
@@ -122,7 +122,7 @@ Every screen in both apps looks and works the same way. The shared templates alr
 
 **Forms**
 
-- Each section is a card. The main column has at most 3 field columns. The right column (`aside`) has 1 and holds status, classification, image or organize sections.
+- Each section is a card. The main column has at most 3 field columns; a document with many fields may pass `maxColumns: 6` in the form options and set `Columns: 6` (or 4) on its manifest sections (Sales Quotation). The right column (`aside`) has 1 and holds status, classification, image or organize sections.
 - There is one save location: the sticky page header with a split Save button; its menu holds Save & new, Save as draft and Cancel. Ctrl+S saves. No floating buttons. Create forms pass `draft` from `useFormDraft` (pages, `?draft=`) or `useModalDraft` (modals); list pages pass `drafts` from `useListDrafts` to show the Drafts view.
 - Spacing is fixed in the shared CSS; do not override it. Label to field: 2 px (`--erp-space-xxs`). Field to help or error: 2 px. Between fields: 8 px (`--erp-space-sm`) down, 16 px (`--erp-space-lg`) across. Fields are 30 px high (`--erp-control-input`) with 13 px text; their look (border, icons, clear button, disabled) lives in `theme/tokens.ts` and `styles/fields.css`, never in a feature. Section heading to first field: 12 px (`--erp-space-md`). Card padding: 20 px (`--erp-space-xl`).
 - Help text goes under the field (`extra`), not in a tooltip. On/off fields are switches.

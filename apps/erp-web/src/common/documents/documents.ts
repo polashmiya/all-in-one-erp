@@ -11,6 +11,7 @@ import { useUnitKey } from '@/common/master-data';
 import { useAuthStore } from '@/common/store/auth-store';
 
 const DOCUMENT_APIS = [
+  '/api/erp/sales',
   '/api/erp/procurement',
   '/api/erp/inventory',
   '/api/erp/accounting',
@@ -21,6 +22,8 @@ export const DOCUMENT_LOOKUPS = {
   warehouse: 'warehouse',
   employee: 'employee',
   supplier: 'supplier',
+  customer: 'customer',
+  office: 'office',
   itemType: 'item-type',
 } as const;
 

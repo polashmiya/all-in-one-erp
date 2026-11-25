@@ -1,5 +1,5 @@
 import type { ConfigSection, FeatureConfig } from '@erp/api-client';
-import { FieldSection, type FormSection } from '@erp/ui';
+import { FieldSection, type FieldColumns, type FormSection } from '@erp/ui';
 import { columnsOf, fieldMap, useText } from './config';
 import { Engine, type EngineContext, type FormOptions } from './context';
 import { DynamicField } from './fields';
@@ -11,9 +11,10 @@ export function useFormSections(config: FeatureConfig, options: FormOptions = {}
   const text = useText();
   const context: EngineContext = { ...options, fields: fieldMap(config) };
   const asideKeys = new Set(options.aside ?? []);
+  const maxColumns = options.maxColumns ?? MAIN_COLUMNS;
   const all = config.tabs.flatMap((tab) => tab.sections);
 
-  const toSection = (section: ConfigSection, columns: 1 | 2 | 3 | 4): FormSection => ({
+  const toSection = (section: ConfigSection, columns: FieldColumns): FormSection => ({
     key: section.key,
     fields: section.fields.map((field) => field.key),
     content: (
@@ -30,7 +31,7 @@ export function useFormSections(config: FeatureConfig, options: FormOptions = {}
   return {
     sections: all
       .filter((section) => !asideKeys.has(section.key))
-      .map((section) => toSection(section, columnsOf(Math.min(section.columns, MAIN_COLUMNS)))),
+      .map((section) => toSection(section, columnsOf(Math.min(section.columns, maxColumns)))),
     aside: all
       .filter((section) => asideKeys.has(section.key))
       .map((section) => toSection(section, ASIDE_COLUMNS)),

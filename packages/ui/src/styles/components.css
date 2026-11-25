@@ -1291,6 +1291,10 @@ html[data-content-width='boxed'] .erp-page {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.erp-field-grid--6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .erp-field-span-2 {
   grid-column: span 2;
 }
@@ -2144,6 +2148,12 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
   padding: 0 var(--erp-space-xxl) var(--erp-space-lg);
 }
 
+@media (max-width: 1279.98px) {
+  .erp-field-grid--6 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1199.98px) {
   .erp-grid--stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2177,7 +2187,8 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
 
 @media (max-width: 991.98px) {
   .erp-field-grid--3,
-  .erp-field-grid--4 {
+  .erp-field-grid--4,
+  .erp-field-grid--6 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2256,7 +2267,8 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
   .erp-grid--stats,
   .erp-field-grid--2,
   .erp-field-grid--3,
-  .erp-field-grid--4 {
+  .erp-field-grid--4,
+  .erp-field-grid--6 {
     grid-template-columns: minmax(0, 1fr);
   }
 

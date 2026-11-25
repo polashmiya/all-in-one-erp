@@ -8,7 +8,8 @@ namespace Erp.Api.Documents;
 public sealed record ApprovalCounts(int All, int Pending, int Approved, int Rejected, int Closed, int Cancelled);
 
 public sealed record DocumentItemOption(
-    int Id, string Code, string Name, int UomId, string UomName, decimal Rate, decimal VatPercentage, bool IsActive);
+    int Id, string Code, string Name, int UomId, string UomName, decimal Rate, decimal VatPercentage, bool IsActive,
+    decimal SalesPrice, decimal SalesVatPercentage, decimal SdPercentage);
 
 internal static class DocumentData
 {
@@ -128,9 +129,10 @@ internal static class DocumentData
         return items.ToDictionary(i => i.Id);
     }
 
-    public static Task<List<DocumentItemOption>> ItemsAsync(ErpDbContext db, string? search, CancellationToken cancellationToken)
+    public static Task<List<DocumentItemOption>> ItemsAsync(
+        ErpDbContext db, string? search, bool? saleable, CancellationToken cancellationToken)
     {
-        var items = db.Items.AsNoTracking().Where(i => i.IsActive);
+        var items = db.Items.AsNoTracking().Where(i => i.IsActive && (saleable != true || i.IsSaleable));
         if (Trimmed(search) is { } term)
         {
             items = items.Where(i => i.Code.Contains(term) || i.Name.Contains(term) || i.BarCode.Contains(term));
@@ -142,7 +144,7 @@ internal static class DocumentData
     private static IQueryable<DocumentItemOption> ItemOptions(IQueryable<Core.Domain.Inventory.Item> items) =>
         items.Select(i => new DocumentItemOption(
             i.Id, i.Code, i.Name, i.UomId, i.Uom!.Name, i.LastCostPrice ?? i.AverageCostPrice ?? 0, i.PurchaseVatPercentage ?? 0,
-            i.IsActive));
+            i.IsActive, i.SalesPrice ?? 0, i.SalesVatPercentage ?? 0, i.SdPercentage ?? 0));
 
     public static string? Trimmed(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

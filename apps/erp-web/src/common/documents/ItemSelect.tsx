@@ -19,6 +19,7 @@ export function ItemSelect({
   id,
   picked,
   placeholder,
+  saleable,
   value,
   onChange,
   onPick,
@@ -26,12 +27,13 @@ export function ItemSelect({
   id?: string;
   picked?: PickedItem;
   placeholder?: string;
+  saleable?: boolean;
   value?: number | null;
   onChange?: (value: number | null) => void;
   onPick: (option: DocumentItemOption) => void;
 }) {
   const [search, setSearch] = useState('');
-  const params = { search: useDebouncedValue(search).trim() || undefined };
+  const params = { search: useDebouncedValue(search).trim() || undefined, saleable };
   const query = useGetDocumentItemOptions(params, {
     query: {
       queryKey: useUnitKey(getGetDocumentItemOptionsQueryKey(params)),

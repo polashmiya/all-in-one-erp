@@ -17,6 +17,7 @@ import { supplierProfileResources } from '@/modules/system-setup/partner-managem
 import { approvalResources } from '@/common/approval/i18n';
 import { myApprovalsResources } from '@/modules/approval/my-approvals/i18n';
 import { documentResources } from '@/common/documents/i18n';
+import { salesQuotationResources } from '@/modules/sales/sales/sales-quotation/i18n';
 import { purchaseRequisitionResources } from '@/modules/procurement/purchase/purchase-requisition/i18n';
 import { purchaseOrderResources } from '@/modules/procurement/purchase/purchase-order/i18n';
 import { purchaseReceiveResources } from '@/modules/procurement/purchase/purchase-receive/i18n';
@@ -92,6 +93,7 @@ export const erpResources = mergeResources(
   approvalResources,
   myApprovalsResources,
   documentResources,
+  salesQuotationResources,
   purchaseRequisitionResources,
   purchaseOrderResources,
   purchaseReceiveResources,

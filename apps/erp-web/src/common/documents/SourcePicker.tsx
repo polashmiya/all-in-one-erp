@@ -6,6 +6,9 @@ interface SourceOption {
   supplierName?: string | null;
 }
 
+const sourceLabel = (option: SourceOption) =>
+  option.supplierName ? `${option.code} · ${option.supplierName}` : option.code;
+
 export function SourcePicker<O extends SourceOption, V extends object>({
   id,
   options,
@@ -14,6 +17,7 @@ export function SourcePicker<O extends SourceOption, V extends object>({
   disabled,
   allowClear,
   toValues,
+  labelOf = sourceLabel,
   value,
   onChange,
 }: {
@@ -24,13 +28,14 @@ export function SourcePicker<O extends SourceOption, V extends object>({
   disabled?: boolean;
   allowClear?: boolean;
   toValues: (option: O) => Partial<V>;
+  labelOf?: (option: O) => string;
   value?: number | null;
   onChange?: (value: number | null) => void;
 }) {
   const form = Form.useFormInstance<V>();
   const items = (options ?? []).map((o) => ({
     value: o.id,
-    label: o.supplierName ? `${o.code} · ${o.supplierName}` : o.code,
+    label: labelOf(o),
   }));
   if (current && !items.some((o) => o.value === current.id)) {
     items.unshift({ value: current.id, label: current.name });

@@ -8,4 +8,5 @@
 
 export type GetDocumentItemOptionsParams = {
   search?: string;
+  saleable?: boolean;
 };

@@ -61,7 +61,7 @@ export const getGetDocumentItemOptionsUrl = (params?: GetDocumentItemOptionsPara
 };
 
 /**
- * @summary Up to 20 active items matching the search, with their UOM, last cost and purchase VAT
+ * @summary Up to 20 active items matching the search, with their UOM, last cost, purchase VAT, sales price, sales VAT and SD
  */
 export const getDocumentItemOptions = async (
   params?: GetDocumentItemOptionsParams,
@@ -164,7 +164,7 @@ export function useGetDocumentItemOptions<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Up to 20 active items matching the search, with their UOM, last cost and purchase VAT
+ * @summary Up to 20 active items matching the search, with their UOM, last cost, purchase VAT, sales price, sales VAT and SD
  */
 
 export function useGetDocumentItemOptions<

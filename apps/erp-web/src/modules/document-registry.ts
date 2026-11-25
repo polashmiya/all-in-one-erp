@@ -11,6 +11,7 @@ import { paymentPaths } from '@/modules/procurement/purchase/purchase-payment/co
 import { receivePaths } from '@/modules/procurement/purchase/purchase-receive/constants';
 import { requisitionPaths } from '@/modules/procurement/purchase/purchase-requisition/constants';
 import { returnPaths } from '@/modules/procurement/purchase/purchase-return/constants';
+import { quotationPaths } from '@/modules/sales/sales/sales-quotation/constants';
 
 export interface DocumentLink {
   label: string;
@@ -18,6 +19,7 @@ export interface DocumentLink {
 }
 
 export const DOCUMENTS = {
+  'sales.sales-quotation': { label: 'document.type.quotation', path: quotationPaths.view },
   'procurement.purchase-requisition': {
     label: 'document.type.requisition',
     path: requisitionPaths.view,

@@ -1,5 +1,5 @@
 import type { ConfigField, FeatureConfig, LocalizedLabel } from '@erp/api-client';
-import { localize, useLanguageStore } from '@erp/ui';
+import { localize, useLanguageStore, type FieldColumns } from '@erp/ui';
 import { useCallback } from 'react';
 
 export type FieldValues = Record<string, unknown>;
@@ -24,7 +24,10 @@ export const fieldMap = (config: FeatureConfig) =>
 export const displayKey = (field: ConfigField) =>
   field.type === 'lookup' && field.key.endsWith('Id') ? `${field.key.slice(0, -2)}Name` : field.key;
 
-export const columnsOf = (count: number) => Math.min(Math.max(count, 1), 4) as 1 | 2 | 3 | 4;
+const WIDE_COLUMNS = 6;
+
+export const columnsOf = (count: number): FieldColumns =>
+  count >= WIDE_COLUMNS ? WIDE_COLUMNS : (Math.min(Math.max(count, 1), 4) as FieldColumns);
 
 export function defaultValues(config: FeatureConfig): FieldValues {
   const values: FieldValues = {};

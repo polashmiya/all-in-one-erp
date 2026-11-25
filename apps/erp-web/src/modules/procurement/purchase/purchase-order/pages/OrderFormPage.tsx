@@ -15,7 +15,7 @@ import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { DocumentForm } from '@/common/documents/DocumentForm';
 import { OrderLines } from '../components/OrderLines';
-import { SourcePicker } from '../../../components/SourcePicker';
+import { SourcePicker } from '@/common/documents/SourcePicker';
 import { ORDER_FEATURE, ORDER_LOOKUPS, orderPaths } from '../constants';
 import {
   fromDetail,

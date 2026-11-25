@@ -11,8 +11,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   effective,
-  FIELD_WIDTHS,
   LABEL_MAX,
+  SECTION_COLUMNS,
   toOverride,
 } from '../../account-configuration/field-settings';
 
@@ -95,7 +95,7 @@ export function SectionSettingsModal({
           <Field name="columns" label={t('layout.f.columns')}>
             <Select
               placeholder={placeholder('select', t('layout.f.columns'))}
-              options={FIELD_WIDTHS.map((count) => ({
+              options={SECTION_COLUMNS.map((count) => ({
                 value: count,
                 label: t('config.f.columns', { count }),
               }))}

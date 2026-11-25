@@ -23,6 +23,16 @@ public sealed record CustomerRow(
     DateTime? ModifiedAt,
     Dictionary<string, JsonElement>? CustomData);
 
+public sealed record CustomerOption(
+    int Id,
+    string Code,
+    string Name,
+    string? ContactPerson,
+    string? Phone,
+    string? Address,
+    int? SalesRepresentativeId,
+    bool IsActive);
+
 public sealed record CustomerList(IReadOnlyList<CustomerRow> Items, int Total, PartnerCounts Counts);
 
 public sealed record SaveCustomerRequest : IPartnerRequest

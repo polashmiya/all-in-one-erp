@@ -15,4 +15,7 @@ export interface DocumentItemOption {
   rate: number;
   vatPercentage: number;
   isActive: boolean;
+  salesPrice: number;
+  salesVatPercentage: number;
+  sdPercentage: number;
 }

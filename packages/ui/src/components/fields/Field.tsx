@@ -31,11 +31,13 @@ export function Field({ label, custom = false, rule, ...props }: FieldProps) {
   return <Form.Item label={decorated} {...props} />;
 }
 
+export type FieldColumns = 1 | 2 | 3 | 4 | 6;
+
 export function FieldGrid({
   columns = 3,
   children,
 }: {
-  columns?: 1 | 2 | 3 | 4;
+  columns?: FieldColumns;
   children: ReactNode;
 }) {
   return <div className={`erp-field-grid erp-field-grid--${columns}`}>{children}</div>;

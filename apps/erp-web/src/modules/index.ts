@@ -4,11 +4,13 @@ import { dashboardRoutes } from './dashboard/routes';
 import { accountingRoutes } from './accounting/routes';
 import { inventoryRoutes } from './inventory/routes';
 import { procurementRoutes } from './procurement/routes';
+import { salesRoutes } from './sales/routes';
 import { systemSetupRoutes } from './system-setup/routes';
 
 export const moduleRoutes: RouteObject[] = [
   ...dashboardRoutes,
   ...systemSetupRoutes,
+  ...salesRoutes,
   ...procurementRoutes,
   ...inventoryRoutes,
   ...accountingRoutes,

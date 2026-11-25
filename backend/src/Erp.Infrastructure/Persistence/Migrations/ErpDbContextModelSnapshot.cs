@@ -5368,6 +5368,416 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("PurchaseReturnLine", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID")
+                        .HasColumnOrder(40);
+
+                    b.Property<string>("BillingAddress")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(16);
+
+                    b.Property<string>("BillingContactPerson")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(14);
+
+                    b.Property<string>("BillingPhoneNo")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(15);
+
+                    b.Property<string>("BodyNarration")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(28);
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID")
+                        .HasColumnOrder(41);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("SalesQuotationCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(44);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID")
+                        .HasColumnOrder(45);
+
+                    b.Property<string>("CustomData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(48);
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartnerID")
+                        .HasColumnOrder(6);
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("PartnerName")
+                        .HasColumnOrder(7);
+
+                    b.Property<decimal>("DeliveryCharge")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(24);
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(23);
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(22);
+
+                    b.Property<decimal>("ExtraCharge")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(25);
+
+                    b.Property<string>("FooterNarration")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(29);
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive")
+                        .HasColumnOrder(42);
+
+                    b.Property<bool>("IsExpired")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bit")
+                        .HasColumnName("isExpired")
+                        .HasColumnOrder(35)
+                        .HasComputedColumnSql("CONVERT([bit], CASE WHEN [ValidityDate] < CONVERT([date], GETDATE()) THEN 1 ELSE 0 END)");
+
+                    b.Property<bool>("IsGrossDiscount")
+                        .HasColumnType("bit")
+                        .HasColumnOrder(21);
+
+                    b.Property<bool>("IsOrdered")
+                        .HasColumnType("bit")
+                        .HasColumnName("isSO")
+                        .HasColumnOrder(36);
+
+                    b.Property<bool>("IsVatInclusive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isVATInclusive")
+                        .HasColumnOrder(20);
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(47);
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID")
+                        .HasColumnOrder(46);
+
+                    b.Property<string>("Narration")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(30);
+
+                    b.Property<Guid?>("OfficeId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OfficeID")
+                        .HasColumnOrder(5);
+
+                    b.Property<int>("OrderStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("SoStatusID")
+                        .HasColumnOrder(37);
+
+                    b.Property<string>("OrderStatusName")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("SoStatusName")
+                        .HasColumnOrder(38)
+                        .HasComputedColumnSql("CASE [SoStatusID] WHEN 0 THEN N'Created' WHEN 1 THEN N'Not Created' ELSE N'Rejected' END");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("SalesQuotationGuID")
+                        .HasColumnOrder(39);
+
+                    b.Property<DateOnly>("QuotationDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(8);
+
+                    b.Property<int?>("QuotationTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("QuotationTypeID")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(1250)
+                        .HasColumnType("nvarchar(1250)")
+                        .HasColumnOrder(13);
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReferenceID")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("ReviewComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("RejectReason")
+                        .HasColumnOrder(34);
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("ApproveDate")
+                        .HasColumnOrder(32);
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ApproveByID")
+                        .HasColumnOrder(33);
+
+                    b.Property<int?>("SalesForceId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesForceID")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("SalesForceName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnOrder(11);
+
+                    b.Property<int?>("ShippingAddressId")
+                        .HasColumnType("int")
+                        .HasColumnName("ShippingAddressID")
+                        .HasColumnOrder(18);
+
+                    b.Property<string>("ShippingAddressName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(19);
+
+                    b.Property<string>("ShippingContactPerson")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnOrder(17);
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnOrder(31);
+
+                    b.Property<string>("Subjects")
+                        .HasMaxLength(1250)
+                        .HasColumnType("nvarchar(1250)")
+                        .HasColumnOrder(27);
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnOrder(26);
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime")
+                        .HasColumnOrder(43);
+
+                    b.Property<DateOnly>("ValidityDate")
+                        .HasColumnType("date")
+                        .HasColumnOrder(9);
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("SQVersion")
+                        .HasColumnOrder(3);
+
+                    b.Property<DateOnly?>("VersionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("VersionCreateDate")
+                        .HasColumnOrder(4);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OfficeId");
+
+                    b.HasIndex("QuotationTypeId");
+
+                    b.HasIndex("ReferenceId");
+
+                    b.HasIndex("SalesForceId");
+
+                    b.HasIndex("ShippingAddressId");
+
+                    b.HasIndex("BusinessUnitId", "Code", "Version")
+                        .IsUnique();
+
+                    b.HasIndex("BusinessUnitId", "IsActive", "Status", "QuotationDate");
+
+                    b.ToTable("SalesQuotationHeader", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotationLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationRowID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AitAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("AitPercentage")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("ApproveAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ApprovePrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ApproveQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("DeliveryDate")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive");
+
+                    b.Property<bool>("IsAmountWiseDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDiscountPerQuantity")
+                        .HasColumnType("bit")
+                        .HasColumnName("isDiscountPerQuantity");
+
+                    b.Property<string>("ItemCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ItemDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemID");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("QuotationId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationHeaderID");
+
+                    b.Property<decimal>("SdAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SDAmount");
+
+                    b.Property<decimal>("SdPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SDPercentage");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int")
+                        .HasColumnName("ViewSequenceID");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomID");
+
+                    b.Property<string>("UomName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("VATAmount");
+
+                    b.Property<decimal>("VatPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("VATPercentage");
+
+                    b.Property<int>("WarrantyInMonth")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("QuotationId");
+
+                    b.HasIndex("UomId");
+
+                    b.ToTable("SalesQuotationRow", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Tenancy.Account", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6949,6 +7359,77 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.Navigation("Uom");
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotation", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Partners.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Office", null)
+                        .WithMany()
+                        .HasForeignKey("OfficeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("QuotationTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Sales.SalesQuotation", null)
+                        .WithMany()
+                        .HasForeignKey("ReferenceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Identity.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("SalesForceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("ShippingAddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotationLine", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Inventory.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Sales.SalesQuotation", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("QuotationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Inventory.UnitOfMeasure", "Uom")
+                        .WithMany()
+                        .HasForeignKey("UomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Uom");
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Tenancy.AccountFeature", b =>
                 {
                     b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
@@ -7112,6 +7593,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseReturn", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotation", b =>
                 {
                     b.Navigation("Lines");
                 });

@@ -2,6 +2,7 @@ import type { AppResources } from '@erp/ui';
 
 export const documentResources: AppResources = {
   en: {
+    'document.type.quotation': 'Sales quotation',
     'document.type.requisition': 'Purchase requisition',
     'document.type.order': 'Purchase order',
     'document.type.receive': 'Purchase receive',
@@ -69,6 +70,7 @@ export const documentResources: AppResources = {
     'document.side.updated': 'Last updated',
   },
   bn: {
+    'document.type.quotation': 'বিক্রয় কোটেশন',
     'document.type.requisition': 'ক্রয় চাহিদাপত্র',
     'document.type.order': 'ক্রয় আদেশ',
     'document.type.receive': 'ক্রয়কৃত মাল গ্রহণ',

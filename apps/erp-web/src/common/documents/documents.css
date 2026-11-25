@@ -12,6 +12,12 @@
   min-width: 280px;
 }
 
+.erp-lines__details {
+  width: 0;
+  min-width: 100%;
+  padding-bottom: var(--erp-space-xs);
+}
+
 .erp-lines__number {
   width: 110px;
 }

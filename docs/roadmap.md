@@ -543,7 +543,6 @@ Left open, ask the owner:
 
 - Bank reconciliation.
 - Stock transfer to another business unit (owner: not now).
-- Sales side (stock out, receivable, cost of goods sold): start only when the owner says so.
 
 Still open for later, ask the owner:
 
@@ -551,20 +550,54 @@ Still open for later, ask the owner:
 2. **Read-only history in the ERP** for account admins.
 3. **The next business module** (for example VAT setup) built as a configurable screen (skill pattern E).
 
+## Done: phase 26 — Sales menu and Sales Quotation (2026-11-25)
+
+- Owner asked to start Sales: Quotation, Order, Delivery, Return, Collection, Report. All six are in the new **Sales**
+  menu (after System Setup); only Sales Quotation is built, the others show the placeholder page.
+- Owner's rule for Sales: keep every column of the legacy script; the ones a screen does not need stay optional. Screens
+  should be full of fields, 4 or 6 in a row. Section columns can now be 1–4 or 6 (manifest, Panel, `maxColumns` in the form).
+- Based on the legacy `SalesQuotationHeader` and `SalesQuotationRow` scripts (migration `SalesQuotation`). Changed names:
+  branch → business unit; `isApprove`/`intStatus` → `Status`; `ApproveById`, `ApproveDate`, `RejectReason` are the review
+  columns; `ActionBy`, `LastActionDateTime`, `ServerDateTime` → the audit columns. `isExpired` and `SoStatusName` are
+  computed columns; `isExpired` is 1 when the date has passed (the legacy formula was the other way round).
+  `SoStatus` follows the legacy code (0 Created, 1 Not Created, 2 Rejected) and `isSO`; Sales Order will set them.
+- `ShippingAddressId` is a lookup list (`shipping-address`, "Ship to") because there is no customer address table;
+  `QuotationTypeId` is the lookup list `quotation-type`.
+- Pricing (`SalesPricing`, `modules/sales/pricing.ts`, unit tested), as in the legacy API: SD on the amount after discount,
+  VAT on amount + SD, AIT on the amount; with prices that include VAT the line amount does not change. A line discount is
+  a percent, an amount or an amount per unit. "Discount on total" (`isGrossDiscount`) shares one discount over the lines.
+  Total = lines + delivery + extra charge.
+- **Versions.** `POST /{id}/revise` ("New version") copies the latest reviewed version without a sales order to v2, v3…
+  with the same number and `ReferenceId` to the old one; an approved one is closed. The view page lists the versions.
+- The last approval sets the approved quantity, price and amount of each line to what was quoted.
+- API `/api/erp/sales/sales-quotations`; empty number gives `SQ-00001`; multi-level approval and My Approvals include it.
+  New `/customers/options`; `/documents/items` also gives sales price, sales VAT and SD, and `saleable` filters.
+- Shared: `SourcePicker` moved to `common/documents`; `LineGrid` and `LinesView` have `details` (a second line of fields
+  under each item); `DocumentView` has `sections` and `moreActions`.
+- Checked with `SalesQuotationTests`, typecheck, lint, web tests and a Playwright run in Chrome (create, both discounts,
+  approve, new version, list, Bangla, 1440 and 1920 wide).
+
+Left open, ask the owner:
+
+- Can the approver change the quantity or price of a line (`ApproveQuantity`, `ApprovePrice`)? Legacy copies them.
+- Print or PDF of the quotation letter, and terms and conditions (legacy has a separate table).
+- Sales Order, Delivery, Return, Collection and Report wait for their table scripts.
+
 ## Where we are
 
-Last updated 2026-11-24. Phases 0 to 25 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-25. Phases 0 to 26 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
 supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return, Purchase
-Payment, Purchase Report), Inventory, Accounting and
-multi-level approval.
-Next: Sales when the owner says so, then "Still open for later".
+Payment, Purchase Report), Inventory, Accounting,
+multi-level approval and Sales Quotation.
+Next: Sales Order (needs its table script), then the rest of Sales, then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
 `DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
-`PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`, `CancelBanksAndClosing`, `AccountGroupNames`.
+`PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`, `CancelBanksAndClosing`, `AccountGroupNames`,
+`SalesQuotation`.
 
 ## Working on another machine
 

@@ -1,7 +1,7 @@
 import { Checkbox, Form, Switch } from 'antd';
 import type { ReactNode } from 'react';
 import { DetailSection } from '../data-display/DescriptionList';
-import { FieldGrid } from './Field';
+import { FieldGrid, type FieldColumns } from './Field';
 
 export function FieldSection({
   title,
@@ -11,7 +11,7 @@ export function FieldSection({
 }: {
   title: ReactNode;
   description?: ReactNode;
-  columns?: 1 | 2 | 3 | 4;
+  columns?: FieldColumns;
   children: ReactNode;
 }) {
   return (

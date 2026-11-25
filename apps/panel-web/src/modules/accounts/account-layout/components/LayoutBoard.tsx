@@ -24,7 +24,7 @@ import { useText } from '@erp/metadata-engine';
 import { ActionGroup, StatusTag } from '@erp/ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { effective } from '../../account-configuration/field-settings';
+import { effective, SECTION_COLUMNS } from '../../account-configuration/field-settings';
 import {
   DROP_TARGETS,
   nodeId,
@@ -35,10 +35,10 @@ import {
 } from '../layout-model';
 
 const DRAG_START_DISTANCE = 6;
-const MAX_COLUMNS = 4;
+const DEFAULT_COLUMNS = 4;
 
 const columnsOf = (count?: number | null) =>
-  Math.min(Math.max(count ?? MAX_COLUMNS, 1), MAX_COLUMNS);
+  count && SECTION_COLUMNS.includes(count) ? count : DEFAULT_COLUMNS;
 
 const collision: CollisionDetection = (args) => {
   const kind = parseId(String(args.active.id)).kind;

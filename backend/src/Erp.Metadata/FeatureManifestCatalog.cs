@@ -29,7 +29,8 @@ public sealed partial class FeatureManifestCatalog
         foreach (var section in sections.Values)
         {
             if (!tabs.Contains(section.Tab!)) throw Invalid(name, $"section '{section.Key}' points to unknown tab '{section.Tab}'");
-            if (section.Columns is < 1 or > 4) throw Invalid(name, $"section '{section.Key}' needs 1 to 4 columns");
+            if (!LayoutLimits.SectionColumns.Contains(section.Columns))
+                throw Invalid(name, $"section '{section.Key}' needs {string.Join(", ", LayoutLimits.SectionColumns)} columns");
         }
 
         var keys = manifest.Fields.Select(f => f.Key).ToHashSet();

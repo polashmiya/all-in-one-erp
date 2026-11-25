@@ -1,3 +1,4 @@
+using Erp.Api.Sales;
 using Erp.Api.UserManagement.Employees;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Partners;
@@ -24,6 +25,11 @@ internal static class CustomerEndpoints
             .WithName("ListCustomers")
             .WithSummary("Customers of the selected business unit")
             .RequirePermission($"{Feature}.view");
+
+        customers.MapGet("/options", Options)
+            .WithName("GetCustomerOptions")
+            .WithSummary("Customers of the selected business unit with their contact details, for dropdowns")
+            .RequireAnyPermission([$"{Feature}.view", .. SalesModule.Editors]);
 
         customers.MapGet("/{id:int}", Get)
             .WithName("GetCustomer")
@@ -95,6 +101,13 @@ internal static class CustomerEndpoints
 
         return new CustomerList(rows.Select(r => r.Row with { CustomData = CustomFieldData.Parse(r.CustomData) }).ToList(), total, counts);
     }
+
+    private static Task<List<CustomerOption>> Options(ErpDbContext db, CancellationToken cancellationToken) =>
+        db.Customers.AsNoTracking()
+            .OrderBy(c => c.Name)
+            .Select(c => new CustomerOption(
+                c.Id, c.Code, c.Name, c.ContactPerson, c.ContactMobile ?? c.Mobile, c.Address, c.SalesRepresentativeId, c.IsActive))
+            .ToListAsync(cancellationToken);
 
     private static async Task<Results<Ok<CustomerDetail>, NotFound>> Get(int id, ErpDbContext db, CancellationToken cancellationToken) =>
         await LoadAsync(db, id, cancellationToken) is { } detail ? TypedResults.Ok(detail) : TypedResults.NotFound();

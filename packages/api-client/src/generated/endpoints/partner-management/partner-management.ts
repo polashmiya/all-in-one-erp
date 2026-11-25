@@ -24,6 +24,7 @@ import type {
 import type {
   CustomerDetail,
   CustomerList,
+  CustomerOption,
   HttpValidationProblemDetails,
   ListCustomersParams,
   ListSuppliersParams,
@@ -301,6 +302,123 @@ export const useCreateCustomer = <
 > => {
   return useMutation(getCreateCustomerMutationOptions(options), queryClient);
 };
+export const getGetCustomerOptionsUrl = () => {
+  return `/api/erp/partner-management/customers/options`;
+};
+
+/**
+ * @summary Customers of the selected business unit with their contact details, for dropdowns
+ */
+export const getCustomerOptions = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<CustomerOption[]> => {
+  return customFetch<CustomerOption[]>(getGetCustomerOptionsUrl(), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetCustomerOptionsQueryKey = () => {
+  return [`/api/erp/partner-management/customers/options`] as const;
+};
+
+export const getGetCustomerOptionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCustomerOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerOptions>>, TError, TData>>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCustomerOptionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerOptions>>> = ({ signal }) =>
+    getCustomerOptions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomerOptions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCustomerOptionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCustomerOptions>>
+>;
+export type GetCustomerOptionsQueryError = ErrorType<ProblemDetails>;
+
+export function useGetCustomerOptions<
+  TData = Awaited<ReturnType<typeof getCustomerOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerOptions>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCustomerOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getCustomerOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerOptions<
+  TData = Awaited<ReturnType<typeof getCustomerOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerOptions>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCustomerOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getCustomerOptions>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerOptions<
+  TData = Awaited<ReturnType<typeof getCustomerOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerOptions>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Customers of the selected business unit with their contact details, for dropdowns
+ */
+
+export function useGetCustomerOptions<
+  TData = Awaited<ReturnType<typeof getCustomerOptions>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerOptions>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetCustomerOptionsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 export const getGetCustomerUrl = (id: number) => {
   return `/api/erp/partner-management/customers/${id}`;
 };

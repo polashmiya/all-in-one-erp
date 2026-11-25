@@ -4,6 +4,7 @@ import {
   approvePurchasePayment,
   approvePurchaseReceive,
   approvePurchaseRequisition,
+  approveSalesQuotation,
   approvePurchaseReturn,
   approveStockAdjustment,
   approveStockTransfer,
@@ -13,6 +14,7 @@ import {
   rejectPurchasePayment,
   rejectPurchaseReceive,
   rejectPurchaseRequisition,
+  rejectSalesQuotation,
   rejectPurchaseReturn,
   rejectStockAdjustment,
   rejectStockTransfer,
@@ -36,6 +38,7 @@ interface ApprovalDocument extends DocumentLink {
 }
 
 const reviews: Record<DocumentFeature, { approve: Review; reject: Review }> = {
+  'sales.sales-quotation': { approve: approveSalesQuotation, reject: rejectSalesQuotation },
   'procurement.purchase-requisition': {
     approve: approvePurchaseRequisition,
     reject: rejectPurchaseRequisition,

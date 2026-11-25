@@ -1,4 +1,5 @@
 using Erp.Core.Modules;
+using Erp.Metadata;
 using FluentValidation;
 
 namespace Erp.Api.Panel.Configuration;
@@ -77,7 +78,8 @@ internal sealed class SectionSettingValuesValidator : AbstractValidator<SectionS
         RuleFor(x => x.LabelEn).MaximumLength(100);
         RuleFor(x => x.LabelBn).MaximumLength(100);
         RuleFor(x => x.SortOrder).GreaterThanOrEqualTo(0);
-        RuleFor(x => x.Columns).InclusiveBetween(1, 4);
+        RuleFor(x => x.Columns).Must(columns => columns is null || LayoutLimits.SectionColumns.Contains(columns.Value))
+            .WithMessage($"Use one of {string.Join(", ", LayoutLimits.SectionColumns)} columns.");
     }
 }
 

@@ -22,6 +22,11 @@ public static class FieldTypes
     public static readonly IReadOnlyList<string> Custom = [Text, TextArea, Number, Decimal, Money, Percent, Date, Boolean, Lookup];
 }
 
+public static class LayoutLimits
+{
+    public static readonly IReadOnlyList<int> SectionColumns = [1, 2, 3, 4, 6];
+}
+
 public sealed record SectionDef(string Key, MenuText Label, int Order, string? Tab = null, int Columns = 4);
 
 public sealed record FieldDef(string Key, string Type, MenuText Label, string Section, int Order)

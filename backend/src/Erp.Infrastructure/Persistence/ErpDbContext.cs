@@ -9,6 +9,7 @@ using Erp.Core.Domain.Metadata;
 using Erp.Core.Domain.Navigation;
 using Erp.Core.Domain.Partners;
 using Erp.Core.Domain.Procurement;
+using Erp.Core.Domain.Sales;
 using Erp.Core.Domain.Tenancy;
 using Erp.Core.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -166,6 +167,8 @@ public class ErpDbContext : DbContext
     public DbSet<PurchasePayment> PurchasePayments => Set<PurchasePayment>();
 
     public DbSet<PurchasePaymentLine> PurchasePaymentLines => Set<PurchasePaymentLine>();
+
+    public DbSet<SalesQuotation> SalesQuotations => Set<SalesQuotation>();
 
     public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
 

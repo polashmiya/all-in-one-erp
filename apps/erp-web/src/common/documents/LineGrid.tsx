@@ -33,6 +33,8 @@ export function LineGrid<L extends BaseLine>({
   totals,
   note,
   fixed,
+  saleable,
+  details,
 }: {
   description: string;
   columns: LineColumn<L>[];
@@ -41,6 +43,8 @@ export function LineGrid<L extends BaseLine>({
   totals: (lines: L[]) => LineTotal[];
   note: { name: Extract<keyof L, string>; placeholder: string; maxLength: number };
   fixed?: boolean;
+  saleable?: boolean;
+  details?: (field: FormListFieldData) => ReactNode;
 }) {
   const { t } = useTranslation();
   const placeholder = usePlaceholder();
@@ -77,6 +81,7 @@ export function LineGrid<L extends BaseLine>({
                     : undefined
                 }
                 placeholder={t('document.lines.itemPlaceholder')}
+                saleable={saleable}
                 onPick={(option) =>
                   form.setFieldValue(['lines', field.name], {
                     ...line,
@@ -174,6 +179,15 @@ export function LineGrid<L extends BaseLine>({
               dataSource={fields}
               columns={tableColumns(remove)}
               scroll={{ x: 'max-content' }}
+              expandable={
+                details && {
+                  expandedRowRender: (field) => (
+                    <div className="erp-lines__details">{details(field)}</div>
+                  ),
+                  expandedRowKeys: fields.map((field) => field.key),
+                  showExpandColumn: false,
+                }
+              }
             />
             <Form.ErrorList errors={errors} />
             <div className="erp-lines__footer">
