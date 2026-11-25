@@ -7,9 +7,10 @@ namespace Erp.Api.Sales.SalesReturns;
 public sealed record SalesReturnRow(
     int Id,
     string Code,
+    string Source,
     DateOnly ReturnDate,
-    int DeliveryId,
-    string DeliveryName,
+    int? DeliveryId,
+    string? DeliveryName,
     int CustomerId,
     string CustomerName,
     Guid WarehouseId,
@@ -54,12 +55,11 @@ public sealed record ReturnDeliveryOption
     public required IReadOnlyList<ReturnDeliveryLine> Lines { get; init; }
 }
 
-public sealed record SaveSalesReturnLine
+public sealed record SaveSalesReturnLine : SaveSalesLine
 {
-    public required int DeliveryLineId { get; init; }
-    public required decimal Quantity { get; init; }
+    public required int? DeliveryLineId { get; init; }
+    public required decimal? CostPrice { get; init; }
     public required bool IsDamaged { get; init; }
-    public required string? ItemDescription { get; init; }
     public required string? Batch { get; init; }
     public required string? ItemSerial { get; init; }
     public required string? Remarks { get; init; }
@@ -68,8 +68,10 @@ public sealed record SaveSalesReturnLine
 public sealed record SaveSalesReturnRequest
 {
     public required string? Code { get; init; }
+    public required string Source { get; init; }
     public required DateOnly ReturnDate { get; init; }
-    public required int DeliveryId { get; init; }
+    public required int? DeliveryId { get; init; }
+    public required int CustomerId { get; init; }
     public required Guid WarehouseId { get; init; }
     public required Guid? OfficeId { get; init; }
     public required int? SalesForceId { get; init; }
@@ -88,6 +90,7 @@ public sealed record SaveSalesReturnRequest
     public required int? DeliveryMethodId { get; init; }
     public required string? PickupAddress { get; init; }
     public required bool IsExchange { get; init; }
+    public required bool IsVatInclusive { get; init; }
     public required decimal? ChargeRefundAmount { get; init; }
     public required string? DeductionLabel { get; init; }
     public required decimal? DeductionValue { get; init; }
@@ -104,18 +107,21 @@ public sealed record SaveSalesReturnRequest
 
 public sealed record SalesReturnLineDetail(
     int Id,
-    int DeliveryLineId,
+    int? DeliveryLineId,
     int ItemId,
     string ItemCode,
     string ItemName,
     string? ItemDescription,
     string UomName,
-    decimal Delivered,
-    decimal Remaining,
+    decimal? Delivered,
+    decimal? Remaining,
     decimal Quantity,
     decimal Price,
     decimal TotalAmount,
+    decimal DiscountPercentage,
     decimal DiscountAmount,
+    bool IsAmountWiseDiscount,
+    bool IsDiscountPerQuantity,
     decimal SdPercentage,
     decimal SdAmount,
     decimal VatPercentage,
@@ -125,6 +131,7 @@ public sealed record SalesReturnLineDetail(
     decimal TotalValue,
     bool IsOfferItem,
     bool IsDamaged,
+    decimal CostPrice,
     decimal CostTotal,
     decimal LossAmount,
     string? Batch,
@@ -135,9 +142,10 @@ public sealed record SalesReturnDetail
 {
     public required int Id { get; init; }
     public required string Code { get; init; }
+    public required string Source { get; init; }
     public required DateOnly ReturnDate { get; init; }
-    public required int DeliveryId { get; init; }
-    public required string DeliveryName { get; init; }
+    public required int? DeliveryId { get; init; }
+    public required string? DeliveryName { get; init; }
     public required int? OrderId { get; init; }
     public required string? OrderName { get; init; }
     public required int CustomerId { get; init; }
@@ -209,15 +217,19 @@ internal sealed class SaveSalesReturnRequestValidator : AbstractValidator<SaveSa
 {
     public SaveSalesReturnRequestValidator()
     {
-        RuleFor(x => x.DeliveryId).GreaterThan(0).WithMessage("Choose the delivery.");
+        RuleFor(x => x.Source).Must(s => s is SalesReturnEndpoints.FromDelivery or SalesReturnEndpoints.WithoutReference)
+            .WithMessage("Choose where the return comes from.");
+        RuleFor(x => x.DeliveryId).NotNull().When(x => x.Source == SalesReturnEndpoints.FromDelivery).WithMessage("Choose the delivery.");
+        RuleFor(x => x.DeliveryId).Null().When(x => x.Source == SalesReturnEndpoints.WithoutReference)
+            .WithMessage("A return without reference has no delivery.");
+        RuleFor(x => x.CustomerId).GreaterThan(0).WithMessage("Customer is required.");
         RuleFor(x => x.WarehouseId).NotEmpty();
         RuleFor(x => x.Lines.Count).InclusiveBetween(1, DocumentData.MaxLines).OverridePropertyName("lines")
             .WithMessage("Add at least one item.");
         RuleForEach(x => x.Lines).ChildRules(line =>
         {
-            line.RuleFor(l => l.DeliveryLineId).GreaterThan(0);
-            line.RuleFor(l => l.Quantity).GreaterThan(0);
-            line.RuleFor(l => l.ItemDescription).MaximumLength(2000);
+            SalesValidation.AddLineRules(line);
+            line.RuleFor(l => l.CostPrice).GreaterThanOrEqualTo(0).When(l => l.CostPrice is not null);
             line.RuleFor(l => l.Batch).MaximumLength(500);
             line.RuleFor(l => l.ItemSerial).MaximumLength(2000);
             line.RuleFor(l => l.Remarks).MaximumLength(500);

@@ -9,7 +9,9 @@ export const salesReturnResources: AppResources = {
     'salesReturn.searchLabel': 'Search sales returns',
     'salesReturn.emptyTitle': 'No sales returns yet',
     'salesReturn.emptyText':
-      'Take back goods of an approved delivery. Approval puts them back in stock and posts the accounts.',
+      'Take back goods of an approved delivery, or without reference. Approval puts them back in stock and posts the accounts.',
+    'salesReturn.source.delivery': 'Sales delivery',
+    'salesReturn.source.withoutReference': 'Without reference',
     'salesReturn.exportFile': 'sales-returns',
     'salesReturn.notFound': 'This sales return does not exist.',
     'salesReturn.backToList': 'Back to sales returns',
@@ -19,6 +21,10 @@ export const salesReturnResources: AppResources = {
     'salesReturn.form.saved': 'Sales return {{code}} saved',
     'salesReturn.lines.description':
       'Items of the delivery that can still come back, at the delivered price. Choose the delivery first.',
+    'salesReturn.lines.freeDescription':
+      'Goods of an old sale that has no delivery here. Enter the price they were sold at.',
+    'salesReturn.lines.costPrice': 'Unit cost',
+    'salesReturn.lines.costPlaceholder': 'Last cost',
     'salesReturn.lines.remaining': 'Can be returned',
     'salesReturn.lines.delivered': 'Delivered',
     'salesReturn.lines.damaged': 'Damaged, not for stock',
@@ -44,7 +50,9 @@ export const salesReturnResources: AppResources = {
     'salesReturn.searchLabel': 'বিক্রয় ফেরত খুঁজুন',
     'salesReturn.emptyTitle': 'এখনও কোনো বিক্রয় ফেরত নেই',
     'salesReturn.emptyText':
-      'অনুমোদিত ডেলিভারির মাল ফেরত নিন। অনুমোদনে মাল মজুতে ফেরে ও হিসাব পোস্ট হয়।',
+      'অনুমোদিত ডেলিভারির মাল, অথবা রেফারেন্স ছাড়া মাল ফেরত নিন। অনুমোদনে মাল মজুতে ফেরে ও হিসাব পোস্ট হয়।',
+    'salesReturn.source.delivery': 'বিক্রয় ডেলিভারি',
+    'salesReturn.source.withoutReference': 'রেফারেন্স ছাড়া',
     'salesReturn.exportFile': 'sales-returns',
     'salesReturn.notFound': 'এই বিক্রয় ফেরত নেই।',
     'salesReturn.backToList': 'বিক্রয় ফেরতের তালিকায় ফিরুন',
@@ -54,6 +62,10 @@ export const salesReturnResources: AppResources = {
     'salesReturn.form.saved': 'বিক্রয় ফেরত {{code}} সংরক্ষিত হয়েছে',
     'salesReturn.lines.description':
       'ডেলিভারির যে আইটেম এখনও ফেরত আসতে পারে, ডেলিভারির দামে। আগে ডেলিভারি বেছে নিন।',
+    'salesReturn.lines.freeDescription':
+      'পুরোনো বিক্রয়ের মাল, যার ডেলিভারি এখানে নেই। যে দামে বিক্রি হয়েছিল তা লিখুন।',
+    'salesReturn.lines.costPrice': 'একক ব্যয়',
+    'salesReturn.lines.costPlaceholder': 'সর্বশেষ ব্যয়',
     'salesReturn.lines.remaining': 'ফেরত সম্ভব',
     'salesReturn.lines.delivered': 'ডেলিভারি হয়েছে',
     'salesReturn.lines.damaged': 'ক্ষতিগ্রস্ত, মজুতে যাবে না',

@@ -611,7 +611,7 @@ Left open, ask the owner:
 
 - Should the customer's credit limit stop an order or a delivery?
 - Items with "Sell below zero stock": stock posting still refuses them.
-- Print of order, challan and invoice, attachments.
+- Print of the order, attachments.
 
 ## Done: phase 28 — Sales Return, Sales Collection and Sales Reports (2026-11-25)
 
@@ -643,14 +643,28 @@ Left open, ask the owner:
 
 Left open, ask the owner:
 
-- Return without a delivery (old sales), refund of a customer advance in cash, and cheque clearing or bounce.
+- Refund of a customer advance in cash, and cheque clearing or bounce.
 - Currency and exchange rate are kept, nothing is converted.
 - VDS and AIT receivable are posted; there is no certificate follow-up screen.
 - `ItemProfileTests` and `ItemManagementTests` use random 3-character category codes, so a run fails now and then.
 
+## Done: phase 29 — Return without reference and sales prints (2026-11-25)
+
+- **Return without reference.** `source` ("Return from") on the sales return is `delivery` or `withoutReference`. The second has
+  no delivery: the customer is chosen, items are added freely with price, discount, taxes and unit cost (empty = last cost).
+  Stock comes back at that cost; nothing reduces a due, so the amount is refunded or kept as customer advance. Migration
+  `SalesReturnWithoutReference` makes the delivery of a return and of its lines optional. A charge refund posts to Other income.
+- The Sales Report counts these returns on their own row (by delivery) and inside every other view.
+- **Prints** in `modules/sales/print`: one A4 page `SalesPrintPage` for the invoice and challan of a delivery and the money
+  receipt of a collection (More actions, approved records only). Head and customer come from `GET /api/erp/sales/print-parties`,
+  the amount is written in words in English or Bangla, and the paper stays white in dark mode. PDF is the browser's "Save as PDF".
+- Checked with the sales tests and a Playwright run in Chrome (full flow, print PDF, many pages, dark mode, Bangla, phone).
+
+Left open, ask the owner: a logo on prints (no logo is stored for an account), print of quotation, order and credit note.
+
 ## Where we are
 
-Last updated 2026-11-25. Phases 0 to 28 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-25. Phases 0 to 29 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
 supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return, Purchase
 Payment, Purchase Report), Inventory, Accounting,
@@ -662,7 +676,8 @@ Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `Cu
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
 `DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
 `PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`, `CancelBanksAndClosing`, `AccountGroupNames`,
-`SalesQuotation`, `SalesOrderAndDelivery`, `SalesReturnAndCollection`.
+`SalesQuotation`, `SalesOrderAndDelivery`, `SalesReturnAndCollection`,
+`SalesReturnWithoutReference`.
 
 ## Working on another machine
 

@@ -12,6 +12,7 @@ const paths = pathsOf(COLLECTION_PATH);
 
 export const collectionPaths = {
   ...paths,
+  receipt: (id: number) => `${paths.view(id)}/receipt`,
   fromCustomer: (id: number) => `${paths.create}?${CUSTOMER_PARAM}=${id}`,
 };
 

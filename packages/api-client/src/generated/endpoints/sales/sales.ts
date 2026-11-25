@@ -40,6 +40,7 @@ import type {
   ListSalesQuotationsParams,
   ListSalesReturnsParams,
   OrderQuotationOption,
+  PrintParties,
   ProblemDetails,
   ReturnDeliveryOption,
   ReviewRequest,
@@ -3955,7 +3956,7 @@ export const getCreateSalesReturnUrl = () => {
 };
 
 /**
- * @summary Create a pending return against an approved delivery; an empty number gets the next SR- number
+ * @summary Create a pending return of an approved delivery or without reference; an empty number gets the next SR- number
  */
 export const createSalesReturn = async (
   saveSalesReturnRequest: SaveSalesReturnRequest,
@@ -4036,7 +4037,7 @@ export type CreateSalesReturnMutationError = ErrorType<
 export type CreateSalesReturnMutationVariables = { data: BodyType<SaveSalesReturnRequest> };
 
 /**
- * @summary Create a pending return against an approved delivery; an empty number gets the next SR- number
+ * @summary Create a pending return of an approved delivery or without reference; an empty number gets the next SR- number
  */
 export const useCreateSalesReturn = <
   TError = ErrorType<HttpValidationProblemDetails | ProblemDetails | void>,
@@ -6178,7 +6179,7 @@ export const getGetSalesReportUrl = (params?: GetSalesReportParams) => {
 };
 
 /**
- * @summary Approved deliveries with returns, cost, profit, receipts and due, by delivery, item, category, customer, sales force or month
+ * @summary Approved deliveries and returns with cost, profit, receipts and due, by delivery, item, category, customer, sales force or month
  */
 export const getSalesReport = async (
   params?: GetSalesReportParams,
@@ -6271,7 +6272,7 @@ export function useGetSalesReport<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Approved deliveries with returns, cost, profit, receipts and due, by delivery, item, category, customer, sales force or month
+ * @summary Approved deliveries and returns with cost, profit, receipts and due, by delivery, item, category, customer, sales force or month
  */
 
 export function useGetSalesReport<
@@ -6702,6 +6703,130 @@ export function useGetChargeAccountOptions<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetChargeAccountOptionsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetPrintPartiesUrl = (customerId: number) => {
+  return `/api/erp/sales/print-parties/${customerId}`;
+};
+
+/**
+ * @summary Company and customer details for the head of a printed sales document
+ */
+export const getPrintParties = async (
+  customerId: number,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<PrintParties> => {
+  return customFetch<PrintParties>(getGetPrintPartiesUrl(customerId), {
+    ...options,
+    method: 'GET',
+  });
+};
+
+export const getGetPrintPartiesQueryKey = (customerId: number) => {
+  return [`/api/erp/sales/print-parties/${customerId}`] as const;
+};
+
+export const getGetPrintPartiesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPrintParties>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrintParties>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPrintPartiesQueryKey(customerId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPrintParties>>> = ({ signal }) =>
+    getPrintParties(customerId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: customerId !== null && customerId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPrintParties>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetPrintPartiesQueryResult = NonNullable<Awaited<ReturnType<typeof getPrintParties>>>;
+export type GetPrintPartiesQueryError = ErrorType<ProblemDetails>;
+
+export function useGetPrintParties<
+  TData = Awaited<ReturnType<typeof getPrintParties>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrintParties>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPrintParties>>,
+          TError,
+          Awaited<ReturnType<typeof getPrintParties>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPrintParties<
+  TData = Awaited<ReturnType<typeof getPrintParties>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrintParties>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPrintParties>>,
+          TError,
+          Awaited<ReturnType<typeof getPrintParties>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetPrintParties<
+  TData = Awaited<ReturnType<typeof getPrintParties>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrintParties>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Company and customer details for the head of a printed sales document
+ */
+
+export function useGetPrintParties<
+  TData = Awaited<ReturnType<typeof getPrintParties>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrintParties>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetPrintPartiesQueryOptions(customerId, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;

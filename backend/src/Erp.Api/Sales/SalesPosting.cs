@@ -80,7 +80,7 @@ internal static class SalesPosting
 
         var sales = lines.Sum(l => l.TotalValue - l.SdAmount - l.VatAmount);
         var chargeAccount = await db.SalesDeliveries.Where(d => d.Id == salesReturn.DeliveryId)
-            .Select(d => d.OtherChargeAccountId ?? d.ExtraChargeAccountId).SingleAsync(cancellationToken);
+            .Select(d => d.OtherChargeAccountId ?? d.ExtraChargeAccountId).SingleOrDefaultAsync(cancellationToken);
         var refund = await PaymentSources.CreditAsync(
             db, salesReturn.PaymentMethodId, salesReturn.BankAccountId, salesReturn.RefundAmount, cancellationToken);
         var (journal, problem) = await AccountPosting.PostAsync(db, current, new JournalEntry(

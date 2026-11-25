@@ -14,16 +14,17 @@ import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
+import { TypeSelect } from '../../../components/TypeSelect';
 import { FORM_COLUMNS } from '../../../sales-document';
 import { DeliveryLines } from '../components/DeliveryLines';
 import { DeliveryCustomerPicker, OrderPicker } from '../components/DeliveryPickers';
-import { DeliveryTypeSelect } from '../components/DeliveryTypeSelect';
 import { DELIVERY_FEATURE, DELIVERY_LOOKUPS, deliveryPaths, ORDER_PARAM } from '../constants';
 import {
   deliveryBehaviors,
   fromDetail,
   fromOrder,
   newDelivery,
+  ofType,
   toRequest,
   useDeliveryLookups,
   type DeliveryValues,
@@ -87,8 +88,9 @@ export function DeliveryFormPage() {
             maxColumns: FORM_COLUMNS,
             widgets: {
               type: (_, placeholder) => (
-                <DeliveryTypeSelect
+                <TypeSelect<DeliveryValues>
                   types={lookups[DELIVERY_LOOKUPS.type] ?? []}
+                  toValues={ofType}
                   placeholder={placeholder}
                 />
               ),

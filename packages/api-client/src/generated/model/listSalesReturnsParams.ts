@@ -9,6 +9,7 @@
 export type ListSalesReturnsParams = {
   search?: string;
   status?: string;
+  source?: string;
   customerId?: number;
   warehouseId?: string;
   returnReasonId?: number;

@@ -17,6 +17,7 @@ export const returnPaths = {
 
 export const RETURN_LOOKUPS = {
   ...SALES_LOOKUPS,
+  source: 'sales-return-source',
   delivery: 'sales-delivery',
   reason: 'sales-return-reason',
 } as const;
@@ -27,6 +28,10 @@ export const RETURN_LOOKUP_LISTS = [
   'sales-return-type',
   'delivery-method',
 ];
+
+export const FROM_DELIVERY = 'delivery';
+export const WITHOUT_REFERENCE = 'withoutReference';
+export const RETURN_SOURCES = [FROM_DELIVERY, WITHOUT_REFERENCE];
 
 export const BATCH_MAX = 500;
 export const SERIAL_MAX = 2000;

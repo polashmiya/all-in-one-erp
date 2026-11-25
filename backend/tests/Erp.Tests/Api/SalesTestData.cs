@@ -301,8 +301,10 @@ internal static class SalesTestData
     public static SaveSalesReturnRequest Return(SalesDeliveryDetail delivery, decimal quantity, bool damaged = false) => new()
     {
         Code = null,
+        Source = "delivery",
         ReturnDate = Today,
         DeliveryId = delivery.Id,
+        CustomerId = delivery.CustomerId,
         WarehouseId = delivery.WarehouseId,
         OfficeId = null,
         SalesForceId = null,
@@ -321,6 +323,7 @@ internal static class SalesTestData
         DeliveryMethodId = null,
         PickupAddress = null,
         IsExchange = false,
+        IsVatInclusive = false,
         ChargeRefundAmount = null,
         DeductionLabel = null,
         DeductionValue = null,
@@ -331,16 +334,31 @@ internal static class SalesTestData
         InstrumentDate = null,
         Remarks = null,
         Narration = null,
-        Lines = [.. delivery.Lines.Select(l => new SaveSalesReturnLine
-        {
-            DeliveryLineId = l.Id,
-            Quantity = quantity,
-            IsDamaged = damaged,
-            ItemDescription = null,
-            Batch = null,
-            ItemSerial = null,
-            Remarks = null,
-        })],
+        Lines = [.. delivery.Lines.Select(l => ReturnLine(l.ItemId, quantity) with { DeliveryLineId = l.Id, IsDamaged = damaged })],
+    };
+
+    public static SaveSalesReturnLine ReturnLine(int itemId, decimal quantity) => new()
+    {
+        DeliveryLineId = null,
+        ItemId = itemId,
+        ItemDescription = null,
+        Quantity = quantity,
+        Price = null,
+        DiscountPercentage = null,
+        DiscountAmount = null,
+        IsAmountWiseDiscount = false,
+        IsDiscountPerQuantity = false,
+        SdPercentage = null,
+        VatPercentage = null,
+        AitPercentage = null,
+        WarrantyInMonth = null,
+        IsOfferItem = false,
+        ShelfLife = null,
+        CostPrice = null,
+        IsDamaged = false,
+        Batch = null,
+        ItemSerial = null,
+        Remarks = null,
     };
 
     public static SaveSalesCollectionRequest Collection(int customerId, params SaveSalesCollectionLine[] lines) => new()

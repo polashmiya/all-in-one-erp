@@ -7,15 +7,38 @@
  */
 
 export interface SaveSalesReturnLine {
-  deliveryLineId: number;
-  quantity: number;
-  isDamaged: boolean;
   /** @nullable */
-  itemDescription: string | null;
+  deliveryLineId: number | null;
+  /** @nullable */
+  costPrice: number | null;
+  isDamaged: boolean;
   /** @nullable */
   batch: string | null;
   /** @nullable */
   itemSerial: string | null;
   /** @nullable */
   remarks: string | null;
+  itemId: number;
+  /** @nullable */
+  itemDescription: string | null;
+  quantity: number;
+  /** @nullable */
+  price: number | null;
+  /** @nullable */
+  discountPercentage: number | null;
+  /** @nullable */
+  discountAmount: number | null;
+  isAmountWiseDiscount: boolean;
+  isDiscountPerQuantity: boolean;
+  /** @nullable */
+  sdPercentage: number | null;
+  /** @nullable */
+  vatPercentage: number | null;
+  /** @nullable */
+  aitPercentage: number | null;
+  /** @nullable */
+  warrantyInMonth: number | null;
+  isOfferItem: boolean;
+  /** @nullable */
+  shelfLife: string | null;
 }

@@ -24,6 +24,9 @@ internal static class SalesReturnEndpoints
     private const string Feature = SalesMenu.SalesReturn;
     private const string CodePrefix = "SR-";
 
+    public const string FromDelivery = "delivery";
+    public const string WithoutReference = "withoutReference";
+
     public static readonly string[] Editors = [$"{Feature}.view", $"{Feature}.create", $"{Feature}.edit"];
 
     public static void Map(IEndpointRouteBuilder group)
@@ -47,7 +50,7 @@ internal static class SalesReturnEndpoints
 
         returns.MapPost("", Create)
             .WithName("CreateSalesReturn")
-            .WithSummary("Create a pending return against an approved delivery; an empty number gets the next SR- number")
+            .WithSummary("Create a pending return of an approved delivery or without reference; an empty number gets the next SR- number")
             .RequirePermission($"{Feature}.create")
             .Validate<SaveSalesReturnRequest>();
 
@@ -100,6 +103,7 @@ internal static class SalesReturnEndpoints
     private static async Task<SalesReturnList> List(
         string? search,
         string? status,
+        string? source,
         int? customerId,
         Guid? warehouseId,
         int? returnReasonId,
@@ -112,12 +116,15 @@ internal static class SalesReturnEndpoints
         var returns = db.SalesReturns.AsNoTracking().Where(r => r.IsActive);
         if (DocumentData.Trimmed(search) is { } term)
         {
-            returns = returns.Where(r => r.Code.Contains(term) || r.CustomerName.Contains(term) || r.DeliveryCode.Contains(term) ||
+            returns = returns.Where(r => r.Code.Contains(term) || r.CustomerName.Contains(term) ||
+                (r.DeliveryCode != null && r.DeliveryCode.Contains(term)) ||
                 (r.CreditNoteNo != null && r.CreditNoteNo.Contains(term)) ||
                 (r.ReturnRefNo != null && r.ReturnRefNo.Contains(term)) ||
                 r.Lines.Any(l => l.ItemName.Contains(term) || l.Item!.Code.Contains(term)));
         }
 
+        if (source == FromDelivery) returns = returns.Where(r => r.DeliveryId != null);
+        if (source == WithoutReference) returns = returns.Where(r => r.DeliveryId == null);
         if (customerId is not null) returns = returns.Where(r => r.CustomerId == customerId);
         if (warehouseId is not null) returns = returns.Where(r => r.WarehouseId == warehouseId);
         if (returnReasonId is not null) returns = returns.Where(r => r.ReturnReasonId == returnReasonId);
@@ -143,8 +150,8 @@ internal static class SalesReturnEndpoints
 
         return new SalesReturnList(
             rows.Select(x => new SalesReturnRow(
-                x.Return.Id, x.Return.Code, x.Return.ReturnDate, x.Return.DeliveryId, x.Return.DeliveryCode, x.Return.CustomerId,
-                x.Return.CustomerName, x.Return.WarehouseId, x.WarehouseName, x.Return.ReturnReasonId, x.Return.ReturnReasonName,
+                x.Return.Id, x.Return.Code, SourceOf(x.Return), x.Return.ReturnDate, x.Return.DeliveryId, x.Return.DeliveryCode,
+                x.Return.CustomerId, x.Return.CustomerName, x.Return.WarehouseId, x.WarehouseName, x.Return.ReturnReasonId, x.Return.ReturnReasonName,
                 ApprovalFlow.StatusKey(x.Return.Status), x.ItemCount, x.Return.TotalQuantity, x.Return.NetAmount, x.Return.RefundAmount,
                 x.Return.CreatedAt, x.Return.ModifiedAt)).ToList(),
             total,
@@ -160,8 +167,8 @@ internal static class SalesReturnEndpoints
             .ToListAsync(cancellationToken);
         var ids = deliveries.Select(d => d.Id).ToList();
         var refunded = await DeliveryDues.LiveReturns(db)
-            .Where(r => ids.Contains(r.DeliveryId))
-            .GroupBy(r => r.DeliveryId)
+            .Where(r => ids.Contains(r.DeliveryId ?? 0))
+            .GroupBy(r => r.DeliveryId!.Value)
             .Select(g => new { g.Key, Amount = g.Sum(r => r.ChargeRefundAmount) })
             .ToDictionaryAsync(g => g.Key, g => g.Amount, cancellationToken);
 
@@ -260,9 +267,14 @@ internal static class SalesReturnEndpoints
         if (DocumentData.Delete(salesReturn) is { } problem) return problem;
         await ApprovalFlow.RemoveAsync(db, Feature, id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-        await DeliveryDues.SyncAsync(db, [salesReturn.DeliveryId], cancellationToken);
+        await SyncAsync(db, [salesReturn.DeliveryId], cancellationToken);
         return TypedResults.NoContent();
     }
+
+    private static string SourceOf(SalesReturn r) => r.DeliveryId is null ? WithoutReference : FromDelivery;
+
+    private static Task SyncAsync(ErpDbContext db, IEnumerable<int?> deliveryIds, CancellationToken cancellationToken) =>
+        DeliveryDues.SyncAsync(db, deliveryIds.OfType<int>(), cancellationToken);
 
     private static Task<SalesReturn?> FindAsync(ErpDbContext db, int id, CancellationToken cancellationToken) =>
         db.SalesReturns.Include(r => r.Lines).SingleOrDefaultAsync(r => r.Id == id && r.IsActive, cancellationToken);
@@ -274,7 +286,7 @@ internal static class SalesReturnEndpoints
         if (salesReturn is null) return TypedResults.NotFound();
         if (await change(salesReturn) is { } problem) return problem;
         await db.SaveChangesAsync(cancellationToken);
-        await DeliveryDues.SyncAsync(db, [salesReturn.DeliveryId], cancellationToken);
+        await SyncAsync(db, [salesReturn.DeliveryId], cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, id, cancellationToken))!);
     }
 
@@ -289,15 +301,17 @@ internal static class SalesReturnEndpoints
         var delivery = await db.SalesDeliveries.AsNoTracking()
             .Include(d => d.Lines).ThenInclude(l => l.Item)
             .SingleOrDefaultAsync(d => d.Id == request.DeliveryId && d.IsActive && d.Status == ApprovalStatus.Approved, cancellationToken);
-        if (delivery is null)
+        if (delivery is null && request.Source == FromDelivery)
         {
             errors["deliveryId"] = ["Choose an approved delivery of this business unit."];
             return TypedResults.ValidationProblem(errors);
         }
 
+        var customerId = delivery?.CustomerId ?? request.CustomerId;
+        var vatInclusive = delivery?.IsVatInclusive ?? request.IsVatInclusive;
         var code = await DocumentData.CodeAsync(db.SalesReturns, salesReturn, request.Code, errors, cancellationToken);
         await PeriodLock.CheckAsync(db, "returnDate", request.ReturnDate, errors, cancellationToken);
-        if (request.ReturnDate < delivery.DeliveryDate) errors["returnDate"] = ["Use a date on or after the delivery date."];
+        if (request.ReturnDate < delivery?.DeliveryDate) errors["returnDate"] = ["Use a date on or after the delivery date."];
         await PartnerData.CheckLookupsAsync(db,
         [
             ("returnTypeId", request.ReturnTypeId, existing?.ReturnTypeId, SalesLookups.ReturnType),
@@ -309,35 +323,32 @@ internal static class SalesReturnEndpoints
         await PaymentSources.CheckAsync(
             db, request.PaymentMethodId, request.BankAccountId, existing?.BankAccountId, errors, cancellationToken);
         await SalesData.CheckPeopleAsync(
-            db, delivery.CustomerId, delivery.CustomerId, request.OfficeId, existing?.OfficeId ?? delivery.OfficeId, request.SalesForceId,
-            existing?.SalesForceId ?? delivery.SalesForceId, errors, cancellationToken);
+            db, customerId, delivery?.CustomerId ?? existing?.CustomerId, request.OfficeId, existing?.OfficeId ?? delivery?.OfficeId,
+            request.SalesForceId, existing?.SalesForceId ?? delivery?.SalesForceId, errors, cancellationToken);
         await SalesData.CheckEmployeeAsync(db, "receivedById", request.ReceivedById, existing?.ReceivedById, errors, cancellationToken);
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
 
-        var returned = await DeliveryReturns.LinesAsync(db, [delivery.Id], salesReturn.Id, cancellationToken);
-        var lines = Lines(delivery, returned, request, errors);
+        var returned = delivery is null ? [] : await DeliveryReturns.LinesAsync(db, [delivery.Id], salesReturn.Id, cancellationToken);
+        var lines = delivery is null
+            ? await FreeLinesAsync(db, salesReturn, request, errors, cancellationToken)
+            : Lines(delivery, returned, request, errors);
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
 
-        SalesPricing.Price(lines, new DiscountRule(delivery.IsVatInclusive, false, 0, 0, "lines"), errors);
+        SalesPricing.Price(lines, new DiscountRule(vatInclusive, false, 0, 0, "lines"), errors);
+        if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
+
         var value = lines.Sum(l => l.TotalValue);
-        var reductions = DeliveryReturns.Reductions(delivery);
-        var returnsAll = delivery.Lines.All(d =>
-            d.Quantity <= returned.GetValueOrDefault(d.Id, ReturnedLine.None).Quantity +
-            lines.Where(l => l.DeliveryLineId == d.Id).Sum(l => l.Quantity));
-        var reduced = await DeliveryDues.LiveReturns(db)
-            .Where(r => r.Id != salesReturn.Id && r.DeliveryId == delivery.Id)
-            .SumAsync(r => r.SpecialDiscountAmount, cancellationToken);
-        var special = returnsAll
-            ? Math.Max(0, reductions - reduced)
-            : SalesPricing.Round(value * DeliveryReturns.ReductionRate(delivery));
+        var special = delivery is null ? 0 : await SpecialDiscountAsync(db, salesReturn.Id, delivery, returned, lines, cancellationToken);
         var charge = request.ChargeRefundAmount ?? 0;
         var deduction = request.DeductionValue ?? 0;
         var net = value - special + charge - deduction;
-        var due = (await DeliveryDues.DueAsync(db, [delivery.Id], salesReturn.Id, 0, cancellationToken))[delivery.Id];
+        var due = delivery is null
+            ? 0
+            : (await DeliveryDues.DueAsync(db, [delivery.Id], salesReturn.Id, 0, cancellationToken))[delivery.Id];
         var dueAdjusted = Math.Clamp(net, 0, Math.Max(0, due));
         var refund = request.RefundAmount ?? 0;
 
-        if (charge > await DeliveryReturns.ChargeRefundableAsync(db, delivery, salesReturn.Id, cancellationToken))
+        if (delivery is not null && charge > await DeliveryReturns.ChargeRefundableAsync(db, delivery, salesReturn.Id, cancellationToken))
             errors["chargeRefundAmount"] = ["This is more than the charges of the delivery."];
         else if (net < 0) errors["deductionValue"] = ["The deduction cannot be more than the return amount."];
         else if (refund > net - dueAdjusted)
@@ -354,12 +365,13 @@ internal static class SalesReturnEndpoints
 
         salesReturn.Code = code ?? await DocumentData.NextCodeAsync(db.SalesReturns, CodePrefix, cancellationToken);
         salesReturn.ReturnDate = request.ReturnDate;
-        salesReturn.DeliveryId = delivery.Id;
-        salesReturn.DeliveryCode = delivery.Code;
-        salesReturn.OrderId = delivery.OrderId;
-        salesReturn.OrderCode = delivery.OrderCode;
-        salesReturn.CustomerId = delivery.CustomerId;
-        salesReturn.CustomerName = delivery.CustomerName;
+        salesReturn.DeliveryId = delivery?.Id;
+        salesReturn.DeliveryCode = delivery?.Code;
+        salesReturn.OrderId = delivery?.OrderId;
+        salesReturn.OrderCode = delivery?.OrderCode;
+        salesReturn.CustomerId = customerId;
+        salesReturn.CustomerName = delivery?.CustomerName ??
+            await db.Customers.Where(c => c.Id == customerId).Select(c => c.Name).SingleAsync(cancellationToken);
         salesReturn.Phone = DocumentData.Trimmed(request.Phone);
         salesReturn.OfficeId = request.OfficeId;
         salesReturn.WarehouseId = request.WarehouseId;
@@ -383,7 +395,7 @@ internal static class SalesReturnEndpoints
         salesReturn.DeliveryMethodName = Name(request.DeliveryMethodId);
         salesReturn.PickupAddress = DocumentData.Trimmed(request.PickupAddress);
         salesReturn.IsExchange = request.IsExchange;
-        salesReturn.IsVatInclusive = delivery.IsVatInclusive;
+        salesReturn.IsVatInclusive = vatInclusive;
         salesReturn.TotalQuantity = lines.Sum(l => l.Quantity);
         salesReturn.ItemTotalAmount = lines.Sum(l => l.TotalAmount);
         salesReturn.TotalDiscount = lines.Sum(l => l.DiscountAmount);
@@ -412,9 +424,66 @@ internal static class SalesReturnEndpoints
 
         await db.SaveChangesAsync(cancellationToken);
         await ApprovalFlow.StartAsync(db, current, Feature, salesReturn.Id, cancellationToken);
-        await DeliveryDues.SyncAsync(db, [previousDelivery, delivery.Id], cancellationToken);
+        await SyncAsync(db, [previousDelivery, salesReturn.DeliveryId], cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, salesReturn.Id, cancellationToken))!);
+    }
+
+    private static async Task<decimal> SpecialDiscountAsync(
+        ErpDbContext db, int returnId, SalesDelivery delivery, Dictionary<int, ReturnedLine> returned, List<SalesReturnLine> lines,
+        CancellationToken cancellationToken)
+    {
+        var returnsAll = delivery.Lines.All(d =>
+            d.Quantity <= returned.GetValueOrDefault(d.Id, ReturnedLine.None).Quantity +
+            lines.Where(l => l.DeliveryLineId == d.Id).Sum(l => l.Quantity));
+        if (!returnsAll) return SalesPricing.Round(lines.Sum(l => l.TotalValue) * DeliveryReturns.ReductionRate(delivery));
+
+        var reduced = await DeliveryDues.LiveReturns(db)
+            .Where(r => r.Id != returnId && r.DeliveryId == delivery.Id)
+            .SumAsync(r => r.SpecialDiscountAmount, cancellationToken);
+        return Math.Max(0, DeliveryReturns.Reductions(delivery) - reduced);
+    }
+
+    private static async Task<List<SalesReturnLine>> FreeLinesAsync(
+        ErpDbContext db, SalesReturn salesReturn, SaveSalesReturnRequest request, Dictionary<string, string[]> errors,
+        CancellationToken cancellationToken)
+    {
+        var items = await SalesData.CheckItemsAsync(db, request.Lines, salesReturn.Lines.Select(l => l.ItemId), errors, cancellationToken);
+        if (errors.Count > 0) return [];
+
+        return [.. request.Lines.Select((line, index) =>
+        {
+            var item = items[line.ItemId];
+            var costPrice = line.CostPrice ?? item.Rate;
+            var cost = SalesPricing.Round(costPrice * line.Quantity);
+            return new SalesReturnLine
+            {
+                Sequence = index + 1,
+                ItemId = item.Id,
+                ItemName = item.Name,
+                ItemDescription = DocumentData.Trimmed(line.ItemDescription),
+                UomId = item.UomId,
+                UomName = item.UomName,
+                Quantity = line.Quantity,
+                Price = line.IsOfferItem ? 0 : line.Price ?? item.SalesPrice,
+                DiscountPercentage = line.IsOfferItem ? 0 : line.DiscountPercentage ?? 0,
+                DiscountAmount = line.IsOfferItem ? 0 : line.DiscountAmount ?? 0,
+                IsAmountWiseDiscount = line.IsAmountWiseDiscount || line.IsDiscountPerQuantity,
+                IsDiscountPerQuantity = line.IsDiscountPerQuantity,
+                SdPercentage = line.SdPercentage ?? item.SdPercentage,
+                VatPercentage = line.VatPercentage ?? item.SalesVatPercentage,
+                AitPercentage = line.AitPercentage ?? 0,
+                WarrantyInMonth = line.WarrantyInMonth ?? 0,
+                IsOfferItem = line.IsOfferItem,
+                IsDamaged = line.IsDamaged,
+                CostPrice = costPrice,
+                CostTotal = cost,
+                LossAmount = line.IsDamaged ? cost : 0,
+                Batch = DocumentData.Trimmed(line.Batch),
+                ItemSerial = DocumentData.Trimmed(line.ItemSerial),
+                Remarks = DocumentData.Trimmed(line.Remarks),
+            };
+        })];
     }
 
     private static List<SalesReturnLine> Lines(
@@ -475,8 +544,10 @@ internal static class SalesReturnEndpoints
     private static SaveSalesReturnRequest ToRequest(SalesReturn r) => new()
     {
         Code = r.Code,
+        Source = SourceOf(r),
         ReturnDate = r.ReturnDate,
         DeliveryId = r.DeliveryId,
+        CustomerId = r.CustomerId,
         WarehouseId = r.WarehouseId,
         OfficeId = r.OfficeId,
         SalesForceId = r.SalesForceId,
@@ -495,6 +566,7 @@ internal static class SalesReturnEndpoints
         DeliveryMethodId = r.DeliveryMethodId,
         PickupAddress = r.PickupAddress,
         IsExchange = r.IsExchange,
+        IsVatInclusive = r.IsVatInclusive,
         ChargeRefundAmount = r.ChargeRefundAmount,
         DeductionLabel = r.DeductionLabel,
         DeductionValue = r.DeductionValue,
@@ -516,16 +588,19 @@ internal static class SalesReturnEndpoints
             .SingleOrDefaultAsync(x => x.Id == id && x.IsActive, cancellationToken);
         if (r is null) return null;
 
-        var delivery = await db.SalesDeliveries.AsNoTracking().Include(d => d.Lines).SingleAsync(d => d.Id == r.DeliveryId, cancellationToken);
-        var delivered = delivery.Lines.ToDictionary(l => l.Id, l => l.Quantity);
-        var returned = await DeliveryReturns.LinesAsync(db, [delivery.Id], id, cancellationToken);
-        var due = await DeliveryDues.DueAsync(db, [delivery.Id], id, 0, cancellationToken);
+        var delivery = await db.SalesDeliveries.AsNoTracking().Include(d => d.Lines)
+            .SingleOrDefaultAsync(d => d.Id == r.DeliveryId, cancellationToken);
+        int[] deliveryIds = delivery is null ? [] : [delivery.Id];
+        var delivered = delivery?.Lines.ToDictionary(l => l.Id, l => l.Quantity) ?? [];
+        var returned = await DeliveryReturns.LinesAsync(db, deliveryIds, id, cancellationToken);
+        var due = await DeliveryDues.DueAsync(db, deliveryIds, id, 0, cancellationToken);
         var names = await PartnerData.LookupNamesAsync(db, [r.PaymentMethodId], cancellationToken);
 
         return new SalesReturnDetail
         {
             Id = r.Id,
             Code = r.Code,
+            Source = SourceOf(r),
             ReturnDate = r.ReturnDate,
             DeliveryId = r.DeliveryId,
             DeliveryName = r.DeliveryCode,
@@ -587,14 +662,16 @@ internal static class SalesReturnEndpoints
             ReviewedAt = r.ReviewedAt,
             ReviewedByName = await DocumentData.ReviewerNameAsync(db, r.ReviewedById, cancellationToken),
             ReviewComment = r.ReviewComment,
-            Due = due[delivery.Id],
-            ReductionRate = DeliveryReturns.ReductionRate(delivery),
-            ChargeRefundable = await DeliveryReturns.ChargeRefundableAsync(db, delivery, id, cancellationToken),
+            Due = due.Values.Sum(),
+            ReductionRate = delivery is null ? 0 : DeliveryReturns.ReductionRate(delivery),
+            ChargeRefundable = delivery is null ? 0 : await DeliveryReturns.ChargeRefundableAsync(db, delivery, id, cancellationToken),
             Lines = [.. r.Lines.OrderBy(l => l.Sequence).Select(l => new SalesReturnLineDetail(
-                l.Id, l.DeliveryLineId, l.ItemId, l.Item!.Code, l.ItemName, l.ItemDescription, l.UomName, delivered[l.DeliveryLineId],
-                delivered[l.DeliveryLineId] - returned.GetValueOrDefault(l.DeliveryLineId, ReturnedLine.None).Quantity, l.Quantity, l.Price,
-                l.TotalAmount, l.DiscountAmount, l.SdPercentage, l.SdAmount, l.VatPercentage, l.VatAmount, l.AitPercentage, l.AitAmount,
-                l.TotalValue, l.IsOfferItem, l.IsDamaged, l.CostTotal, l.LossAmount, l.Batch, l.ItemSerial, l.Remarks))],
+                l.Id, l.DeliveryLineId, l.ItemId, l.Item!.Code, l.ItemName, l.ItemDescription, l.UomName,
+                l.DeliveryLineId is { } line ? delivered[line] : null,
+                l.DeliveryLineId is { } own ? delivered[own] - returned.GetValueOrDefault(own, ReturnedLine.None).Quantity : null,
+                l.Quantity, l.Price, l.TotalAmount, l.DiscountPercentage, l.DiscountAmount, l.IsAmountWiseDiscount, l.IsDiscountPerQuantity,
+                l.SdPercentage, l.SdAmount, l.VatPercentage, l.VatAmount, l.AitPercentage, l.AitAmount, l.TotalValue, l.IsOfferItem,
+                l.IsDamaged, l.CostPrice, l.CostTotal, l.LossAmount, l.Batch, l.ItemSerial, l.Remarks))],
             CustomData = CustomFieldData.Parse(r.CustomData),
             CreatedAt = r.CreatedAt,
             ModifiedAt = r.ModifiedAt,

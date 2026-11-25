@@ -81,7 +81,11 @@ export function ReturnViewPage() {
         {
           key: 'delivery',
           icon: <CarOutlined />,
-          label: <Link to={deliveryPaths.view(record.deliveryId)}>{record.deliveryName}</Link>,
+          label: record.deliveryId ? (
+            <Link to={deliveryPaths.view(record.deliveryId)}>{record.deliveryName}</Link>
+          ) : (
+            t(`salesReturn.source.${record.source}`)
+          ),
         },
         {
           key: 'date',
@@ -91,6 +95,7 @@ export function ReturnViewPage() {
         { key: 'warehouse', icon: <HomeOutlined />, label: record.warehouseName },
         { key: 'receivedBy', icon: <IdcardOutlined />, label: record.receivedByName },
       ]}
+      renderers={{ source: (r) => t(`salesReturn.source.${r.source}`) }}
       sections={[
         {
           key: 'settled',
@@ -114,12 +119,17 @@ export function ReturnViewPage() {
         <LinesView<SalesReturnLineDetail>
           rows={record.lines}
           columns={[
-            {
-              key: 'delivered',
-              title: t('salesReturn.lines.delivered'),
-              align: 'end',
-              render: (_, line) => formatNumber(line.delivered, QUANTITY_DECIMALS_SHOWN),
-            },
+            ...(record.deliveryId
+              ? [
+                  {
+                    key: 'delivered',
+                    title: t('salesReturn.lines.delivered'),
+                    align: 'end' as const,
+                    render: (_: unknown, line: SalesReturnLineDetail) =>
+                      formatNumber(line.delivered, QUANTITY_DECIMALS_SHOWN),
+                  },
+                ]
+              : []),
             {
               key: 'price',
               title: t('document.lines.price'),

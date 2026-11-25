@@ -11,8 +11,11 @@ import type { SaveSalesReturnRequestCustomData } from './saveSalesReturnRequestC
 export interface SaveSalesReturnRequest {
   /** @nullable */
   code: string | null;
+  source: string;
   returnDate: string;
-  deliveryId: number;
+  /** @nullable */
+  deliveryId: number | null;
+  customerId: number;
   warehouseId: string;
   /** @nullable */
   officeId: string | null;
@@ -47,6 +50,7 @@ export interface SaveSalesReturnRequest {
   /** @nullable */
   pickupAddress: string | null;
   isExchange: boolean;
+  isVatInclusive: boolean;
   /** @nullable */
   chargeRefundAmount: number | null;
   /** @nullable */

@@ -1,4 +1,4 @@
-import type { ReturnDeliveryOption } from '@erp/api-client';
+import type { CustomerOption } from '@erp/api-client';
 import {
   getGetSalesReturnQueryKey,
   useCreateSalesReturn,
@@ -10,18 +10,20 @@ import { ForbiddenResult, PageState } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router';
 import { DocumentForm } from '@/common/documents/DocumentForm';
-import { SourcePicker } from '@/common/documents/SourcePicker';
 import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
+import { TypeSelect } from '../../../components/TypeSelect';
 import { FORM_COLUMNS } from '../../../sales-document';
 import { ReturnLines } from '../components/ReturnLines';
-import { DELIVERY_PARAM, RETURN_FEATURE, returnPaths } from '../constants';
+import { ReturnCustomerPicker, ReturnDeliveryPicker } from '../components/ReturnPickers';
+import { DELIVERY_PARAM, RETURN_FEATURE, RETURN_LOOKUPS, returnPaths } from '../constants';
 import {
   fromDelivery,
   fromDetail,
   newReturn,
+  ofSource,
   returnBehaviors,
   toRequest,
   useReturnLookups,
@@ -54,6 +56,7 @@ export function ReturnFormPage() {
   const record = id ? source.data : undefined;
   const locked = !!record && record.status !== 'pending';
   const delivery = deliveries?.find((d) => d.id === deliveryId);
+  const customers = lookups[RETURN_LOOKUPS.customer] as CustomerOption[] | undefined;
 
   return (
     <PageState
@@ -87,14 +90,30 @@ export function ReturnFormPage() {
             behaviors: returnBehaviors(payFrom.behaviors),
             maxColumns: FORM_COLUMNS,
             widgets: {
+              source: (_, placeholder) => (
+                <TypeSelect<ReturnValues>
+                  types={lookups[RETURN_LOOKUPS.source] ?? []}
+                  toValues={ofSource}
+                  placeholder={placeholder}
+                />
+              ),
               deliveryId: (_, placeholder) => (
-                <SourcePicker<ReturnDeliveryOption, ReturnValues>
-                  disabled={!!record}
-                  toValues={fromDelivery}
-                  labelOf={(option) => `${option.code} · ${option.customerName}`}
-                  options={deliveries}
+                <ReturnDeliveryPicker
+                  deliveries={deliveries}
+                  saved={!!record?.deliveryId}
                   current={
-                    record ? { id: record.deliveryId, name: record.deliveryName } : undefined
+                    record?.deliveryId
+                      ? { id: record.deliveryId, name: record.deliveryName ?? '' }
+                      : undefined
+                  }
+                  placeholder={placeholder}
+                />
+              ),
+              customerId: (_, placeholder) => (
+                <ReturnCustomerPicker
+                  customers={customers}
+                  current={
+                    record ? { id: record.customerId, name: record.customerName } : undefined
                   }
                   placeholder={placeholder}
                 />

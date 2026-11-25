@@ -24,6 +24,18 @@ export const salesDeliveryRoutes: RouteObject[] = [
         }),
       },
       {
+        path: ':id/invoice',
+        lazy: async () => ({
+          Component: (await import('./pages/InvoicePrintPage')).InvoicePrintPage,
+        }),
+      },
+      {
+        path: ':id/challan',
+        lazy: async () => ({
+          Component: (await import('./pages/ChallanPrintPage')).ChallanPrintPage,
+        }),
+      },
+      {
         path: ':id/edit',
         lazy: async () => ({
           Component: (await import('./pages/DeliveryFormPage')).DeliveryFormPage,

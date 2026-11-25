@@ -10,6 +10,8 @@ export interface SalesReportRow {
   key: string;
   /** @nullable */
   id: number | null;
+  /** @nullable */
+  returnId?: number | null;
   code: string;
   /** @nullable */
   name: string | null;

@@ -16,7 +16,13 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
             new("notes", new("Notes", "মন্তব্য"), 40, "general"),
         ],
         [
-            SalesFields.Code(10, new("Return no.", "ফেরত নম্বর")),
+            new("source", FieldTypes.Lookup, new("Return from", "যেখান থেকে ফেরত"), "basic", 10)
+            {
+                Locked = true,
+                Lookup = SalesLookups.ReturnSource,
+                ListOrder = 35,
+                Filter = true,
+            },
             new("returnDate", FieldTypes.Date, new("Return date", "ফেরতের তারিখ"), "basic", 20)
             {
                 Locked = true,
@@ -25,7 +31,6 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
             },
             new("deliveryId", FieldTypes.Lookup, new("Sales delivery", "বিক্রয় ডেলিভারি"), "basic", 30)
             {
-                Locked = true,
                 ColSpan = 2,
                 Lookup = SalesLookups.Delivery,
                 ListOrder = 40,
@@ -38,6 +43,7 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
                 ListOrder = 30,
                 Filter = true,
             },
+            SalesFields.Code(45, new("Return no.", "ফেরত নম্বর")),
             new("returnTypeId", FieldTypes.Lookup, new("Return type", "ফেরতের ধরন"), "basic", 50) { Lookup = SalesLookups.ReturnType },
             new("returnReasonId", FieldTypes.Lookup, new("Return reason", "ফেরতের কারণ"), "basic", 60)
             {
@@ -54,7 +60,6 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
             },
             new("officeId", FieldTypes.Lookup, new("Office", "অফিস"), "basic", 80) { Lookup = EmployeeLookups.Office },
             new("salesForceId", FieldTypes.Lookup, new("Sales force", "বিক্রয় প্রতিনিধি"), "basic", 90) { Lookup = EmployeeLookups.Employee },
-            new("receivedById", FieldTypes.Lookup, new("Goods received by", "মাল গ্রহণকারী"), "basic", 100) { Lookup = EmployeeLookups.Employee },
 
             new("returnRequestNo", FieldTypes.Text, new("Return request no.", "ফেরত আবেদন নম্বর"), "reference", 10) { MaxLength = 200 },
             new("returnRefNo", FieldTypes.Text, new("Customer reference no.", "গ্রাহকের রেফারেন্স নম্বর"), "reference", 20) { MaxLength = 200 },
@@ -66,7 +71,8 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
             new("vatChallanNo", FieldTypes.Text, new("VAT challan no.", "ভ্যাট চালান নম্বর"), "reference", 80) { MaxLength = 200 },
             new("phone", FieldTypes.Text, new("Phone", "ফোন"), "reference", 90) { MaxLength = 100 },
             new("deliveryMethodId", FieldTypes.Lookup, new("Brought by", "যেভাবে এসেছে"), "reference", 100) { Lookup = SalesLookups.DeliveryMethod },
-            new("pickupAddress", FieldTypes.Text, new("Pickup address", "সংগ্রহের ঠিকানা"), "reference", 110) { MaxLength = 300, ColSpan = 2 },
+            new("pickupAddress", FieldTypes.Text, new("Pickup address", "সংগ্রহের ঠিকানা"), "reference", 110) { MaxLength = 300 },
+            new("receivedById", FieldTypes.Lookup, new("Goods received by", "মাল গ্রহণকারী"), "reference", 120) { Lookup = EmployeeLookups.Employee },
 
             new("chargeRefundAmount", FieldTypes.Money, new("Charge refund", "চার্জ ফেরত"), "settlement", 10) { Min = 0 },
             new("deductionLabel", FieldTypes.Text, new("Deduction for", "কর্তনের কারণ"), "settlement", 20) { MaxLength = 500 },
@@ -83,7 +89,8 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
                 ColSpan = 2,
             },
             new("instrumentDate", FieldTypes.Date, new("Cheque date", "চেকের তারিখ"), "settlement", 80) { ColSpan = 2 },
-            new("isExchange", FieldTypes.Boolean, new("For exchange", "বদলের জন্য"), "settlement", 90) { ColSpan = 2 },
+            new("isExchange", FieldTypes.Boolean, new("For exchange", "বদলের জন্য"), "settlement", 90),
+            new("isVatInclusive", FieldTypes.Boolean, new("Prices include VAT", "দামে ভ্যাট ধরা আছে"), "settlement", 100),
 
             SalesFields.Remarks(10),
             new("narration", FieldTypes.TextArea, new("Narration", "বিবরণ"), "notes", 20) { MaxLength = 4000, ColSpan = 2 },

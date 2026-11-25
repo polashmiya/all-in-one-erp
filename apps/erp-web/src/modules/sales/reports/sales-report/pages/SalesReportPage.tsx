@@ -21,6 +21,7 @@ import { dateParams, NO_DATES, useDateFilters, type DateRange } from '@/common/r
 import { ReportPage, type ReportColumn } from '@/common/reports/ReportPage';
 import { selectCurrentUnit, useAuthStore } from '@/common/store/auth-store';
 import { DELIVERY_TYPES, deliveryPaths } from '../../../sales/sales-delivery/constants';
+import { returnPaths } from '../../../sales/sales-return/constants';
 import { SALES_LOOKUPS } from '../../../sales-document';
 import { useReportLookups } from '../../useReportLookups';
 import { SALES_REPORT_FEATURE, SALES_REPORT_VIEWS, type SalesView } from '../constants';
@@ -230,7 +231,10 @@ export function SalesReportPage() {
       onRefresh={() => void query.refetch()}
       onRowClick={
         view === 'delivery'
-          ? (row) => row.id !== null && void navigate(deliveryPaths.view(row.id))
+          ? (row) => {
+              if (row.returnId) void navigate(returnPaths.view(row.returnId));
+              else if (row.id) void navigate(deliveryPaths.view(row.id));
+            }
           : undefined
       }
       exportFile={t('salesReport.exportFile')}

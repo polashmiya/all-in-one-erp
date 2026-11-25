@@ -7,31 +7,47 @@ import {
   getSalesReturnApproval,
   rejectSalesReturn,
   useGetReturnDeliveryOptions,
+  type CustomerOption,
   type ReturnDeliveryOption,
   type SalesReturnDetail,
   type SaveSalesReturnLine,
   type SaveSalesReturnRequest,
 } from '@erp/api-client';
-import type { FieldBehavior, LookupSources } from '@erp/metadata-engine';
+import type { FieldBehavior, LookupItem, LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
+import { useTranslation } from 'react-i18next';
 import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
 import { trimmed, useUnitKey } from '@/common/master-data';
 import { usePayFrom } from '@/common/pay-from';
-import { salesTotals } from '../../pricing';
-import { keepVisible, useSalesLookups, type SalesLineValue } from '../../sales-document';
-import { RETURN_LOOKUP_LISTS, RETURN_LOOKUPS } from './constants';
+import { discountOf, salesTotals } from '../../pricing';
+import {
+  emptyLine,
+  keepVisible,
+  lineRequest,
+  useSalesLookups,
+  type SalesLineValue,
+} from '../../sales-document';
+import {
+  FROM_DELIVERY,
+  RETURN_LOOKUP_LISTS,
+  RETURN_LOOKUPS,
+  RETURN_SOURCES,
+  WITHOUT_REFERENCE,
+} from './constants';
 
 export interface ReturnLine
   extends
     SalesLineValue,
     Partial<
-      Pick<SaveSalesReturnLine, 'deliveryLineId' | 'isDamaged' | 'batch' | 'itemSerial' | 'remarks'>
+      Pick<
+        SaveSalesReturnLine,
+        'deliveryLineId' | 'costPrice' | 'isDamaged' | 'batch' | 'itemSerial' | 'remarks'
+      >
     > {
-  remaining?: number;
+  remaining?: number | null;
 }
 
 export interface ReturnSource {
-  customerId?: number;
   isVatInclusive?: boolean;
   due?: number;
   reductionRate?: number;
@@ -41,32 +57,68 @@ export type ReturnValues = Omit<SaveSalesReturnRequest, 'lines'> &
   ReturnSource & { lines: ReturnLine[] };
 
 export function useReturnLookups(enabled = true) {
+  const { t } = useTranslation();
   const lookups = useSalesLookups(RETURN_LOOKUP_LISTS, enabled);
   const payFrom = usePayFrom(lookups[RETURN_LOOKUPS.paymentMethod], enabled);
   const deliveries = useGetReturnDeliveryOptions({
     query: { queryKey: useUnitKey(getGetReturnDeliveryOptionsQueryKey()), enabled },
   });
+  const sources: LookupItem[] = RETURN_SOURCES.map((id) => ({
+    id,
+    name: t(`salesReturn.source.${id}`),
+    isActive: true,
+  }));
   const all: LookupSources = {
     ...lookups,
     ...payFrom.lookups,
+    [RETURN_LOOKUPS.source]: sources,
     [RETURN_LOOKUPS.delivery]: deliveries.data,
   };
   return { lookups: all, payFrom, deliveries: deliveries.data };
 }
 
+const lockedByDelivery: FieldBehavior = {
+  watch: ['source'],
+  state: (values) => ({ disabled: values.source === FROM_DELIVERY }),
+};
+
 export const returnBehaviors = (
   payFrom: Record<string, FieldBehavior>,
 ): Record<string, FieldBehavior> => ({
   ...Object.fromEntries(Object.entries(payFrom).map(([key, b]) => [key, keepVisible(b)])),
-  customerId: { watch: [], state: () => ({ disabled: true }) },
+  deliveryId: {
+    watch: ['source'],
+    state: (values) => ({ required: values.source === FROM_DELIVERY }),
+  },
+  customerId: lockedByDelivery,
+  isVatInclusive: lockedByDelivery,
 });
 
 export function newReturn(): Partial<ReturnValues> {
-  return { returnDate: formatDate(new Date(), API_DATE_FORMAT), lines: [] };
+  return {
+    source: FROM_DELIVERY,
+    returnDate: formatDate(new Date(), API_DATE_FORMAT),
+    lines: [],
+  };
 }
+
+export const ofSource = (source: string): Partial<ReturnValues> => ({
+  deliveryId: null,
+  isVatInclusive: false,
+  due: 0,
+  reductionRate: 0,
+  lines: source === WITHOUT_REFERENCE ? [emptyLine()] : [],
+});
+
+export const fromReturnCustomer = (customer: CustomerOption): Partial<ReturnValues> => ({
+  phone: customer.phone,
+  pickupAddress: customer.address,
+  ...(customer.salesRepresentativeId && { salesForceId: customer.salesRepresentativeId }),
+});
 
 export function fromDelivery(delivery: ReturnDeliveryOption): Partial<ReturnValues> {
   return {
+    source: FROM_DELIVERY,
     deliveryId: delivery.id,
     customerId: delivery.customerId,
     phone: delivery.phone,
@@ -101,6 +153,7 @@ export function fromDelivery(delivery: ReturnDeliveryOption): Partial<ReturnValu
 }
 
 export function fromDetail(detail: SalesReturnDetail): ReturnValues {
+  const free = detail.source === WITHOUT_REFERENCE;
   return {
     ...detail,
     lines: detail.lines.map((line) => ({
@@ -113,8 +166,9 @@ export function fromDetail(detail: SalesReturnDetail): ReturnValues {
       quantity: line.quantity,
       remaining: line.remaining,
       price: line.price,
-      discount: line.discountAmount / line.quantity,
-      discountType: 'unit',
+      ...(free
+        ? { ...discountOf(line), costPrice: line.costPrice }
+        : { discount: line.discountAmount / line.quantity, discountType: 'unit' as const }),
       sdPercentage: line.sdPercentage,
       vatPercentage: line.vatPercentage,
       aitPercentage: line.aitPercentage,
@@ -141,10 +195,13 @@ export function returnTotals(
 }
 
 export function toRequest(v: ReturnValues): SaveSalesReturnRequest {
+  const free = v.source === WITHOUT_REFERENCE;
   return {
     code: trimmed(v.code),
+    source: v.source,
     returnDate: v.returnDate,
-    deliveryId: v.deliveryId,
+    deliveryId: free ? null : (v.deliveryId ?? null),
+    customerId: v.customerId,
     warehouseId: v.warehouseId,
     officeId: v.officeId ?? null,
     salesForceId: v.salesForceId ?? null,
@@ -163,6 +220,7 @@ export function toRequest(v: ReturnValues): SaveSalesReturnRequest {
     deliveryMethodId: v.deliveryMethodId ?? null,
     pickupAddress: trimmed(v.pickupAddress),
     isExchange: !!v.isExchange,
+    isVatInclusive: !!v.isVatInclusive,
     chargeRefundAmount: v.chargeRefundAmount ?? null,
     deductionLabel: trimmed(v.deductionLabel),
     deductionValue: v.deductionValue ?? null,
@@ -174,10 +232,10 @@ export function toRequest(v: ReturnValues): SaveSalesReturnRequest {
     remarks: trimmed(v.remarks),
     narration: trimmed(v.narration),
     lines: v.lines.map((line) => ({
-      deliveryLineId: line.deliveryLineId ?? 0,
-      quantity: line.quantity ?? 0,
+      ...lineRequest(line),
+      deliveryLineId: free ? null : (line.deliveryLineId ?? null),
+      costPrice: free ? (line.costPrice ?? null) : null,
       isDamaged: !!line.isDamaged,
-      itemDescription: trimmed(line.itemDescription),
       batch: trimmed(line.batch),
       itemSerial: trimmed(line.itemSerial),
       remarks: trimmed(line.remarks),

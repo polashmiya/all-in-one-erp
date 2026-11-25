@@ -1,21 +1,22 @@
 import type { LookupItem } from '@erp/metadata-engine';
 import { Form, Select } from 'antd';
-import { ofType, type DeliveryValues } from '../delivery-form';
 
-export function DeliveryTypeSelect({
+export function TypeSelect<V extends object>({
   id,
   types,
   placeholder,
+  toValues,
   value,
   onChange,
 }: {
   id?: string;
   types: LookupItem[];
   placeholder?: string;
+  toValues: (type: string) => Partial<V>;
   value?: string;
   onChange?: (value: string) => void;
 }) {
-  const form = Form.useFormInstance<DeliveryValues>();
+  const form = Form.useFormInstance<V>();
 
   return (
     <Select<string>
@@ -25,7 +26,7 @@ export function DeliveryTypeSelect({
       options={types.map((type) => ({ value: String(type.id), label: type.name }))}
       onChange={(next) => {
         onChange?.(next);
-        form.setFieldsValue(ofType(next) as never);
+        form.setFieldsValue(toValues(next) as never);
       }}
     />
   );

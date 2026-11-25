@@ -10,9 +10,9 @@ public class SalesReturn : MasterRecord, IBusinessUnitOwned, IApprovalDocument
 
     public DateOnly ReturnDate { get; set; }
 
-    public int DeliveryId { get; set; }
+    public int? DeliveryId { get; set; }
 
-    public string DeliveryCode { get; set; } = "";
+    public string? DeliveryCode { get; set; }
 
     public int? OrderId { get; set; }
 
@@ -135,7 +135,7 @@ public class SalesReturnLine : SalesLine
 {
     public int ReturnId { get; set; }
 
-    public int DeliveryLineId { get; set; }
+    public int? DeliveryLineId { get; set; }
 
     public bool IsOfferItem { get; set; }
 

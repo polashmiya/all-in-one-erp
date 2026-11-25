@@ -7797,12 +7797,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,6)");
 
                     b.Property<string>("DeliveryCode")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("SalesDeliveryCode");
 
-                    b.Property<int>("DeliveryId")
+                    b.Property<int?>("DeliveryId")
                         .HasColumnType("int")
                         .HasColumnName("SalesDeliveryID");
 
@@ -8068,7 +8067,7 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
 
-                    b.Property<int>("DeliveryLineId")
+                    b.Property<int?>("DeliveryLineId")
                         .HasColumnType("int")
                         .HasColumnName("SalesDeliveryLineID");
 
@@ -10226,8 +10225,7 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.HasOne("Erp.Core.Domain.Sales.SalesDelivery", null)
                         .WithMany()
                         .HasForeignKey("DeliveryId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
                         .WithMany()
@@ -10281,8 +10279,7 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.HasOne("Erp.Core.Domain.Sales.SalesDeliveryLine", null)
                         .WithMany()
                         .HasForeignKey("DeliveryLineId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Erp.Core.Domain.Inventory.Item", "Item")
                         .WithMany()

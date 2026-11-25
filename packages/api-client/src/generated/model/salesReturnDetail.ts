@@ -11,9 +11,12 @@ import type { SalesReturnLineDetail } from './salesReturnLineDetail.ts';
 export interface SalesReturnDetail {
   id: number;
   code: string;
+  source: string;
   returnDate: string;
-  deliveryId: number;
-  deliveryName: string;
+  /** @nullable */
+  deliveryId: number | null;
+  /** @nullable */
+  deliveryName: string | null;
   /** @nullable */
   orderId: number | null;
   /** @nullable */

@@ -3,6 +3,7 @@ import {
   CalendarOutlined,
   FileTextOutlined,
   IdcardOutlined,
+  PrinterOutlined,
   UserOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
@@ -23,13 +24,14 @@ import {
 } from '@erp/ui';
 import { Table } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { DocumentView } from '@/common/documents/DocumentView';
 import { LineTotals } from '@/common/documents/LineTotals';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import '@/common/documents/documents.css';
+import { isPrintable } from '../../../print/print';
 import { deliveryPaths } from '../../sales-delivery/constants';
 import { collectionCalls } from '../collection-form';
 import { AMOUNTS, COLLECTION_FEATURE, collectionPaths } from '../constants';
@@ -38,6 +40,7 @@ type MoneyKey = 'billAmount' | 'due' | 'collectionAmount' | 'settledAmount';
 
 export function CollectionViewPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const id = Number(useParams().id);
   const access = useFeatureAccess(COLLECTION_FEATURE);
   const config = useFeatureConfig(COLLECTION_FEATURE, access.view);
@@ -95,6 +98,15 @@ export function CollectionViewPage() {
         },
         { key: 'receipt', icon: <FileTextOutlined />, label: collection.moneyReceiptNo },
         { key: 'collectedBy', icon: <IdcardOutlined />, label: collection.collectedByName },
+      ]}
+      moreActions={[
+        {
+          key: 'receipt',
+          label: t('print.receipt'),
+          icon: <PrinterOutlined />,
+          hidden: !isPrintable(collection),
+          onClick: () => navigate(collectionPaths.receipt(collection.id)),
+        },
       ]}
       lines={
         collection.isAdvance ? (

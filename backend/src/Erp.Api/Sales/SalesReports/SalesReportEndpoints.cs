@@ -1,5 +1,6 @@
 using System.Globalization;
 using Erp.Api.Documents;
+using Erp.Api.Sales.SalesDeliveries;
 using Erp.Core.Authorization;
 using Erp.Core.Domain.Approvals;
 using Erp.Core.Domain.Sales;
@@ -12,6 +13,7 @@ public sealed record SalesReportRow
 {
     public required string Key { get; init; }
     public required int? Id { get; init; }
+    public int? ReturnId { get; init; }
     public required string Code { get; init; }
     public required string? Name { get; init; }
     public required DateOnly? Date { get; init; }
@@ -57,7 +59,7 @@ internal static class SalesReportEndpoints
     {
         group.MapGet("/sales-report", Report)
             .WithName("GetSalesReport")
-            .WithSummary("Approved deliveries with returns, cost, profit, receipts and due, by delivery, item, category, customer, sales force or month")
+            .WithSummary("Approved deliveries and returns with cost, profit, receipts and due, by delivery, item, category, customer, sales force or month")
             .RequirePermission($"{SalesMenu.SalesReport}.view");
     }
 
@@ -77,7 +79,8 @@ internal static class SalesReportEndpoints
         CancellationToken cancellationToken)
     {
         var deliveries = db.SalesDeliveries.AsNoTracking().Where(d => d.IsActive && d.Status == ApprovalStatus.Approved);
-        if (Enum.TryParse<DeliveryType>(type, true, out var only)) deliveries = deliveries.Where(d => d.Type == only);
+        var only = SalesDeliveryEndpoints.ParseType(type);
+        if (only is not null) deliveries = deliveries.Where(d => d.Type == only);
         if (customerId is not null) deliveries = deliveries.Where(d => d.CustomerId == customerId);
         if (warehouseId is not null) deliveries = deliveries.Where(d => d.WarehouseId == warehouseId);
         if (salesForceId is not null) deliveries = deliveries.Where(d => d.SalesForceId == salesForceId);
@@ -85,9 +88,21 @@ internal static class SalesReportEndpoints
         if (from is not null) deliveries = deliveries.Where(d => d.DeliveryDate >= from);
         if (to is not null) deliveries = deliveries.Where(d => d.DeliveryDate <= to);
 
+        var loose = Approved(db).Where(r => r.DeliveryId == null && only == null);
+        if (customerId is not null) loose = loose.Where(r => r.CustomerId == customerId);
+        if (warehouseId is not null) loose = loose.Where(r => r.WarehouseId == warehouseId);
+        if (salesForceId is not null) loose = loose.Where(r => r.SalesForceId == salesForceId);
+        if (officeId is not null) loose = loose.Where(r => r.OfficeId == officeId);
+        if (from is not null) loose = loose.Where(r => r.ReturnDate >= from);
+        if (to is not null) loose = loose.Where(r => r.ReturnDate <= to);
+
         var rows = view is ByItem or ByCategory
-            ? await ItemRowsAsync(db, deliveries, view == ByCategory, cancellationToken)
-            : Grouped(view, await DeliveryRowsAsync(db, deliveries, cancellationToken));
+            ? await ItemRowsAsync(db, deliveries, loose, view == ByCategory, cancellationToken)
+            : Grouped(view,
+            [
+                .. await DeliveryRowsAsync(db, deliveries, cancellationToken),
+                .. await LooseRowsAsync(loose, cancellationToken),
+            ]);
         if (DocumentData.Trimmed(search) is { } term)
         {
             rows = [.. rows.Where(r => r.Code.Contains(term, StringComparison.OrdinalIgnoreCase) ||
@@ -125,7 +140,7 @@ internal static class SalesReportEndpoints
             .ToListAsync(cancellationToken);
         var returns = await Approved(db)
             .Where(r => deliveries.Any(d => d.Id == r.DeliveryId))
-            .GroupBy(r => r.DeliveryId)
+            .GroupBy(r => r.DeliveryId!.Value)
             .Select(g => new
             {
                 g.Key,
@@ -166,13 +181,45 @@ internal static class SalesReportEndpoints
         })];
     }
 
+    private static async Task<List<DeliveryRow>> LooseRowsAsync(IQueryable<SalesReturn> loose, CancellationToken cancellationToken)
+    {
+        var returns = await loose.OrderByDescending(r => r.ReturnDate).ThenByDescending(r => r.Id).ToListAsync(cancellationToken);
+        return [.. returns.Select(r =>
+        {
+            var cost = r.TotalCost - r.LossAmount;
+            return new DeliveryRow(r.CustomerId, r.SalesForceId, r.SalesForceName, r.ReturnDate, new SalesReportRow
+            {
+                Key = r.Code,
+                Id = null,
+                ReturnId = r.Id,
+                Code = r.Code,
+                Name = r.CustomerName,
+                Date = r.ReturnDate,
+                Deliveries = 0,
+                Quantity = 0,
+                ReturnedQuantity = r.TotalQuantity,
+                GrossAmount = 0,
+                Discount = 0,
+                SdAmount = 0,
+                VatAmount = 0,
+                NetAmount = 0,
+                ReturnAmount = r.NetAmount,
+                SalesAmount = -r.NetAmount,
+                Cost = -cost,
+                Profit = -r.NetAmount + r.TotalVat + r.TotalSd + cost,
+                Received = 0,
+                Due = 0,
+            });
+        })];
+    }
+
     private static List<SalesReportRow> Grouped(string? view, List<DeliveryRow> rows) => view switch
     {
         ByCustomer => Group(rows, r => r.CustomerId.ToString(CultureInfo.InvariantCulture), r => r.Row.Name),
         BySalesForce => Group(rows, r => $"{r.SalesForceId}", r => r.SalesForceName),
         ByMonth => [.. Group(rows, r => r.Date.ToString("yyyy-MM", CultureInfo.InvariantCulture),
             r => r.Date.ToString("MMMM yyyy", CultureInfo.InvariantCulture)).OrderByDescending(r => r.Key)],
-        _ => [.. rows.Select(r => r.Row)],
+        _ => [.. rows.OrderByDescending(r => r.Date).Select(r => r.Row)],
     };
 
     private static List<SalesReportRow> Group(List<DeliveryRow> rows, Func<DeliveryRow, string> key, Func<DeliveryRow, string?> name) =>
@@ -203,42 +250,31 @@ internal static class SalesReportEndpoints
         Due = rows.Sum(r => r.Due),
     };
 
-    private static async Task<List<SalesReportRow>> ItemRowsAsync(
-        ErpDbContext db, IQueryable<SalesDelivery> deliveries, bool byCategory, CancellationToken cancellationToken)
-    {
-        var lines = await deliveries.SelectMany(d => d.Lines)
-            .Select(l => new
-            {
-                l.DeliveryId,
-                l.ItemId,
-                l.Item!.Code,
-                l.Item.Name,
-                l.Item.CategoryId,
-                Category = l.Item.Category!.Name,
-                l.Quantity,
-                l.ReturnedQuantity,
-                l.TotalAmount,
-                l.DiscountAmount,
-                l.SdAmount,
-                l.VatAmount,
-                l.TotalValue,
-                l.CostTotal,
-            })
-            .ToListAsync(cancellationToken);
-        var returned = (await Approved(db)
-                .Where(r => deliveries.Any(d => d.Id == r.DeliveryId))
-                .SelectMany(r => r.Lines)
-                .Select(l => new { l.ItemId, l.Item!.CategoryId, l.TotalValue, Tax = l.VatAmount + l.SdAmount, Cost = l.CostTotal - l.LossAmount })
-                .ToListAsync(cancellationToken))
-            .ToLookup(l => byCategory ? l.CategoryId : l.ItemId);
+    private sealed record ItemLine(
+        int? DeliveryId, int ItemId, string Code, string Name, int CategoryId, string Category, decimal Quantity, decimal Returned,
+        decimal Gross, decimal Discount, decimal Sd, decimal Vat, decimal Net, decimal Back, decimal BackTax, decimal Cost);
 
-        return [.. lines.GroupBy(l => byCategory ? l.CategoryId : l.ItemId)
+    private static async Task<List<SalesReportRow>> ItemRowsAsync(
+        ErpDbContext db, IQueryable<SalesDelivery> deliveries, IQueryable<SalesReturn> loose, bool byCategory, CancellationToken cancellationToken)
+    {
+        var sold = await deliveries.SelectMany(d => d.Lines)
+            .Select(l => new ItemLine(
+                l.DeliveryId, l.ItemId, l.Item!.Code, l.Item.Name, l.Item.CategoryId, l.Item.Category!.Name, l.Quantity, l.ReturnedQuantity,
+                l.TotalAmount, l.DiscountAmount, l.SdAmount, l.VatAmount, l.TotalValue, 0, 0, l.CostTotal))
+            .ToListAsync(cancellationToken);
+        var returned = await Approved(db).Where(r => deliveries.Any(d => d.Id == r.DeliveryId) || loose.Any(x => x.Id == r.Id))
+            .SelectMany(r => r.Lines)
+            .Select(l => new ItemLine(
+                null, l.ItemId, l.Item!.Code, l.Item.Name, l.Item.CategoryId, l.Item.Category!.Name, 0, l.DeliveryLineId == null ? l.Quantity : 0,
+                0, 0, 0, 0, 0, l.TotalValue, l.VatAmount + l.SdAmount, l.LossAmount - l.CostTotal))
+            .ToListAsync(cancellationToken);
+
+        return [.. sold.Concat(returned).GroupBy(l => byCategory ? l.CategoryId : l.ItemId)
             .Select(g =>
             {
                 var first = g.First();
-                var back = returned[g.Key].ToList();
-                var sales = g.Sum(l => l.TotalValue) - back.Sum(l => l.TotalValue);
-                var cost = g.Sum(l => l.CostTotal) - back.Sum(l => l.Cost);
+                var sales = g.Sum(l => l.Net - l.Back);
+                var cost = g.Sum(l => l.Cost);
                 return new SalesReportRow
                 {
                     Key = g.Key.ToString(CultureInfo.InvariantCulture),
@@ -246,18 +282,18 @@ internal static class SalesReportEndpoints
                     Code = byCategory ? "" : first.Code,
                     Name = byCategory ? first.Category : first.Name,
                     Date = null,
-                    Deliveries = g.Select(l => l.DeliveryId).Distinct().Count(),
+                    Deliveries = g.Select(l => l.DeliveryId).OfType<int>().Distinct().Count(),
                     Quantity = g.Sum(l => l.Quantity),
-                    ReturnedQuantity = g.Sum(l => l.ReturnedQuantity),
-                    GrossAmount = g.Sum(l => l.TotalAmount),
-                    Discount = g.Sum(l => l.DiscountAmount),
-                    SdAmount = g.Sum(l => l.SdAmount),
-                    VatAmount = g.Sum(l => l.VatAmount),
-                    NetAmount = g.Sum(l => l.TotalValue),
-                    ReturnAmount = back.Sum(l => l.TotalValue),
+                    ReturnedQuantity = g.Sum(l => l.Returned),
+                    GrossAmount = g.Sum(l => l.Gross),
+                    Discount = g.Sum(l => l.Discount),
+                    SdAmount = g.Sum(l => l.Sd),
+                    VatAmount = g.Sum(l => l.Vat),
+                    NetAmount = g.Sum(l => l.Net),
+                    ReturnAmount = g.Sum(l => l.Back),
                     SalesAmount = sales,
                     Cost = cost,
-                    Profit = sales - (g.Sum(l => l.SdAmount + l.VatAmount) - back.Sum(l => l.Tax)) - cost,
+                    Profit = sales - g.Sum(l => l.Sd + l.Vat - l.BackTax) - cost,
                     Received = null,
                     Due = null,
                 };

@@ -15,11 +15,11 @@ internal static class DeliveryReturns
         ErpDbContext db, IReadOnlyCollection<int> deliveryIds, int exceptReturnId, CancellationToken cancellationToken)
     {
         var lines = await DeliveryDues.LiveReturns(db)
-            .Where(r => r.Id != exceptReturnId && deliveryIds.Contains(r.DeliveryId))
+            .Where(r => r.Id != exceptReturnId && deliveryIds.Contains(r.DeliveryId ?? 0))
             .SelectMany(r => r.Lines)
             .ToListAsync(cancellationToken);
         return lines.GroupBy(l => l.DeliveryLineId).ToDictionary(
-            g => g.Key,
+            g => g.Key ?? 0,
             g => new ReturnedLine(g.Sum(l => l.Quantity), g.Sum(l => l.DiscountAmount), g.Sum(l => l.CostTotal)));
     }
 

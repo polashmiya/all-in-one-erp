@@ -19,6 +19,7 @@ import { RETURN_FEATURE, RETURN_LOOKUPS, returnPaths } from '../constants';
 import { returnCalls, useReturnLookups } from '../return-form';
 
 type Filters = {
+  source: string | null;
   customerId: string | null;
   warehouseId: string | null;
   returnReasonId: string | null;
@@ -29,7 +30,7 @@ export function ReturnListPage() {
   const unit = useAuthStore(selectCurrentUnit);
   const access = useFeatureAccess(RETURN_FEATURE);
   const list = useListState<Filters, ApprovalView>({
-    filters: { customerId: null, warehouseId: null, returnReasonId: null },
+    filters: { source: null, customerId: null, warehouseId: null, returnReasonId: null },
     view: 'all',
     pageSize: appConfig.defaultPageSize,
   });
@@ -37,6 +38,7 @@ export function ReturnListPage() {
   const params = {
     ...listParams({ ...list.query, view: undefined }),
     status: statusParam(list.query.view),
+    source: list.filters.source ?? undefined,
     customerId: idParam(list.filters.customerId),
     warehouseId: list.filters.warehouseId ?? undefined,
     returnReasonId: idParam(list.filters.returnReasonId),
@@ -51,10 +53,13 @@ export function ReturnListPage() {
   const config = useFeatureConfig(RETURN_FEATURE, access.view);
   const { lookups } = useReturnLookups(access.view);
   const filters = useConfigFilters<keyof Filters>(config.data, {
+    source: lookups[RETURN_LOOKUPS.source],
     customerId: lookups[RETURN_LOOKUPS.customer],
     warehouseId: lookups[RETURN_LOOKUPS.warehouse],
     returnReasonId: lookups[RETURN_LOOKUPS.reason],
   });
+
+  const sourceName = (row: SalesReturnRow) => t(`salesReturn.source.${row.source}`);
 
   return (
     <DocumentListPage<SalesReturnRow, Filters>
@@ -70,6 +75,7 @@ export function ReturnListPage() {
       loading={query.isFetching || config.isPending}
       onRefresh={() => void query.refetch()}
       amount={{ label: t('sales.totals.total'), value: (row) => row.netAmount }}
+      renderers={{ source: { render: sourceName, csv: sourceName } }}
       exportFile={t('salesReturn.exportFile')}
       fetchAll={() =>
         listSalesReturns({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)

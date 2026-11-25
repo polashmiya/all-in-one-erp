@@ -4,6 +4,7 @@ import {
   CheckSquareOutlined,
   HomeOutlined,
   IdcardOutlined,
+  PrinterOutlined,
   RollbackOutlined,
   ShoppingOutlined,
   UserOutlined,
@@ -34,6 +35,7 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { SalesLinesView } from '../../../components/SalesLinesView';
+import { isPrintable } from '../../../print/print';
 import { COLLECTION_FEATURE, collectionPaths } from '../../sales-collection/constants';
 import { RETURN_FEATURE, returnPaths } from '../../sales-return/constants';
 import { ConfirmDeliveryModal } from '../components/ConfirmDeliveryModal';
@@ -137,6 +139,20 @@ export function DeliveryViewPage() {
             hidden:
               !collections.create || delivery.status !== 'approved' || delivery.pendingAmount <= 0,
             onClick: () => navigate(collectionPaths.fromCustomer(delivery.customerId)),
+          },
+          {
+            key: 'invoice',
+            label: t('print.invoice'),
+            icon: <PrinterOutlined />,
+            hidden: !isPrintable(delivery),
+            onClick: () => navigate(deliveryPaths.invoice(delivery.id)),
+          },
+          {
+            key: 'challan',
+            label: t('print.challan'),
+            icon: <PrinterOutlined />,
+            hidden: !isPrintable(delivery),
+            onClick: () => navigate(deliveryPaths.challan(delivery.id)),
           },
         ]}
         sections={[

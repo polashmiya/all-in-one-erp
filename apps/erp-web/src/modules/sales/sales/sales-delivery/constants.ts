@@ -12,6 +12,8 @@ const paths = pathsOf(DELIVERY_PATH);
 
 export const deliveryPaths = {
   ...paths,
+  invoice: (id: number) => `${paths.view(id)}/invoice`,
+  challan: (id: number) => `${paths.view(id)}/challan`,
   fromOrder: (id: number) => `${paths.create}?${ORDER_PARAM}=${id}`,
 };
 

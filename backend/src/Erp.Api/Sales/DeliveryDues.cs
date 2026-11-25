@@ -34,7 +34,7 @@ internal static class DeliveryDues
         if (ids.Count == 0) return;
 
         var collected = await CollectedAsync(db, ids, 0, cancellationToken);
-        var returns = await LiveReturns(db).Include(r => r.Lines).Where(r => ids.Contains(r.DeliveryId)).ToListAsync(cancellationToken);
+        var returns = await LiveReturns(db).Include(r => r.Lines).Where(r => ids.Contains(r.DeliveryId ?? 0)).ToListAsync(cancellationToken);
         var deliveries = await db.SalesDeliveries.Include(d => d.Lines).Where(d => ids.Contains(d.Id)).ToListAsync(cancellationToken);
         foreach (var delivery in deliveries)
         {
@@ -55,8 +55,8 @@ internal static class DeliveryDues
     private static Task<Dictionary<int, decimal>> ReturnAdjustedAsync(
         ErpDbContext db, IReadOnlyCollection<int> deliveryIds, int exceptReturnId, CancellationToken cancellationToken) =>
         LiveReturns(db)
-            .Where(r => r.Id != exceptReturnId && deliveryIds.Contains(r.DeliveryId))
-            .GroupBy(r => r.DeliveryId)
+            .Where(r => r.Id != exceptReturnId && deliveryIds.Contains(r.DeliveryId ?? 0))
+            .GroupBy(r => r.DeliveryId!.Value)
             .Select(g => new { g.Key, Amount = g.Sum(r => r.DueAdjusted) })
             .ToDictionaryAsync(g => g.Key, g => g.Amount, cancellationToken);
 

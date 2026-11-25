@@ -23,6 +23,7 @@ public sealed class SalesLookups : ILookupProvider
     public const string Order = "sales-order";
     public const string Delivery = "sales-delivery";
     public const string DeliveryType = "sales-delivery-type";
+    public const string ReturnSource = "sales-return-source";
     public const string BankAccount = "bank-account";
     public const string ChargeAccount = "charge-account";
 

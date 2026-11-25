@@ -15,6 +15,7 @@ import {
 } from '@erp/api-client';
 import type { FieldBehavior, LookupItem, LookupSources } from '@erp/metadata-engine';
 import { API_DATE_FORMAT, formatDate } from '@erp/ui';
+import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
 import { trimmed, useUnitKey } from '@/common/master-data';
@@ -238,6 +239,11 @@ export function toRequest(v: DeliveryValues): SaveSalesDeliveryRequest {
     })),
   };
 }
+
+export const dueDateOf = (delivery: SalesDeliveryDetail) =>
+  delivery.paymentTermDays > 0
+    ? formatDate(dayjs(delivery.deliveryDate).add(delivery.paymentTermDays, 'day'))
+    : null;
 
 export const deliveryCalls: ApprovalCalls = {
   approve: (id, data) => approveSalesDelivery(id, data),

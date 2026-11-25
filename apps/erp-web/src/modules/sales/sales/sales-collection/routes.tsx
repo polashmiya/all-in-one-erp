@@ -24,6 +24,12 @@ export const salesCollectionRoutes: RouteObject[] = [
         }),
       },
       {
+        path: ':id/receipt',
+        lazy: async () => ({
+          Component: (await import('./pages/ReceiptPrintPage')).ReceiptPrintPage,
+        }),
+      },
+      {
         path: ':id/edit',
         lazy: async () => ({
           Component: (await import('./pages/CollectionFormPage')).CollectionFormPage,

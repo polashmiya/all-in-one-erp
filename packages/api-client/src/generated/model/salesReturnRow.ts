@@ -9,9 +9,12 @@
 export interface SalesReturnRow {
   id: number;
   code: string;
+  source: string;
   returnDate: string;
-  deliveryId: number;
-  deliveryName: string;
+  /** @nullable */
+  deliveryId: number | null;
+  /** @nullable */
+  deliveryName: string | null;
   customerId: number;
   customerName: string;
   warehouseId: string;

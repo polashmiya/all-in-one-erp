@@ -8,19 +8,25 @@
 
 export interface SalesReturnLineDetail {
   id: number;
-  deliveryLineId: number;
+  /** @nullable */
+  deliveryLineId: number | null;
   itemId: number;
   itemCode: string;
   itemName: string;
   /** @nullable */
   itemDescription: string | null;
   uomName: string;
-  delivered: number;
-  remaining: number;
+  /** @nullable */
+  delivered: number | null;
+  /** @nullable */
+  remaining: number | null;
   quantity: number;
   price: number;
   totalAmount: number;
+  discountPercentage: number;
   discountAmount: number;
+  isAmountWiseDiscount: boolean;
+  isDiscountPerQuantity: boolean;
   sdPercentage: number;
   sdAmount: number;
   vatPercentage: number;
@@ -30,6 +36,7 @@ export interface SalesReturnLineDetail {
   totalValue: number;
   isOfferItem: boolean;
   isDamaged: boolean;
+  costPrice: number;
   costTotal: number;
   lossAmount: number;
   /** @nullable */

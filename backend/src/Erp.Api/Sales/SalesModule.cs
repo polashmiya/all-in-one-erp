@@ -63,5 +63,6 @@ public sealed class SalesEndpoints : IErpEndpoints
         CollectionReportEndpoints.Map(group);
         CustomerDueEndpoints.Map(group);
         ChargeAccounts.Map(group);
+        SalesPrint.Map(group);
     }
 }

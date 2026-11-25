@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using Erp.Api.Approvals;
+using Erp.Api.Sales;
 using Erp.Api.Sales.SalesCollections;
 using Erp.Api.Sales.SalesDeliveries;
+using Erp.Api.Sales.SalesReports;
 using Erp.Api.Sales.SalesReturns;
 using Erp.Tests.Infrastructure;
 using static Erp.Tests.Api.ProcurementTestData;
@@ -108,6 +110,82 @@ public sealed class SalesReturnTests(ApiFactory factory)
         Assert.Equal(3m, await OnHandAsync(admin, item, delivery.WarehouseId));
         Assert.All((await EntriesAsync(admin, created.Code)).Values, value => Assert.Equal(0m, value));
         Assert.Equal((0m, 200m), (after!.ReturnAmount, after.PendingAmount));
+    }
+
+    [Fact]
+    public async Task A_return_without_reference_takes_old_goods_back_and_keeps_the_money_as_advance_or_refund()
+    {
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
+        var item = await StockedItemAsync(factory, admin, 5, 40m);
+        var delivery = await DeliveredAsync(admin, await DeliveryAsync(factory.DhakaId, DeliveryLine(item, 1, 100m)));
+        var old = Return(delivery, 1m) with
+        {
+            Source = "withoutReference",
+            DeliveryId = null,
+            ReturnRefNo = "OLD-77",
+            RefundAmount = 100m,
+            Lines =
+            [
+                ReturnLine(item, 2m) with { Price = 100m, VatPercentage = 15m, IsDiscountPerQuantity = true, DiscountAmount = 10m, CostPrice = 35m },
+                ReturnLine(await ItemAsync(factory.DhakaId, 12m), 1m) with { Price = 50m, IsDamaged = true, CostPrice = 12m },
+            ],
+        };
+
+        var created = await ReadAsync<SalesReturnDetail>(await admin.PostAsJsonAsync(ReturnsUrl, old));
+        var edited = await ReadAsync<SalesReturnDetail>(await admin.PutAsJsonAsync($"{ReturnsUrl}/{created.Id}", old with { RefundAmount = 57m }));
+        await ApproveAsync<SalesReturnDetail>(admin, ReturnsUrl, created.Id);
+        var entries = await EntriesAsync(admin, created.Code);
+        var after = await admin.GetFromJsonAsync<SalesDeliveryDetail>($"{DeliveriesUrl}/{delivery.Id}");
+        var listed = (await admin.GetFromJsonAsync<SalesReturnList>($"{ReturnsUrl}?source=withoutReference&search={created.Code}"))!;
+
+        Assert.Equal(("withoutReference", null, 257m), (created.Source, created.DeliveryId, created.NetAmount));
+        Assert.Equal((0m, 57m, 200m), (edited.DueAdjusted, edited.RefundAmount, edited.AdvanceAmount));
+        Assert.Equal((82m, 12m), (edited.TotalCost, edited.LossAmount));
+        Assert.Equal(6m, await OnHandAsync(admin, item, delivery.WarehouseId));
+        Assert.Equal((230m, 27m, -57m, -200m),
+            (entries["sales-return"], entries["vat-payable"], entries["cash"], entries["customer-advance"]));
+        Assert.Equal((70m, 12m, -82m), (entries["inventory"], entries["stock-loss"], entries["cost-of-goods-sold"]));
+        Assert.Equal((0m, 100m), (after!.ReturnAmount, after.PendingAmount));
+        Assert.Equal(200m, (await BillsAsync(admin, delivery.CustomerId)).AvailableAdvance);
+        Assert.Equal(created.Code, Assert.Single(listed.Items).Code);
+
+        var report = (await admin.GetFromJsonAsync<SalesReport>($"/api/erp/sales/sales-report?customerId={delivery.CustomerId}"))!;
+        Assert.Equal((100m, 257m, -157m), (report.Totals.NetAmount, report.Totals.ReturnAmount, report.Totals.SalesAmount));
+        Assert.Equal(created.Id, report.Items.Single(r => r.Code == created.Code).ReturnId);
+        var byItem = (await admin.GetFromJsonAsync<SalesReport>($"/api/erp/sales/sales-report?view=item&customerId={delivery.CustomerId}"))!;
+        Assert.Equal((2, 257m, 3m), (byItem.Total, byItem.Totals.ReturnAmount, byItem.Totals.ReturnedQuantity));
+    }
+
+    [Fact]
+    public async Task A_return_names_its_source_and_a_return_without_reference_has_no_delivery()
+    {
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
+        var item = await StockedItemAsync(factory, admin, 5, 40m);
+        var delivery = await DeliveredAsync(admin, await DeliveryAsync(factory.DhakaId, DeliveryLine(item, 1, 100m)));
+        var right = Return(delivery, 1m);
+
+        async Task<IEnumerable<string>> Errors(SaveSalesReturnRequest wrong) => await ErrorsAsync(await admin.PostAsJsonAsync(ReturnsUrl, wrong));
+
+        Assert.Equal(["deliveryId"], await Errors(right with { DeliveryId = null }));
+        Assert.Equal(["deliveryId"], await Errors(right with { Source = "withoutReference" }));
+        Assert.Equal(["source"], await Errors(right with { Source = "other" }));
+        Assert.Equal(["customerId"], await Errors(right with { Source = "withoutReference", DeliveryId = null, CustomerId = 0 }));
+        Assert.Equal(["lines"], await Errors(right with { Source = "withoutReference", DeliveryId = null, Lines = [ReturnLine(999999999, 1m)] }));
+    }
+
+    [Fact]
+    public async Task Print_parties_give_the_company_and_the_customer_of_the_unit()
+    {
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
+        var customerId = await CustomerAsync(factory.DhakaId);
+
+        var parties = (await admin.GetFromJsonAsync<PrintParties>($"/api/erp/sales/print-parties/{customerId}"))!;
+        var missing = await admin.GetAsync("/api/erp/sales/print-parties/999999999");
+
+        Assert.NotEmpty(parties.Company.Name);
+        Assert.NotEmpty(parties.Company.UnitName);
+        Assert.StartsWith("Customer ", parties.Customer.Name);
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
     }
 
     private static async Task<List<ReturnDeliveryOption>> OptionsAsync(HttpClient admin) =>
