@@ -15,6 +15,10 @@ export interface JournalLineDetail {
   supplierId: number | null;
   /** @nullable */
   supplierName: string | null;
+  /** @nullable */
+  customerId: number | null;
+  /** @nullable */
+  customerName: string | null;
   debit: number;
   credit: number;
   /** @nullable */

@@ -1,7 +1,7 @@
 import { CURRENCY_SYMBOL, usePlaceholder } from '@erp/ui';
 import { Form, InputNumber, Select, Space } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { DiscountType } from '../../../pricing';
+import type { DiscountType } from '../pricing';
 
 export function DiscountInput({ line }: { line: number }) {
   const { t } = useTranslation();
@@ -9,7 +9,7 @@ export function DiscountInput({ line }: { line: number }) {
   const options: { value: DiscountType; label: string }[] = [
     { value: 'percent', label: '%' },
     { value: 'amount', label: CURRENCY_SYMBOL },
-    { value: 'unit', label: t('quotation.lines.perUnit', { symbol: CURRENCY_SYMBOL }) },
+    { value: 'unit', label: t('sales.lines.perUnit', { symbol: CURRENCY_SYMBOL }) },
   ];
 
   return (
@@ -25,8 +25,8 @@ export function DiscountInput({ line }: { line: number }) {
       </Form.Item>
       <Form.Item name={[line, 'discountType']} noStyle>
         <Select<DiscountType>
-          className="erp-quotation__discount-type"
-          aria-label={t('quotation.lines.discountType')}
+          className="erp-sales__discount-type"
+          aria-label={t('sales.lines.discountType')}
           options={options}
           popupMatchSelectWidth={false}
         />

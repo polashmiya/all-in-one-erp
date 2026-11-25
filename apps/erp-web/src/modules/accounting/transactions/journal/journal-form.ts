@@ -27,6 +27,7 @@ export function fromDetail(detail: JournalDetail): JournalValues {
     lines: detail.lines.map((line) => ({
       chartOfAccountId: line.chartOfAccountId,
       supplierId: line.supplierId,
+      customerId: line.customerId,
       debit: line.debit || null,
       credit: line.credit || null,
       remarks: line.remarks,
@@ -42,6 +43,7 @@ export function toRequest(v: JournalValues): SaveJournalRequest {
     lines: v.lines.map((line) => ({
       chartOfAccountId: line.chartOfAccountId ?? 0,
       supplierId: line.supplierId ?? null,
+      customerId: line.customerId ?? null,
       debit: line.debit ?? null,
       credit: line.credit ?? null,
       remarks: trimmed(line.remarks),

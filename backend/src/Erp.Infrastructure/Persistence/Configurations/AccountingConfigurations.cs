@@ -92,13 +92,16 @@ internal sealed class JournalLineConfiguration : IEntityTypeConfiguration<Journa
         builder.Property(x => x.JournalId).HasColumnName("SubLedgerHeaderID");
         builder.Property(x => x.ChartOfAccountId).HasColumnName("ChartOfAccID");
         builder.Property(x => x.SupplierId).HasColumnName("PartnerID");
+        builder.Property(x => x.CustomerId).HasColumnName("CustomerID");
         builder.Property(x => x.Amount).HasPrecision(18, 2);
         builder.Property(x => x.Remarks).HasMaxLength(500);
 
         builder.HasIndex(x => new { x.ChartOfAccountId, x.JournalId }).IncludeProperties(x => x.Amount);
         builder.HasIndex(x => new { x.SupplierId, x.JournalId }).IncludeProperties(x => x.Amount);
+        builder.HasIndex(x => new { x.CustomerId, x.JournalId }).IncludeProperties(x => x.Amount);
 
         builder.HasOne(x => x.ChartOfAccount).WithMany().HasForeignKey(x => x.ChartOfAccountId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Supplier>().WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.NoAction);
     }
 }

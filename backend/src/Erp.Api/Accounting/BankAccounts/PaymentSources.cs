@@ -36,6 +36,10 @@ internal static class PaymentSources
         return JournalEntryLine.Credit(key, amount);
     }
 
+    public static Task<JournalEntryLine> DebitAsync(
+        ErpDbContext db, int? paymentMethodId, int? bankAccountId, decimal amount, CancellationToken cancellationToken) =>
+        CreditAsync(db, paymentMethodId, bankAccountId, -amount, cancellationToken);
+
     private static async Task<BankAccountType?> TypeAsync(ErpDbContext db, int? paymentMethodId, CancellationToken cancellationToken)
     {
         var method = await db.LookupValues.Where(v => v.Id == paymentMethodId).Select(v => v.Code).FirstOrDefaultAsync(cancellationToken);

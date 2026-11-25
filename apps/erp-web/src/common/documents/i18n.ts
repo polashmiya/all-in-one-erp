@@ -3,6 +3,8 @@ import type { AppResources } from '@erp/ui';
 export const documentResources: AppResources = {
   en: {
     'document.type.quotation': 'Sales quotation',
+    'document.type.salesOrder': 'Sales order',
+    'document.type.delivery': 'Sales delivery',
     'document.type.requisition': 'Purchase requisition',
     'document.type.order': 'Purchase order',
     'document.type.receive': 'Purchase receive',
@@ -71,6 +73,8 @@ export const documentResources: AppResources = {
   },
   bn: {
     'document.type.quotation': 'বিক্রয় কোটেশন',
+    'document.type.salesOrder': 'বিক্রয় আদেশ',
+    'document.type.delivery': 'বিক্রয় ডেলিভারি',
     'document.type.requisition': 'ক্রয় চাহিদাপত্র',
     'document.type.order': 'ক্রয় আদেশ',
     'document.type.receive': 'ক্রয়কৃত মাল গ্রহণ',

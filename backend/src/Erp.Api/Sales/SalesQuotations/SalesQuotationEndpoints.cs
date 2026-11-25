@@ -313,7 +313,7 @@ internal static class SalesQuotationEndpoints
 
     private static Task<Results<Ok<SalesQuotationDetail>, NotFound, ValidationProblem, ProblemHttpResult>> Close(
         int id, ErpDbContext db, CancellationToken cancellationToken) =>
-        ChangeAsync(id, db, q => Task.FromResult(DocumentData.Close(q)), cancellationToken);
+        ChangeAsync(id, db, async q => await SalesCancel.QuotationAsync(db, q.Id, cancellationToken) ?? DocumentData.Close(q), cancellationToken);
 
     private static async Task<Results<Ok<ApprovalProgress>, NotFound>> Approval(
         int id, ICurrentContext current, ErpDbContext db, CancellationToken cancellationToken)
@@ -330,7 +330,7 @@ internal static class SalesQuotationEndpoints
             ? missing
             : await ChangeAsync(id, db,
                 q => ApprovalFlow.CancelAsync(db, current, Feature, q, request.Comment,
-                    () => Task.FromResult<ProblemHttpResult?>(null), cancellationToken),
+                    () => SalesCancel.QuotationAsync(db, q.Id, cancellationToken), cancellationToken),
                 cancellationToken);
 
     private static async Task<Results<NoContent, NotFound, ProblemHttpResult>> Delete(int id, ErpDbContext db, CancellationToken cancellationToken)
@@ -384,7 +384,9 @@ internal static class SalesQuotationEndpoints
             ("quotationTypeId", request.QuotationTypeId, existing?.QuotationTypeId, SalesLookups.QuotationType),
             ("shippingAddressId", request.ShippingAddressId, existing?.ShippingAddressId, SalesLookups.ShippingAddress),
         ], errors, cancellationToken);
-        await CheckChoicesAsync(db, request, existing, errors, cancellationToken);
+        await SalesData.CheckPeopleAsync(
+            db, request.CustomerId, existing?.CustomerId, request.OfficeId, existing?.OfficeId, request.SalesForceId,
+            existing?.SalesForceId, errors, cancellationToken);
         var items = await DocumentData.CheckItemsAsync(
             db, [.. request.Lines.Select(l => l.ItemId)], quotation.Lines.Select(l => l.ItemId), errors, cancellationToken);
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
@@ -415,23 +417,12 @@ internal static class SalesQuotationEndpoints
             };
         }).ToList();
 
-        SalesPricing.Totals(lines);
         var percentage = request.IsGrossDiscount ? request.DiscountPercentage ?? 0 : 0;
-        if (request.IsGrossDiscount)
-        {
-            var gross = lines.Sum(l => l.TotalAmount);
-            var discount = SalesPricing.GrossDiscount(gross, percentage, request.DiscountAmount ?? 0);
-            if (discount > gross) errors["discountAmount"] = ["The discount cannot be more than the item total."];
-            SalesPricing.ShareDiscount(lines, discount);
-        }
-        else
-        {
-            lines.ForEach(SalesPricing.LineDiscount);
-            if (lines.Any(l => l.DiscountAmount > l.TotalAmount)) errors["lines"] = ["A discount cannot be more than the line amount."];
-        }
-
+        SalesPricing.Price(
+            lines,
+            new DiscountRule(request.IsVatInclusive, request.IsGrossDiscount, percentage, request.DiscountAmount ?? 0, "discountAmount"),
+            errors);
         if (errors.Count > 0) return TypedResults.ValidationProblem(errors);
-        foreach (var line in lines) SalesPricing.Taxes(line, request.IsVatInclusive);
 
         quotation.Lines.Clear();
         quotation.Lines.AddRange(lines);
@@ -461,8 +452,7 @@ internal static class SalesQuotationEndpoints
         if (request.SalesForceId != existing?.SalesForceId)
         {
             quotation.SalesForceId = request.SalesForceId;
-            quotation.SalesForceName = await db.Employees.Where(e => e.Id == request.SalesForceId).Select(e => e.Name)
-                .FirstOrDefaultAsync(cancellationToken);
+            quotation.SalesForceName = await SalesData.EmployeeNameAsync(db, request.SalesForceId, cancellationToken);
         }
 
         quotation.Reference = DocumentData.Trimmed(request.Reference);
@@ -482,29 +472,6 @@ internal static class SalesQuotationEndpoints
         await ApprovalFlow.StartAsync(db, current, Feature, quotation.Id, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok((await LoadAsync(db, quotation.Id, cancellationToken))!);
-    }
-
-    private static async Task CheckChoicesAsync(
-        ErpDbContext db, SaveSalesQuotationRequest request, SaveSalesQuotationRequest? existing, Dictionary<string, string[]> errors,
-        CancellationToken cancellationToken)
-    {
-        if (request.CustomerId != existing?.CustomerId &&
-            !await db.Customers.AnyAsync(c => c.Id == request.CustomerId && c.IsActive, cancellationToken))
-        {
-            errors["customerId"] = ["Choose an active customer of this business unit."];
-        }
-
-        if (request.OfficeId is { } officeId && officeId != existing?.OfficeId &&
-            !await db.Offices.AnyAsync(o => o.Id == officeId && o.IsActive, cancellationToken))
-        {
-            errors["officeId"] = ["Choose an active office of this business unit."];
-        }
-
-        if (request.SalesForceId is { } salesForceId && salesForceId != existing?.SalesForceId &&
-            !await db.Employees.AnyAsync(e => e.Id == salesForceId && e.IsActive, cancellationToken))
-        {
-            errors["salesForceId"] = [DocumentData.ChooseFromList];
-        }
     }
 
     private static SaveSalesQuotationRequest ToRequest(SalesQuotation q) => new()

@@ -1,0 +1,8 @@
+.erp-sales__discount {
+  width: 200px;
+}
+
+.ant-select.erp-sales__discount-type {
+  flex: 0 0 auto;
+  width: 84px;
+}

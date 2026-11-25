@@ -73,7 +73,7 @@ internal static class EmployeeEndpoints
         structure.MapGet("/warehouses", Warehouses)
             .WithName("GetWarehouseOptions")
             .WithSummary("Warehouses of the account, each with its business unit as parent")
-            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors, .. StockModule.Readers]);
+            .RequireAnyPermission([$"{Feature}.view", $"{UserManagementMenu.User}.view", .. ProcurementModule.Editors, .. StockModule.Readers, .. SalesModule.Editors]);
     }
 
     private static async Task<EmployeeList> List(

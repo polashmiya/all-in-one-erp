@@ -73,7 +73,7 @@ export function QuotationListPage() {
       data={query.data}
       loading={query.isFetching || config.isPending}
       onRefresh={() => void query.refetch()}
-      amount={{ label: t('quotation.totals.total'), value: (row) => row.totalAmount }}
+      amount={{ label: t('sales.totals.total'), value: (row) => row.totalAmount }}
       renderers={{
         validityDate: {
           render: (row) => (

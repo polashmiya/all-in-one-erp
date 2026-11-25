@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { LineGrid } from '@/common/documents/LineGrid';
-import { useOnHand } from '../../../inventory';
+import { useOnHand } from '@/common/documents/useOnHand';
 import { LINE_REMARKS_MAX, TRANSFER_SIDES } from '../constants';
 import { emptyLine, type TransferLine, type TransferValues } from '../transfer-form';
 

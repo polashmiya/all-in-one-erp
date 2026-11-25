@@ -24,6 +24,7 @@ public sealed record SaveJournalLine
 {
     public required int ChartOfAccountId { get; init; }
     public required int? SupplierId { get; init; }
+    public int? CustomerId { get; init; }
     public required decimal? Debit { get; init; }
     public required decimal? Credit { get; init; }
     public required string? Remarks { get; init; }
@@ -45,6 +46,8 @@ public sealed record JournalLineDetail(
     string AccountName,
     int? SupplierId,
     string? SupplierName,
+    int? CustomerId,
+    string? CustomerName,
     decimal Debit,
     decimal Credit,
     string? Remarks);

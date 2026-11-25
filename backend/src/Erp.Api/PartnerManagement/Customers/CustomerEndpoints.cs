@@ -1,3 +1,4 @@
+using Erp.Api.Accounting.Journals;
 using Erp.Api.Sales;
 using Erp.Api.UserManagement.Employees;
 using Erp.Core.Authorization;
@@ -29,7 +30,7 @@ internal static class CustomerEndpoints
         customers.MapGet("/options", Options)
             .WithName("GetCustomerOptions")
             .WithSummary("Customers of the selected business unit with their contact details, for dropdowns")
-            .RequireAnyPermission([$"{Feature}.view", .. SalesModule.Editors]);
+            .RequireAnyPermission([$"{Feature}.view", .. SalesModule.Editors, .. JournalEndpoints.Editors]);
 
         customers.MapGet("/{id:int}", Get)
             .WithName("GetCustomer")

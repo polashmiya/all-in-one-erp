@@ -40,7 +40,7 @@ export function VersionHistory({
           },
           {
             key: 'total',
-            title: t('quotation.totals.total'),
+            title: t('sales.totals.total'),
             align: 'end',
             render: (_, row) => formatMoney(row.totalAmount),
           },

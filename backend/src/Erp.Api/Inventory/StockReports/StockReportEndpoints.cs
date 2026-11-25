@@ -1,4 +1,5 @@
 using Erp.Api.Documents;
+using Erp.Api.Sales;
 using Erp.Core.Authorization;
 using Erp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -58,7 +59,7 @@ internal static class StockReportEndpoints
         group.MapGet("/on-hand", OnHand)
             .WithName("GetStockOnHand")
             .WithSummary("Quantity and average cost of the given items in a warehouse")
-            .RequireAnyPermission(StockModule.Editors);
+            .RequireAnyPermission([.. StockModule.Editors, .. SalesModule.Editors]);
 
         group.MapGet("/stock-balance", Balance)
             .WithName("GetStockBalance")

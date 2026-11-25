@@ -92,6 +92,11 @@ export function JournalViewPage() {
                   render: (_, line) => line.supplierName ?? '—',
                 },
                 {
+                  key: 'customer',
+                  title: t('journal.lines.customer'),
+                  render: (_, line) => line.customerName ?? '—',
+                },
+                {
                   key: 'remarks',
                   title: t('journal.lines.remarks'),
                   render: (_, line) => line.remarks ?? '—',

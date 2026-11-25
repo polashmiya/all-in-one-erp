@@ -7,6 +7,8 @@ public sealed class SalesMenu : IErpMenuProvider
     public const string Module = "sales";
 
     public const string SalesQuotation = "sales.sales-quotation";
+    public const string SalesOrder = "sales.sales-order";
+    public const string SalesDelivery = "sales.sales-delivery";
 
     public IEnumerable<MenuModule> GetModules() =>
     [

@@ -1,5 +1,4 @@
 using Erp.Core.Domain.Approvals;
-using Erp.Core.Domain.Inventory;
 
 namespace Erp.Core.Domain.Sales;
 
@@ -97,59 +96,11 @@ public class SalesQuotation : MasterRecord, IBusinessUnitOwned, IApprovalDocumen
     public List<SalesQuotationLine> Lines { get; } = [];
 }
 
-public class SalesQuotationLine
+public class SalesQuotationLine : SalesLine
 {
-    public int Id { get; set; }
-
     public int QuotationId { get; set; }
 
-    public int Sequence { get; set; }
-
-    public int ItemId { get; set; }
-
-    public Item? Item { get; set; }
-
     public string? ItemCode { get; set; }
-
-    public string ItemName { get; set; } = "";
-
-    public string? ItemDescription { get; set; }
-
-    public int UomId { get; set; }
-
-    public UnitOfMeasure? Uom { get; set; }
-
-    public string UomName { get; set; } = "";
-
-    public decimal Quantity { get; set; }
-
-    public decimal Price { get; set; }
-
-    public decimal TotalAmount { get; set; }
-
-    public decimal DiscountPercentage { get; set; }
-
-    public decimal DiscountAmount { get; set; }
-
-    public bool IsAmountWiseDiscount { get; set; }
-
-    public bool IsDiscountPerQuantity { get; set; }
-
-    public decimal SdPercentage { get; set; }
-
-    public decimal SdAmount { get; set; }
-
-    public decimal VatPercentage { get; set; }
-
-    public decimal VatAmount { get; set; }
-
-    public decimal AitPercentage { get; set; }
-
-    public decimal AitAmount { get; set; }
-
-    public decimal TotalValue { get; set; }
-
-    public int WarrantyInMonth { get; set; }
 
     public string? DeliveryDate { get; set; }
 

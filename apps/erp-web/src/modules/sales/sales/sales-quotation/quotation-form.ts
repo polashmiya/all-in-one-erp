@@ -12,8 +12,6 @@ import {
   useGetEmployeeOptions,
   type CustomerOption,
   type SalesQuotationDetail,
-  type SalesQuotationLineDetail,
-  type SaveSalesQuotationLine,
   type SaveSalesQuotationRequest,
 } from '@erp/api-client';
 import type { FieldBehavior, LookupSources } from '@erp/metadata-engine';
@@ -23,7 +21,8 @@ import { useUnitOffices } from '@/common/documents/documents';
 import type { ApprovalCalls } from '@/common/documents/useApprovalActions';
 import { useLookupLists } from '@/common/hooks/useLookupLists';
 import { trimmed, useUnitKey } from '@/common/master-data';
-import type { DiscountType, SalesLine } from '../../pricing';
+import { discountFields, discountOf } from '../../pricing';
+import { emptyLine, type SalesLineValue } from '../../sales-document';
 import {
   FIRST_VERSION,
   QUOTATION_LOOKUP_LISTS,
@@ -31,14 +30,8 @@ import {
   VALIDITY_DAYS,
 } from './constants';
 
-type DiscountFields =
-  'discountPercentage' | 'discountAmount' | 'isAmountWiseDiscount' | 'isDiscountPerQuantity';
-
-export interface QuotationLine
-  extends Partial<Omit<SaveSalesQuotationLine, DiscountFields | keyof SalesLine>>, SalesLine {
-  itemCode?: string;
-  itemName?: string;
-  uomName?: string;
+export interface QuotationLine extends SalesLineValue {
+  deliveryDate?: string | null;
 }
 
 export type QuotationValues = Omit<SaveSalesQuotationRequest, 'lines'> & {
@@ -76,13 +69,6 @@ export const quotationBehaviors: Record<string, FieldBehavior> = {
   },
 };
 
-export const emptyLine = (): QuotationLine => ({
-  quantity: 1,
-  price: null,
-  discount: null,
-  discountType: 'percent',
-});
-
 export function newQuotation(): Partial<QuotationValues> {
   const today = formatDate(new Date(), API_DATE_FORMAT);
   return {
@@ -105,16 +91,6 @@ export function fromCustomer(customer: CustomerOption): Partial<QuotationValues>
   };
 }
 
-function discountOf(line: SalesQuotationLineDetail): {
-  discount: number;
-  discountType: DiscountType;
-} {
-  if (line.isDiscountPerQuantity)
-    return { discount: line.discountAmount / line.quantity, discountType: 'unit' };
-  if (line.isAmountWiseDiscount) return { discount: line.discountAmount, discountType: 'amount' };
-  return { discount: line.discountPercentage, discountType: 'percent' };
-}
-
 export function fromDetail(detail: SalesQuotationDetail): QuotationValues {
   return {
     ...detail,
@@ -133,16 +109,6 @@ export function fromDetail(detail: SalesQuotationDetail): QuotationValues {
       warrantyInMonth: line.warrantyInMonth,
       deliveryDate: line.deliveryDate,
     })),
-  };
-}
-
-function discountFields(line: QuotationLine): Pick<SaveSalesQuotationLine, DiscountFields> {
-  const byPercent = line.discountType === 'percent' || !line.discountType;
-  return {
-    discountPercentage: byPercent ? (line.discount ?? null) : null,
-    discountAmount: byPercent ? null : (line.discount ?? null),
-    isAmountWiseDiscount: !byPercent,
-    isDiscountPerQuantity: line.discountType === 'unit',
   };
 }
 

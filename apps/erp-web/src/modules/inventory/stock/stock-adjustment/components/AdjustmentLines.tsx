@@ -3,7 +3,7 @@ import { Form } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { QUANTITY_DECIMALS_SHOWN } from '@/common/documents/documents';
 import { LineGrid, type LineColumn } from '@/common/documents/LineGrid';
-import { useOnHand } from '../../../inventory';
+import { useOnHand } from '@/common/documents/useOnHand';
 import { emptyLine, lineAmount, type AdjustmentLine } from '../adjustment-form';
 import { LINE_REMARKS_MAX, STOCK_OUT } from '../constants';
 

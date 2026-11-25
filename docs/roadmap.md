@@ -581,23 +581,54 @@ Left open, ask the owner:
 
 - Can the approver change the quantity or price of a line (`ApproveQuantity`, `ApprovePrice`)? Legacy copies them.
 - Print or PDF of the quotation letter, and terms and conditions (legacy has a separate table).
-- Sales Order, Delivery, Return, Collection and Report wait for their table scripts.
+- Sales Return, Collection and Report wait for their table scripts.
+
+## Done: phase 27 — Sales Order and Sales Delivery (2026-11-25)
+
+- Owner asked for the full life cycle of both, with two kinds of delivery: from a sales order and direct. Based on the
+  legacy `CustomerOrder`, `CustomerOrderLine`, `SalesDelivery` and `SalesDeliveryLine` scripts (migration
+  `SalesOrderAndDelivery`). All columns are there, the ones no screen uses are optional, except: account, branch and action
+  names (joined or in the audit columns), `IsApproved`/`IsCancelled`/`IsClosed`/`intStatus` (`Status`), discount type text (the
+  flags say it), and the return columns of `SalesDelivery` (they go to the Sales Return table, as with Purchase Return).
+  Renamed: `SalesDelivery.SalesOrderId` → `SalesDeliveryID`. Added: `DeliveryTypeID`, `PaymentMethodID`, `WarehouseID` on
+  the delivery. Shared code: `SalesDocument`/`SalesLine` (domain), `SalesData`, `SalesFields`, `SalesDocumentContracts` (API),
+  `sales-document.ts`, `SalesLines`, `SalesLinesView` (ERP).
+- **Life cycle.** Quotation → "Make sales order" → approve (posts the advance) → "Deliver" → approve (stock and accounts) →
+  "Confirm receipt" (date, collected by, customer GRN). A quotation is ordered once; it is free again when the order is
+  rejected, cancelled or deleted. An order can be delivered in parts; pending deliveries are counted as scheduled. Prices,
+  discounts and taxes of an order delivery come from the order. Completed orders are no longer offered.
+- **Guards.** An order with deliveries cannot be cancelled, one with pending deliveries cannot be closed, an ordered
+  quotation cannot be cancelled, closed or revised, and a confirmed delivery cannot be cancelled (use a return).
+- **Free items.** A line can be free (price 0, stock still goes out); the same item can be sold and free on one document.
+- **Posting** (`SalesPosting`). Order advance: debit cash or bank, credit Advance from customers. Delivery: stock out at
+  average cost; debit Accounts receivable (what is still due), Advance from customers (adjusted), cash or bank (received
+  now), Sales discount (special discount and deduction), Cost of goods sold; credit Sales (AIT is part of it), VAT payable,
+  SD payable, the charge accounts or Other income, Inventory. Eight new posting accounts, added to every account at startup.
+- Journal lines have a customer. A manual journal on Accounts receivable or Advance from customers needs one.
+- Installments, interest, commission, currency and due limit are kept and shown, nothing is posted for them.
+- Checked with `SalesOrderTests`, `SalesDeliveryTests`, all other tests and a Playwright run in Chrome over the whole flow.
+
+Left open, ask the owner:
+
+- Should the customer's credit limit stop an order or a delivery?
+- Items with "Sell below zero stock": stock posting still refuses them.
+- Customer Ledger report, print of order, challan and invoice, attachments.
 
 ## Where we are
 
-Last updated 2026-11-25. Phases 0 to 26 are done: account editing, user access (sessions, username and reset codes,
+Last updated 2026-11-25. Phases 0 to 27 are done: account editing, user access (sessions, username and reset codes,
 Panel ERP users, ERP roles, users and employees), drafts on create forms, Partner Management (customer and
 supplier profiles), Procurement (Purchase Requisition, Purchase Order, Purchase Receive, Purchase Return, Purchase
 Payment, Purchase Report), Inventory, Accounting,
-multi-level approval and Sales Quotation.
-Next: Sales Order (needs its table script), then the rest of Sales, then "Still open for later".
+multi-level approval, Sales Quotation, Sales Order and Sales Delivery.
+Next: Sales Return, Collection and Report (need their table scripts), then "Still open for later".
 
 Migrations added after phase 5, all applied automatically by `pnpm dev:api`: `CustomFields`,
 `MasterDataCustomFields`, `ConfigurationHistory`, `AccountTheme`, `UserSessions`, `UsernameAndResetCodes`,
 `AccountAdminsAndUnitFeatures`, `RoleStatus`, `EmployeesAndUserLink`, `Drafts`, `PartnerProfiles`,
 `DistrictsThanasAndItemSupplier`, `PurchaseRequisition`, `PurchaseOrder`, `Approvals`, `PurchaseReceive`,
 `PurchaseReturn`, `PurchasePayment`, `InventoryAndAccounting`, `CancelBanksAndClosing`, `AccountGroupNames`,
-`SalesQuotation`.
+`SalesQuotation`, `SalesOrderAndDelivery`.
 
 ## Working on another machine
 

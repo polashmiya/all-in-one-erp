@@ -6,6 +6,8 @@ using Erp.Api.Accounting.PeriodClosings;
 using Erp.Api.Accounting.TaxDeposits;
 using Erp.Api.Approvals;
 using Erp.Api.Procurement.PurchasePayments;
+using Erp.Api.Sales.SalesDeliveries;
+using Erp.Api.Sales.SalesOrders;
 using Erp.Core.Modules;
 using Erp.Metadata;
 
@@ -25,7 +27,14 @@ public static class AccountingModule
     public static readonly string[] SupplierReaders = [$"{AccountingMenu.SupplierLedger}.view", .. JournalEndpoints.Editors];
 
     public static readonly string[] BankReaders =
-        [$"{AccountingMenu.BankAccounts}.view", .. PurchasePaymentEndpoints.Editors, .. TaxDepositEndpoints.Editors];
+        
+        [
+            $"{AccountingMenu.BankAccounts}.view",
+            .. PurchasePaymentEndpoints.Editors,
+            .. TaxDepositEndpoints.Editors,
+            .. SalesOrderEndpoints.Editors,
+            .. SalesDeliveryEndpoints.Editors,
+        ];
 
     public static IServiceCollection AddAccountingModule(this IServiceCollection services)
     {

@@ -8,6 +8,7 @@ export interface SalesLine {
   sdPercentage?: number | null;
   vatPercentage?: number | null;
   aitPercentage?: number | null;
+  isOfferItem?: boolean;
 }
 
 export interface SalesHeader {
@@ -15,16 +16,19 @@ export interface SalesHeader {
   isGrossDiscount?: boolean | null;
   discountPercentage?: number | null;
   discountAmount?: number | null;
-  deliveryCharge?: number | null;
-  extraCharge?: number | null;
+  charges: number;
+  reductions?: number;
 }
 
 const round = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
 
+const lineTotal = (line: SalesLine | undefined) =>
+  line?.isOfferItem ? 0 : round((line?.quantity ?? 0) * (line?.price ?? 0));
+
 function lineDiscount(line: SalesLine | undefined, total: number) {
-  const discount = line?.discount ?? 0;
+  const discount = line?.isOfferItem ? 0 : (line?.discount ?? 0);
   if (line?.discountType === 'amount') return discount;
   if (line?.discountType === 'unit') return round(discount * (line.quantity ?? 0));
   return round((total * discount) / 100);
@@ -32,16 +36,14 @@ function lineDiscount(line: SalesLine | undefined, total: number) {
 
 function sharedDiscounts(totals: number[], header: SalesHeader) {
   const gross = sum(totals);
+  if (!gross) return totals.map(() => 0);
   const percentage = header.discountPercentage ?? 0;
   const discount =
     percentage > 0 ? round((gross * percentage) / 100) : (header.discountAmount ?? 0);
-  let left = discount;
-  return totals.map((total, index) => {
-    const last = index === totals.length - 1;
-    const share = last ? left : gross ? round((discount * total) / gross) : 0;
-    left = round(left - share);
-    return share;
-  });
+  const shares = totals.map((total) => round((discount * total) / gross));
+  const last = totals.findLastIndex((total) => total > 0);
+  const rest = round(discount - sum(shares));
+  return shares.map((share, index) => (index === last ? round(share + rest) : share));
 }
 
 function taxes(line: SalesLine | undefined, amount: number, vatInclusive: boolean) {
@@ -58,7 +60,7 @@ function taxes(line: SalesLine | undefined, amount: number, vatInclusive: boolea
 }
 
 export function salesPrices(lines: (SalesLine | undefined)[], header: SalesHeader) {
-  const totals = lines.map((line) => round((line?.quantity ?? 0) * (line?.price ?? 0)));
+  const totals = lines.map(lineTotal);
   const discounts = header.isGrossDiscount
     ? sharedDiscounts(totals, header)
     : lines.map((line, index) => lineDiscount(line, totals[index] ?? 0));
@@ -72,7 +74,7 @@ export function salesPrices(lines: (SalesLine | undefined)[], header: SalesHeade
 
 export function salesTotals(lines: (SalesLine | undefined)[], header: SalesHeader) {
   const prices = salesPrices(lines, header);
-  const charges = (header.deliveryCharge ?? 0) + (header.extraCharge ?? 0);
+  const reductions = header.reductions ?? 0;
   return {
     quantity: sum(lines.map((line) => line?.quantity ?? 0)),
     gross: sum(prices.map((p) => p.total)),
@@ -80,7 +82,33 @@ export function salesTotals(lines: (SalesLine | undefined)[], header: SalesHeade
     sd: sum(prices.map((p) => p.sd)),
     vat: sum(prices.map((p) => p.vat)),
     ait: sum(prices.map((p) => p.ait)),
-    charges,
-    total: sum(prices.map((p) => p.value)) + charges,
+    charges: header.charges,
+    reductions,
+    total: sum(prices.map((p) => p.value)) + header.charges - reductions,
+  };
+}
+
+interface SavedDiscount {
+  quantity: number;
+  discountPercentage: number;
+  discountAmount: number;
+  isAmountWiseDiscount: boolean;
+  isDiscountPerQuantity: boolean;
+}
+
+export function discountOf(line: SavedDiscount): { discount: number; discountType: DiscountType } {
+  if (line.isDiscountPerQuantity)
+    return { discount: line.discountAmount / line.quantity, discountType: 'unit' };
+  if (line.isAmountWiseDiscount) return { discount: line.discountAmount, discountType: 'amount' };
+  return { discount: line.discountPercentage, discountType: 'percent' };
+}
+
+export function discountFields(line: SalesLine) {
+  const byPercent = line.discountType === 'percent' || !line.discountType;
+  return {
+    discountPercentage: byPercent ? (line.discount ?? null) : null,
+    discountAmount: byPercent ? null : (line.discount ?? null),
+    isAmountWiseDiscount: !byPercent,
+    isDiscountPerQuantity: line.discountType === 'unit',
   };
 }

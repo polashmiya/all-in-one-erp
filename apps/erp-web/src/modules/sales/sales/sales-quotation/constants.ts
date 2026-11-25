@@ -18,10 +18,6 @@ export const QUOTATION_LOOKUP_LISTS = [
   QUOTATION_LOOKUPS.shippingAddress,
 ];
 
-export const FORM_COLUMNS = 6;
 export const FIRST_VERSION = 'v1';
 export const VALIDITY_DAYS = 30;
-export const DESCRIPTION_MAX = 2000;
 export const DELIVERY_MAX = 300;
-export const WARRANTY_MAX = 1200;
-export const SD_MAX = 1000;

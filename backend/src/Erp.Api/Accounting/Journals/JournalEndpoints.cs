@@ -237,6 +237,7 @@ internal static class JournalEndpoints
             Sequence = index + 1,
             ChartOfAccountId = line.ChartOfAccountId,
             SupplierId = line.SupplierId,
+            CustomerId = line.CustomerId,
             Amount = (line.Debit ?? 0) - (line.Credit ?? 0),
             Remarks = DocumentData.Trimmed(line.Remarks),
         }).ToList();
@@ -264,11 +265,18 @@ internal static class JournalEndpoints
         var accounts = await db.ChartOfAccounts.AsNoTracking()
             .Where(a => ids.Contains(a.Id) && a.IsActive && !a.IsGroup)
             .ToDictionaryAsync(a => a.Id, a => a.Name, cancellationToken);
+        string[] controlKeys =
+        [
+            PostingKeys.Inventory, PostingKeys.AccountsPayable, PostingKeys.SupplierAdvance, PostingKeys.AccountsReceivable,
+            PostingKeys.CustomerAdvance,
+        ];
         var controls = await db.PostingAccounts.AsNoTracking()
-            .Where(p => p.Key == PostingKeys.Inventory || p.Key == PostingKeys.AccountsPayable || p.Key == PostingKeys.SupplierAdvance)
+            .Where(p => controlKeys.Contains(p.Key))
             .ToDictionaryAsync(p => p.Key, p => p.ChartOfAccountId, cancellationToken);
         var supplierIds = lines.Select(l => l.SupplierId).OfType<int>().Distinct().ToList();
         var suppliers = await db.Suppliers.Where(s => supplierIds.Contains(s.Id)).Select(s => s.Id).ToListAsync(cancellationToken);
+        var customerIds = lines.Select(l => l.CustomerId).OfType<int>().Distinct().ToList();
+        var customers = await db.Customers.Where(c => customerIds.Contains(c.Id)).Select(c => c.Id).ToListAsync(cancellationToken);
 
         var problems = new List<string>();
         foreach (var line in lines)
@@ -286,10 +294,20 @@ internal static class JournalEndpoints
             {
                 problems.Add($"Choose a supplier for {name}.");
             }
+            else if (line.CustomerId is null && (controls.GetValueOrDefault(PostingKeys.AccountsReceivable) == line.ChartOfAccountId ||
+                controls.GetValueOrDefault(PostingKeys.CustomerAdvance) == line.ChartOfAccountId))
+            {
+                problems.Add($"Choose a customer for {name}.");
+            }
 
             if (line.SupplierId is { } supplierId && !suppliers.Contains(supplierId))
             {
                 problems.Add("Choose suppliers of this business unit.");
+            }
+
+            if (line.CustomerId is { } customerId && !customers.Contains(customerId))
+            {
+                problems.Add("Choose customers of this business unit.");
             }
         }
 
@@ -306,6 +324,7 @@ internal static class JournalEndpoints
         {
             ChartOfAccountId = l.ChartOfAccountId,
             SupplierId = l.SupplierId,
+            CustomerId = l.CustomerId,
             Debit = Math.Max(0, l.Amount),
             Credit = Math.Max(0, -l.Amount),
             Remarks = l.Remarks,
@@ -324,6 +343,10 @@ internal static class JournalEndpoints
         var suppliers = await db.Suppliers.AsNoTracking()
             .Where(s => supplierIds.Contains(s.Id))
             .ToDictionaryAsync(s => s.Id, s => s.Name, cancellationToken);
+        var customerIds = j.Lines.Select(l => l.CustomerId).OfType<int>().ToList();
+        var customers = await db.Customers.AsNoTracking()
+            .Where(c => customerIds.Contains(c.Id))
+            .ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
 
         return new JournalDetail
         {
@@ -342,7 +365,8 @@ internal static class JournalEndpoints
             TotalAmount = j.TotalAmount,
             Lines = [.. j.Lines.OrderBy(l => l.Sequence).Select(l => new JournalLineDetail(
                 l.Id, l.ChartOfAccountId, l.ChartOfAccount!.Code, l.ChartOfAccount.Name, l.SupplierId,
-                l.SupplierId is { } supplier ? suppliers.GetValueOrDefault(supplier) : null,
+                l.SupplierId is { } supplier ? suppliers.GetValueOrDefault(supplier) : null, l.CustomerId,
+                l.CustomerId is { } customer ? customers.GetValueOrDefault(customer) : null,
                 Math.Max(0, l.Amount), Math.Max(0, -l.Amount), l.Remarks))],
             CustomData = CustomFieldData.Parse(j.CustomData),
             CreatedAt = j.CreatedAt,

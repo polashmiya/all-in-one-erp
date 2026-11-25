@@ -95,6 +95,8 @@ public class JournalLine
 
     public int? SupplierId { get; set; }
 
+    public int? CustomerId { get; set; }
+
     public decimal Amount { get; set; }
 
     public string? Remarks { get; set; }

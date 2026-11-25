@@ -4,6 +4,7 @@ import {
   FileTextOutlined,
   HomeOutlined,
   IdcardOutlined,
+  ShoppingCartOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
@@ -32,6 +33,7 @@ import { LinesView } from '@/common/documents/LinesView';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
+import { ORDER_FEATURE, orderPaths } from '../../sales-order/constants';
 import { VersionHistory } from '../components/VersionHistory';
 import { QUOTATION_FEATURE, quotationPaths } from '../constants';
 import { quotationCalls } from '../quotation-form';
@@ -42,6 +44,7 @@ export function QuotationViewPage() {
   const navigate = useNavigate();
   const id = Number(useParams().id);
   const access = useFeatureAccess(QUOTATION_FEATURE);
+  const orders = useFeatureAccess(ORDER_FEATURE);
   const refresh = useRefreshDocuments();
   const revise = useReviseSalesQuotation();
   const config = useFeatureConfig(QUOTATION_FEATURE, access.view);
@@ -105,8 +108,19 @@ export function QuotationViewPage() {
         { key: 'office', icon: <HomeOutlined />, label: quotation.officeName },
         { key: 'salesForce', icon: <IdcardOutlined />, label: quotation.salesForceName },
       ]}
-      renderers={{ shippingAddressId: (record) => record.shipToName }}
+      renderers={{ shippingAddressId: (record) => record.shipToName ?? '—' }}
       moreActions={[
+        {
+          key: 'order',
+          label: t('quotation.order'),
+          icon: <ShoppingCartOutlined />,
+          hidden:
+            !orders.create ||
+            quotation.status !== 'approved' ||
+            quotation.isOrdered ||
+            quotation.isExpired,
+          onClick: () => navigate(orderPaths.fromQuotation(quotation.id)),
+        },
         {
           key: 'revise',
           label: t('quotation.revise'),
@@ -151,7 +165,7 @@ export function QuotationViewPage() {
             },
             {
               key: 'amount',
-              title: t('quotation.lines.amount'),
+              title: t('sales.lines.amount'),
               align: 'end',
               render: (_, line) => formatMoney(line.totalValue),
             },
@@ -162,7 +176,7 @@ export function QuotationViewPage() {
               items={[
                 {
                   key: 'sd',
-                  label: t('quotation.lines.sd'),
+                  label: t('sales.lines.sd'),
                   value: percentAndAmount(line.sdPercentage, line.sdAmount),
                 },
                 {
@@ -172,12 +186,12 @@ export function QuotationViewPage() {
                 },
                 {
                   key: 'ait',
-                  label: t('quotation.lines.ait'),
+                  label: t('sales.lines.ait'),
                   value: percentAndAmount(line.aitPercentage, line.aitAmount),
                 },
                 {
                   key: 'warranty',
-                  label: t('quotation.lines.warranty'),
+                  label: t('sales.lines.warranty'),
                   value: formatNumber(line.warrantyInMonth),
                 },
                 {
@@ -195,7 +209,7 @@ export function QuotationViewPage() {
                 },
                 {
                   key: 'description',
-                  label: t('quotation.lines.itemDescription'),
+                  label: t('sales.lines.itemDescription'),
                   value: line.itemDescription,
                   wide: true,
                 },
@@ -210,7 +224,7 @@ export function QuotationViewPage() {
             },
             {
               key: 'gross',
-              label: t('quotation.totals.gross'),
+              label: t('sales.totals.gross'),
               value: formatMoney(quotation.grossAmount),
             },
             {
@@ -220,7 +234,7 @@ export function QuotationViewPage() {
             },
             {
               key: 'sd',
-              label: t('quotation.totals.sd'),
+              label: t('sales.totals.sd'),
               value: formatMoney(quotation.sdAmount),
             },
             {
@@ -230,7 +244,7 @@ export function QuotationViewPage() {
             },
             {
               key: 'ait',
-              label: t('quotation.totals.ait'),
+              label: t('sales.totals.ait'),
               value: formatMoney(quotation.aitAmount),
             },
             {
@@ -240,7 +254,7 @@ export function QuotationViewPage() {
             },
             {
               key: 'total',
-              label: t('quotation.totals.total'),
+              label: t('sales.totals.total'),
               value: formatMoney(quotation.totalAmount),
               strong: true,
             },

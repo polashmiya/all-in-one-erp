@@ -170,6 +170,10 @@ public class ErpDbContext : DbContext
 
     public DbSet<SalesQuotation> SalesQuotations => Set<SalesQuotation>();
 
+    public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
+
+    public DbSet<SalesDelivery> SalesDeliveries => Set<SalesDelivery>();
+
     public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
 
     public DbSet<InventoryLine> InventoryLines => Set<InventoryLine>();

@@ -18,6 +18,10 @@
   padding-bottom: var(--erp-space-xs);
 }
 
+.erp-lines__details .erp-field-grid {
+  row-gap: var(--erp-space-sm);
+}
+
 .erp-lines__number {
   width: 110px;
 }

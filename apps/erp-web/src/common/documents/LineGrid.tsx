@@ -15,6 +15,7 @@ export interface BaseLine {
   itemName?: string;
   uomName?: string;
   quantity?: number | null;
+  isOfferItem?: boolean;
 }
 
 export interface LineColumn<L> {
@@ -68,7 +69,12 @@ export function LineGrid<L extends BaseLine>({
                 { required: true, message: t('document.lines.itemRequired') },
                 {
                   validator: async (_, value) => {
-                    const others = lines.filter((l, i) => i !== field.name && l?.itemId === value);
+                    const others = lines.filter(
+                      (l, i) =>
+                        i !== field.name &&
+                        l?.itemId === value &&
+                        !!l?.isOfferItem === !!line?.isOfferItem,
+                    );
                     if (value && others.length) throw new Error(t('document.lines.duplicate'));
                   },
                 },

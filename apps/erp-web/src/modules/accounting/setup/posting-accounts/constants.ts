@@ -19,5 +19,18 @@ export const POSTING_SECTIONS = [
       'purchase-discount',
     ],
   },
+  {
+    key: 'sales',
+    keys: [
+      'accounts-receivable',
+      'customer-advance',
+      'sales',
+      'sales-discount',
+      'other-income',
+      'cost-of-goods-sold',
+      'vat-payable',
+      'sd-payable',
+    ],
+  },
   { key: 'payment', keys: ['cash', 'bank', 'mobile-banking', 'vds-payable', 'tds-payable'] },
 ];

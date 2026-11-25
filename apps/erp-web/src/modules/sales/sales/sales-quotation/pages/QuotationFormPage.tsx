@@ -10,13 +10,14 @@ import { ForbiddenResult, PageState } from '@erp/ui';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { DocumentForm } from '@/common/documents/DocumentForm';
-import { SourcePicker } from '@/common/documents/SourcePicker';
 import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
-import { lookupLabel, useUnitKey } from '@/common/master-data';
+import { useUnitKey } from '@/common/master-data';
+import { CustomerPicker } from '../../../components/CustomerPicker';
+import { FORM_COLUMNS } from '../../../sales-document';
 import { QuotationLines } from '../components/QuotationLines';
-import { FORM_COLUMNS, QUOTATION_FEATURE, QUOTATION_LOOKUPS, quotationPaths } from '../constants';
+import { QUOTATION_FEATURE, QUOTATION_LOOKUPS, quotationPaths } from '../constants';
 import {
   fromCustomer,
   fromDetail,
@@ -76,10 +77,9 @@ export function QuotationFormPage() {
             maxColumns: FORM_COLUMNS,
             widgets: {
               customerId: (_, placeholder) => (
-                <SourcePicker<CustomerOption, QuotationValues>
+                <CustomerPicker<QuotationValues>
                   toValues={fromCustomer}
-                  labelOf={lookupLabel}
-                  options={customers?.filter((customer) => customer.isActive)}
+                  customers={customers}
                   current={
                     record ? { id: record.customerId, name: record.customerName } : undefined
                   }

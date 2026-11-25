@@ -11,6 +11,8 @@ export interface SaveJournalLine {
   /** @nullable */
   supplierId: number | null;
   /** @nullable */
+  customerId?: number | null;
+  /** @nullable */
   debit: number | null;
   /** @nullable */
   credit: number | null;

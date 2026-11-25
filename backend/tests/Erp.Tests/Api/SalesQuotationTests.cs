@@ -2,23 +2,21 @@ using System.Net;
 using System.Net.Http.Json;
 using Erp.Api.Approvals;
 using Erp.Api.Sales.SalesQuotations;
-using Erp.Core.Domain.Partners;
-using Erp.Infrastructure.Persistence;
 using Erp.Tests.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using static Erp.Tests.Api.ProcurementTestData;
+using static Erp.Tests.Api.SalesTestData;
 
 namespace Erp.Tests.Api;
 
 [Collection(ApiCollection.Name)]
 public sealed class SalesQuotationTests(ApiFactory factory)
 {
-    private const string Url = "/api/erp/sales/sales-quotations";
+    private const string Url = QuotationsUrl;
 
     [Fact]
     public async Task A_quotation_gets_the_next_number_prices_its_lines_and_shows_only_in_its_unit()
     {
-        var admin = await AdminAsync(factory.DhakaId);
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
         var (taxed, plain, unit) = (await ItemAsync(factory.DhakaId, 1m), await ItemAsync(factory.DhakaId, 1m), await ItemAsync(factory.DhakaId, 1m));
         var tag = Unique();
 
@@ -35,7 +33,7 @@ public sealed class SalesQuotationTests(ApiFactory factory)
             ],
         }));
         var here = await admin.GetFromJsonAsync<SalesQuotationList>($"{Url}?search={tag}");
-        var chattogram = await (await AdminAsync(factory.ChattogramId)).GetFromJsonAsync<SalesQuotationList>($"{Url}?search={tag}");
+        var chattogram = await (await SalesAdminAsync(factory, factory.ChattogramId)).GetFromJsonAsync<SalesQuotationList>($"{Url}?search={tag}");
 
         Assert.StartsWith("SQ-", created.Code);
         Assert.Equal(("v1", "pending", false), (created.Version, created.Status, created.IsExpired));
@@ -51,7 +49,7 @@ public sealed class SalesQuotationTests(ApiFactory factory)
     [Fact]
     public async Task A_discount_on_the_total_is_shared_and_inclusive_prices_keep_the_line_amount()
     {
-        var admin = await AdminAsync(factory.DhakaId);
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
         var (first, second) = (await ItemAsync(factory.DhakaId, 1m), await ItemAsync(factory.DhakaId, 1m));
 
         var created = await ReadAsync<SalesQuotationDetail>(await admin.PostAsJsonAsync(Url, await QuotationAsync(factory.DhakaId) with
@@ -69,7 +67,7 @@ public sealed class SalesQuotationTests(ApiFactory factory)
     [Fact]
     public async Task A_quotation_needs_a_unit_customer_a_valid_date_and_fair_discounts()
     {
-        var admin = await AdminAsync(factory.DhakaId);
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
         var item = await ItemAsync(factory.DhakaId, 1m);
         var request = await QuotationAsync(factory.DhakaId) with { Lines = [Line(item, 1, 10m)] };
 
@@ -90,7 +88,7 @@ public sealed class SalesQuotationTests(ApiFactory factory)
     [Fact]
     public async Task An_approved_quotation_keeps_the_approved_prices_and_is_revised_to_the_next_version()
     {
-        var admin = await AdminAsync(factory.DhakaId);
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
         var item = await ItemAsync(factory.DhakaId, 1m);
         var request = await QuotationAsync(factory.DhakaId) with { Lines = [Line(item, 3, 20m)] };
 
@@ -122,7 +120,7 @@ public sealed class SalesQuotationTests(ApiFactory factory)
     [Fact]
     public async Task A_quotation_is_rejected_cancelled_and_deleted_like_every_document()
     {
-        var admin = await AdminAsync(factory.DhakaId);
+        var admin = await SalesAdminAsync(factory, factory.DhakaId);
         var item = await ItemAsync(factory.DhakaId, 1m);
         var request = await QuotationAsync(factory.DhakaId) with { Lines = [Line(item, 1, 10m)] };
         var first = await ReadAsync<SalesQuotationDetail>(await admin.PostAsJsonAsync(Url, request));
@@ -141,69 +139,4 @@ public sealed class SalesQuotationTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.NotFound, gone.StatusCode);
         Assert.Equal("cancelled", cancelled.Status);
     }
-
-    private async Task<HttpClient> AdminAsync(Guid unitId)
-    {
-        var login = await factory.ErpAdminLoginAsync();
-        return factory.CreateClient(login.AccessToken, unitId);
-    }
-
-    private static async Task<int> CustomerAsync(Guid unitId)
-    {
-        await using var db = ApiFactory.CreateDbContext();
-        var accountId = await db.BusinessUnits.AcrossTenants().Where(u => u.Id == unitId).Select(u => u.AccountId).FirstAsync();
-        var code = Unique();
-        var customer = new Customer { AccountId = accountId, BusinessUnitId = unitId, Code = code, Name = $"Customer {code}" };
-        db.Customers.Add(customer);
-        await db.SaveChangesAsync();
-        return customer.Id;
-    }
-
-    private static async Task<SaveSalesQuotationRequest> QuotationAsync(Guid unitId) => new()
-    {
-        Code = null,
-        QuotationTypeId = null,
-        Version = null,
-        VersionDate = null,
-        QuotationDate = Today,
-        ValidityDate = Today.AddDays(15),
-        CustomerId = await CustomerAsync(unitId),
-        OfficeId = null,
-        SalesForceId = null,
-        Reference = null,
-        BillingContactPerson = null,
-        BillingPhoneNo = null,
-        BillingAddress = null,
-        ShippingContactPerson = null,
-        ShippingAddressId = null,
-        ShippingAddressName = null,
-        IsVatInclusive = false,
-        IsGrossDiscount = false,
-        DiscountPercentage = null,
-        DiscountAmount = null,
-        DeliveryCharge = null,
-        ExtraCharge = null,
-        Subjects = null,
-        BodyNarration = null,
-        FooterNarration = null,
-        Narration = null,
-        Lines = [],
-    };
-
-    private static SaveSalesQuotationLine Line(int itemId, decimal quantity, decimal price) => new()
-    {
-        ItemId = itemId,
-        ItemDescription = null,
-        Quantity = quantity,
-        Price = price,
-        DiscountPercentage = null,
-        DiscountAmount = null,
-        IsAmountWiseDiscount = false,
-        IsDiscountPerQuantity = false,
-        SdPercentage = null,
-        VatPercentage = null,
-        AitPercentage = null,
-        WarrantyInMonth = null,
-        DeliveryDate = null,
-    };
 }

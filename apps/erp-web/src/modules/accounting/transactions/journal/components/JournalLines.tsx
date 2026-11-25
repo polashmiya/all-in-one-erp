@@ -1,6 +1,11 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { getGetSupplierOptionsQueryKey, useGetSupplierOptions } from '@erp/api-client';
-import { selectOptions } from '@erp/metadata-engine';
+import {
+  getGetCustomerOptionsQueryKey,
+  getGetSupplierOptionsQueryKey,
+  useGetCustomerOptions,
+  useGetSupplierOptions,
+} from '@erp/api-client';
+import { selectOptions, type LookupItem } from '@erp/metadata-engine';
 import { DetailSection, formatMoney, MoneyInput, usePlaceholder } from '@erp/ui';
 import { Button, Form, Input, Select, Table, type TableColumnsType } from 'antd';
 import type { FormListFieldData } from 'antd/es/form/FormList';
@@ -23,6 +28,9 @@ export function JournalLines() {
   const accounts = useAccountOptions();
   const suppliers = useGetSupplierOptions({
     query: { queryKey: useUnitKey(getGetSupplierOptionsQueryKey()) },
+  });
+  const customers = useGetCustomerOptions({
+    query: { queryKey: useUnitKey(getGetCustomerOptionsQueryKey()) },
   });
   const postable = accounts?.filter((a) => !a.isGroup && !a.postingKeys.includes('inventory'));
 
@@ -58,6 +66,44 @@ export function JournalLines() {
     },
   });
 
+  const party = (
+    name: 'supplierId' | 'customerId',
+    key: 'supplier' | 'customer',
+    options: LookupItem[] | undefined,
+    requiredFor: string[],
+  ) => ({
+    key,
+    title: t(`journal.lines.${key}`),
+    className: 'erp-lines__money',
+    render: (_: unknown, field: FormListFieldData) => (
+      <Form.Item
+        name={[field.name, name]}
+        dependencies={[['lines', field.name, 'chartOfAccountId']]}
+        rules={[
+          {
+            validator: async (_rule, value) => {
+              const id = form.getFieldValue(['lines', field.name, 'chartOfAccountId']);
+              const account = accounts?.find((a) => a.id === id);
+              if (!value && account?.postingKeys.some((k) => requiredFor.includes(k))) {
+                throw new Error(t(`journal.lines.${key}Required`));
+              }
+            },
+          },
+        ]}
+      >
+        <Select<number>
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          popupMatchSelectWidth={false}
+          className="erp-w-full"
+          placeholder={placeholder('select', t(`journal.lines.${key}`))}
+          options={selectOptions(options, lines[field.name]?.[name])}
+        />
+      </Form.Item>
+    ),
+  });
+
   const columns = (remove: (index: number) => void): TableColumnsType<FormListFieldData> => [
     {
       key: 'account',
@@ -87,36 +133,8 @@ export function JournalLines() {
         </div>
       ),
     },
-    {
-      key: 'supplier',
-      title: t('journal.lines.supplier'),
-      className: 'erp-lines__item',
-      render: (_, field) => (
-        <Form.Item
-          name={[field.name, 'supplierId']}
-          dependencies={[['lines', field.name, 'chartOfAccountId']]}
-          rules={[
-            {
-              validator: async (_rule, value) => {
-                const id = form.getFieldValue(['lines', field.name, 'chartOfAccountId']);
-                const account = accounts?.find((a) => a.id === id);
-                if (account?.postingKeys.includes('accounts-payable') && !value) {
-                  throw new Error(t('journal.lines.supplierRequired'));
-                }
-              },
-            },
-          ]}
-        >
-          <Select<number>
-            allowClear
-            showSearch
-            optionFilterProp="label"
-            placeholder={placeholder('select', t('journal.lines.supplier'))}
-            options={selectOptions(suppliers.data, lines[field.name]?.supplierId)}
-          />
-        </Form.Item>
-      ),
-    },
+    party('supplierId', 'supplier', suppliers.data, ['accounts-payable']),
+    party('customerId', 'customer', customers.data, ['accounts-receivable', 'customer-advance']),
     ...SIDES.map(side),
     {
       key: 'remove',

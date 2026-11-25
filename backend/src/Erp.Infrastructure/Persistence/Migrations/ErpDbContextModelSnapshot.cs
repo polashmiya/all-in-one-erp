@@ -404,6 +404,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ChartOfAccID");
 
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerID");
+
                     b.Property<int>("JournalId")
                         .HasColumnType("int")
                         .HasColumnName("SubLedgerHeaderID");
@@ -426,6 +430,10 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.HasIndex("ChartOfAccountId", "JournalId");
 
                     SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("ChartOfAccountId", "JournalId"), new[] { "Amount" });
+
+                    b.HasIndex("CustomerId", "JournalId");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("CustomerId", "JournalId"), new[] { "Amount" });
 
                     b.HasIndex("SupplierId", "JournalId");
 
@@ -5368,6 +5376,1617 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.ToTable("PurchaseReturnLine", (string)null);
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesDelivery", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("SalesDeliveryID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID");
+
+                    b.Property<DateOnly?>("ActualDeliveryDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("AdvanceBalanceAdjust")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateOnly?>("AlternativeDeliveryDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("AmountPerInstallment")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("AnonymousAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Attachment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("strSalesDeliveryAttatchment");
+
+                    b.Property<int?>("BankAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccID");
+
+                    b.Property<string>("BankAccountName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("BankAccName");
+
+                    b.Property<string>("BillNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID");
+
+                    b.Property<string>("ChallanNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("SalesDeliveryCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<int?>("CollectedById")
+                        .HasColumnType("int")
+                        .HasColumnName("intCollectedByID");
+
+                    b.Property<string>("CollectedByName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("strCollectedByName");
+
+                    b.Property<decimal>("CommissionPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ComissionPercentage");
+
+                    b.Property<string>("ConfirmAttachment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ConfirmRemarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("ConfirmedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ConfirmedByID");
+
+                    b.Property<string>("ConfirmedByName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ConfirmedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int?>("CourierOrEmployeeId")
+                        .HasColumnType("int")
+                        .HasColumnName("CourierOrEmployeeID");
+
+                    b.Property<string>("CourierOrEmployeeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CurrencyID");
+
+                    b.Property<string>("CurrencyName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CustomData")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CustomOfferId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomOfferID");
+
+                    b.Property<string>("CustomOfferName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerID");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("CustomerNetAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("CustomerPo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("CustomerPO");
+
+                    b.Property<DateOnly?>("CustomerPoDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DeductionLabel")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("DeductionValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateOnly>("DeliveryDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("DeliveryMethodId")
+                        .HasColumnType("int")
+                        .HasColumnName("DeliveryMethodID");
+
+                    b.Property<string>("DeliveryMethodName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("DiscountItemTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("DiscoundItemTotalPrice");
+
+                    b.Property<int?>("DistributorReceiveById")
+                        .HasColumnType("int")
+                        .HasColumnName("DistributorReceiveByID");
+
+                    b.Property<string>("DistributorReceiveByName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly?>("DistributorReceiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DistributorReceiveRemarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DueInvoicePendingReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("DueInvoicePendingReasonId")
+                        .HasColumnType("int")
+                        .HasColumnName("DueInvoicePendingReasonID");
+
+                    b.Property<string>("DueInvoiceRemarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("EarlyPaymentDiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ExchangeRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<bool>("ExternalApiSync")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("ExtraCharge")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("ExtraChargeAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("ChartOfAccIDExtraOtherCharge");
+
+                    b.Property<int?>("FreeTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("FreeTypeID");
+
+                    b.Property<string>("FreeTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal?>("GrnAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("numGRNAmount");
+
+                    b.Property<DateOnly?>("GrnCollectionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("GRNCollectionDate");
+
+                    b.Property<DateOnly?>("GrnDate")
+                        .HasColumnType("date")
+                        .HasColumnName("dteGRNDate");
+
+                    b.Property<string>("GrnNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("strGRNNo");
+
+                    b.Property<decimal>("HeaderDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("HeaderDiscountPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateOnly?>("InstallmentStartDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("InstallmentTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("InstallmentTypeID");
+
+                    b.Property<string>("InstallmentTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("InstallmentType");
+
+                    b.Property<DateOnly?>("InstrumentDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("InstrumentNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("InterestRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("InvoicePdfCount")
+                        .HasColumnType("int")
+                        .HasColumnName("InvoicePDFCount");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive");
+
+                    b.Property<bool>("IsAdvanceAdjust")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBillCreated")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDistributorReceive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsExportSales")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsGrossDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPosSales")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsServiceRequest")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVatInclusive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isInclusive");
+
+                    b.Property<decimal>("ItemTotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("JobOrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("JobOrderID");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID");
+
+                    b.Property<string>("Narration")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("NetAmountWithInterest")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("NetDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("OfferItemTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<Guid?>("OfficeId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OfficeID");
+
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("CustomerOrderCode");
+
+                    b.Property<DateOnly>("OrderDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerOrderID");
+
+                    b.Property<int?>("OtherChargeAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("ChartOfAccIDOtherCharge");
+
+                    b.Property<decimal>("OthersCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("OutletId")
+                        .HasColumnType("int")
+                        .HasColumnName("intOutletID");
+
+                    b.Property<string>("OutletName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("strOutletName");
+
+                    b.Property<int?>("PaymentMethodId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentMethodID");
+
+                    b.Property<int>("PaymentTermDays")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PaymentTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTypeID");
+
+                    b.Property<string>("PaymentTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("PendingAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("PriceTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PriceTypeID");
+
+                    b.Property<string>("PriceTypeName")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("PriceType");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProjectID");
+
+                    b.Property<string>("ProjectName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("SalesDeliveryGuID");
+
+                    b.Property<decimal>("ReceiveAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("RefInvoice")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("ReferredByPartnerId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReferredByPartnerID");
+
+                    b.Property<string>("ReferredByPartnerName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("ReturnAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("ReviewComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("RejectReason");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("ApproveDatetime");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ApproveByID");
+
+                    b.Property<int?>("SalesForceId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesForceID");
+
+                    b.Property<string>("SalesForceName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("ScheduleId")
+                        .HasColumnType("int")
+                        .HasColumnName("ScheduleID");
+
+                    b.Property<int?>("ShippingAddressId")
+                        .HasColumnType("int")
+                        .HasColumnName("ShippingAddressID");
+
+                    b.Property<string>("ShippingAddressName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ShippingContactPerson")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("SmsTransactionId")
+                        .HasColumnType("int")
+                        .HasColumnName("SmsTransactionID");
+
+                    b.Property<decimal>("SpecialDiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("SpecialDiscountId")
+                        .HasColumnType("int")
+                        .HasColumnName("SpecialDiscountID");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("SubmissionDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("SupplierContributionAmountPerInvoice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalAit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalAITAmount");
+
+                    b.Property<decimal>("TotalLineDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("TotalNoOfInstallment")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalSd")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalVat")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("DeliveryTypeID");
+
+                    b.Property<string>("VatChallanNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("WalletId")
+                        .HasColumnType("int")
+                        .HasColumnName("WalletID");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("WarehouseID");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BankAccountId");
+
+                    b.HasIndex("CollectedById");
+
+                    b.HasIndex("CourierOrEmployeeId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DeliveryMethodId");
+
+                    b.HasIndex("ExtraChargeAccountId");
+
+                    b.HasIndex("FreeTypeId");
+
+                    b.HasIndex("InstallmentTypeId");
+
+                    b.HasIndex("OfficeId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("OtherChargeAccountId");
+
+                    b.HasIndex("PaymentMethodId");
+
+                    b.HasIndex("PaymentTypeId");
+
+                    b.HasIndex("PriceTypeId");
+
+                    b.HasIndex("ReferredByPartnerId");
+
+                    b.HasIndex("SalesForceId");
+
+                    b.HasIndex("ShippingAddressId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.HasIndex("BusinessUnitId", "Code")
+                        .IsUnique();
+
+                    b.HasIndex("BusinessUnitId", "IsActive", "Status", "OrderDate");
+
+                    b.ToTable("SalesDelivery", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesDeliveryLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AitAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("AitPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("AnonymousAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Batch")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("BdPortQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("numBdPortQty");
+
+                    b.Property<decimal>("ChangeQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ConfirmationReturnQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ConfirmationReturnQty");
+
+                    b.Property<decimal>("CostPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("CostTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("DeliveryId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesDeliveryID");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("LineDiscount");
+
+                    b.Property<int?>("DiscountId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountID");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ExchangeQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ExchangeQty");
+
+                    b.Property<int?>("ExchangeRefId")
+                        .HasColumnType("int")
+                        .HasColumnName("ExchangeRefID");
+
+                    b.Property<decimal>("ForeignPortQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("numForeignPortQty");
+
+                    b.Property<int?>("FreeTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("FreeTypeID");
+
+                    b.Property<string>("FreeTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("HeaderCostProportion")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("HeaderDiscountProportion")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<bool>("IsAmountWiseDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDiscountPerQuantity")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOfferItem")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("ItemBasePriceInclusive")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("ItemDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemID");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ItemSerial")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("OfferItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("OfferItemID");
+
+                    b.Property<string>("OfferItemName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("OfferItemQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("OfferItemQty");
+
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("strCustomerOrderCode");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("intCustomerOrderID");
+
+                    b.Property<int?>("OrderLineId")
+                        .HasColumnType("int")
+                        .HasColumnName("intCustomerOrderLineID");
+
+                    b.Property<int?>("OriginalDeliveryLineId")
+                        .HasColumnType("int")
+                        .HasColumnName("intOriginalDeliveryLineID");
+
+                    b.Property<string>("PackQuantity")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("PackQty");
+
+                    b.Property<int?>("ParentRowId")
+                        .HasColumnType("int")
+                        .HasColumnName("ParentRowID");
+
+                    b.Property<string>("PiNo")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("PINo");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("ProformaInvoiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProformaInvoiceID");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("strRejectReason");
+
+                    b.Property<decimal>("SalesReturnLossAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SdAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SdPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SellingPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int")
+                        .HasColumnName("ViewSequenceID");
+
+                    b.Property<string>("ShelfLife")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("strShelfLife");
+
+                    b.Property<decimal?>("SpecialDiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SupplierDiscountContributionInAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SupplierDiscountContributionInPercent")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("NetAmount");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomID");
+
+                    b.Property<string>("UomName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("VatPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("WarehouseID");
+
+                    b.Property<string>("WarrantyDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly?>("WarrantyExpiredDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("WarrantyInMonth")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryId");
+
+                    b.HasIndex("FreeTypeId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("OrderLineId");
+
+                    b.HasIndex("UomId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("SalesDeliveryLine", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerOrderID")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountID");
+
+                    b.Property<decimal>("AdjustedAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("AdvanceAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("AdvanceRemainingAmount")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasComputedColumnSql("[AdvanceAmount] - [AdjustedAmount]");
+
+                    b.Property<string>("Attachment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("BankAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccID");
+
+                    b.Property<string>("BankAccountName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("BankAccName");
+
+                    b.Property<Guid>("BusinessUnitId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BusinessUnitID");
+
+                    b.Property<Guid?>("ClosedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ClosedByID");
+
+                    b.Property<string>("ClosedRemarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("CustomerOrderCode")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatedByID");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CurrencyID");
+
+                    b.Property<string>("CurrencyName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CustomData")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CustomOfferId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomOfferID");
+
+                    b.Property<string>("CustomOfferName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerID");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CustomerPo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("CustomerPO");
+
+                    b.Property<decimal>("CustomerPoAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("POAmount");
+
+                    b.Property<DateOnly?>("CustomerPoDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("CustomerPoRefAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("DeductionLabel")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("DeductionValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("DeliveredQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateOnly>("DeliveryDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("DiscountItemTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("DiscoundItemTotalPrice");
+
+                    b.Property<string>("DmsInvoice")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("DMSInvoise");
+
+                    b.Property<decimal>("DueLimit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ExchangeRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("ExportLcId")
+                        .HasColumnType("int")
+                        .HasColumnName("ExportLcID");
+
+                    b.Property<decimal>("ExtraCharge")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("ExtraChargeAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("ChartOfAccIDExtraOtherCharge");
+
+                    b.Property<int?>("FreeTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("FreeTypeID");
+
+                    b.Property<string>("FreeTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("HeaderDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("HeaderDiscountPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateOnly?>("InstrumentDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("InstrumentNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isActive");
+
+                    b.Property<bool>("IsAdvanceAdjust")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsAllowPartialShipment")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsAllowTransitShipment")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsForeign")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsForeigne");
+
+                    b.Property<bool>("IsGrossDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPickPackConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVatInclusive")
+                        .HasColumnType("bit")
+                        .HasColumnName("isInclusive");
+
+                    b.Property<decimal>("ItemTotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("LcNo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("LcTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("LcTypeID");
+
+                    b.Property<string>("LcTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ModifiedByID");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("NetDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("OfferItemTotal")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<Guid?>("OfficeId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OfficeID");
+
+                    b.Property<DateOnly>("OrderDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("OtherChargeAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("ChartOfAccIDOtherCharge");
+
+                    b.Property<decimal>("OthersCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("PaymentMethodId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentMethodID");
+
+                    b.Property<int>("PaymentTermDays")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PaymentTermsId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTermsID");
+
+                    b.Property<string>("PaymentTermsName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("PaymentTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PaymentTypeID");
+
+                    b.Property<string>("PaymentTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("PendingAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("PriceTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("PriceTypeID");
+
+                    b.Property<string>("PriceTypeName")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("PriceType");
+
+                    b.Property<int?>("ProformaInvoiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProformaInvoiceID");
+
+                    b.Property<string>("ProjectName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CustomerOrderGuID");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("ReasonId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReasonID");
+
+                    b.Property<decimal>("ReceiveAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("ReferredByPartnerId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReferredByPartnerID");
+
+                    b.Property<string>("ReferredByPartnerName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Review")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ReviewComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("RejectReason");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("ApproveDatetime");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("ApproveByID");
+
+                    b.Property<int?>("SalesForceId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesForceID");
+
+                    b.Property<string>("SalesForceName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SalesQuotationCode")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("SalesQuotationId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesQuotationID");
+
+                    b.Property<int?>("SalesTermId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesTermID");
+
+                    b.Property<string>("SalesTermName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("ShippingAddressId")
+                        .HasColumnType("int")
+                        .HasColumnName("ShippingAddressID");
+
+                    b.Property<string>("ShippingAddressName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ShippingContactPerson")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("SpecialDiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("SpecialDiscountId")
+                        .HasColumnType("int")
+                        .HasColumnName("SpecialDiscountID");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SupplierContributionAmountPerInvoice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalAit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("TotalAITAmount");
+
+                    b.Property<decimal>("TotalLineDiscount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalSd")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalVat")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("WalletCommission")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("WalletCommision");
+
+                    b.Property<int?>("WalletId")
+                        .HasColumnType("int")
+                        .HasColumnName("WalletID");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("WarehouseID");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BankAccountId");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ExtraChargeAccountId");
+
+                    b.HasIndex("FreeTypeId");
+
+                    b.HasIndex("LcTypeId");
+
+                    b.HasIndex("OfficeId");
+
+                    b.HasIndex("OtherChargeAccountId");
+
+                    b.HasIndex("PaymentMethodId");
+
+                    b.HasIndex("PaymentTermsId");
+
+                    b.HasIndex("PaymentTypeId");
+
+                    b.HasIndex("PriceTypeId");
+
+                    b.HasIndex("ReferredByPartnerId");
+
+                    b.HasIndex("SalesForceId");
+
+                    b.HasIndex("SalesQuotationId");
+
+                    b.HasIndex("SalesTermId");
+
+                    b.HasIndex("ShippingAddressId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.HasIndex("BusinessUnitId", "Code")
+                        .IsUnique();
+
+                    b.HasIndex("BusinessUnitId", "IsActive", "Status", "OrderDate");
+
+                    b.ToTable("CustomerOrder", (string)null);
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesOrderLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AitAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("AitPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("BdPortQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("numBdPortQty");
+
+                    b.Property<decimal>("DeliveredQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal?>("DemandQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("LineDiscount");
+
+                    b.Property<int?>("DiscountId")
+                        .HasColumnType("int")
+                        .HasColumnName("DiscountID");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("FobRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("FOBRate");
+
+                    b.Property<decimal>("ForeignPortQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("numForeignPortQty");
+
+                    b.Property<int?>("FreeTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("FreeTypeID");
+
+                    b.Property<string>("FreeTypeName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("FreightRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("HeaderCostProportion")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("HeaderDiscountProportion")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<bool>("IsAmountWiseDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDiscountPerQuantity")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOfferItem")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("ItemBasePriceInclusive")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("ItemDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemID");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("LineDiscountRate")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasComputedColumnSql("CONVERT([decimal](18,2), CASE WHEN [Quantity] = 0 THEN 0 ELSE [LineDiscount] / [Quantity] END)");
+
+                    b.Property<int?>("OfferItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("OfferItemID");
+
+                    b.Property<string>("OfferItemName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("OfferItemQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("OfferItemQty");
+
+                    b.Property<string>("OfferName")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerOrderID");
+
+                    b.Property<int?>("ParentRowId")
+                        .HasColumnType("int")
+                        .HasColumnName("ParentRowID");
+
+                    b.Property<string>("PiNo")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("PINo");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int?>("ProformaInvoiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProformaInvoiceID");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("ScheduledQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ScheduledQty");
+
+                    b.Property<decimal>("SdAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Sd");
+
+                    b.Property<decimal>("SdPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SellingItemQuantityForOffer")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("SellingItemQtyForOffer");
+
+                    b.Property<decimal>("SellingPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int")
+                        .HasColumnName("ViewSequenceID");
+
+                    b.Property<decimal>("SetUpFreeQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("ShelfLife")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("strShelfLife");
+
+                    b.Property<decimal?>("SpecialDiscountAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SupplierDiscountContributionInAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("SupplierDiscountContributionInPercent")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("NetAmount");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomID");
+
+                    b.Property<string>("UomName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("Vat");
+
+                    b.Property<decimal>("VatPercentage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("WarrantyInMonth")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreeTypeId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("UomId");
+
+                    b.ToTable("CustomerOrderLine", (string)null);
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotation", b =>
                 {
                     b.Property<int>("Id")
@@ -6221,6 +7840,11 @@ namespace Erp.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ChartOfAccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Partners.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Erp.Core.Domain.Accounting.Journal", "Journal")
                         .WithMany("Lines")
@@ -7359,6 +8983,296 @@ namespace Erp.Infrastructure.Persistence.Migrations
                     b.Navigation("Uom");
                 });
 
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesDelivery", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Accounting.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Identity.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("CollectedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Identity.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("CourierOrEmployeeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Partners.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("DeliveryMethodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Accounting.ChartOfAccount", null)
+                        .WithMany()
+                        .HasForeignKey("ExtraChargeAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("FreeTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("InstallmentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Office", null)
+                        .WithMany()
+                        .HasForeignKey("OfficeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Sales.SalesOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Accounting.ChartOfAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OtherChargeAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PriceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Partners.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("ReferredByPartnerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Identity.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("SalesForceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("ShippingAddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Warehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesDeliveryLine", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Sales.SalesDelivery", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("DeliveryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("FreeTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Inventory.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Sales.SalesOrderLine", null)
+                        .WithMany()
+                        .HasForeignKey("OrderLineId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Inventory.UnitOfMeasure", "Uom")
+                        .WithMany()
+                        .HasForeignKey("UomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Warehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Uom");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesOrder", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Accounting.BankAccount", null)
+                        .WithMany()
+                        .HasForeignKey("BankAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.BusinessUnit", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Partners.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Accounting.ChartOfAccount", null)
+                        .WithMany()
+                        .HasForeignKey("ExtraChargeAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("FreeTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("LcTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Office", null)
+                        .WithMany()
+                        .HasForeignKey("OfficeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Accounting.ChartOfAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OtherChargeAccountId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentTermsId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("PriceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Partners.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("ReferredByPartnerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Identity.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("SalesForceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Sales.SalesQuotation", null)
+                        .WithMany()
+                        .HasForeignKey("SalesQuotationId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("SalesTermId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("ShippingAddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Tenancy.Warehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesOrderLine", b =>
+                {
+                    b.HasOne("Erp.Core.Domain.Metadata.LookupValue", null)
+                        .WithMany()
+                        .HasForeignKey("FreeTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Erp.Core.Domain.Inventory.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Sales.SalesOrder", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Erp.Core.Domain.Inventory.UnitOfMeasure", "Uom")
+                        .WithMany()
+                        .HasForeignKey("UomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Uom");
+                });
+
             modelBuilder.Entity("Erp.Core.Domain.Sales.SalesQuotation", b =>
                 {
                     b.HasOne("Erp.Core.Domain.Tenancy.Account", null)
@@ -7593,6 +9507,16 @@ namespace Erp.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Erp.Core.Domain.Procurement.PurchaseReturn", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesDelivery", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Erp.Core.Domain.Sales.SalesOrder", b =>
                 {
                     b.Navigation("Lines");
                 });

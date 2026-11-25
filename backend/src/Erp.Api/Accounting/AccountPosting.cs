@@ -18,6 +18,8 @@ internal sealed record JournalEntry(
 
 internal sealed record JournalEntryLine(string? Key, int? ChartOfAccountId, decimal Amount, int? SupplierId = null)
 {
+    public int? CustomerId { get; init; }
+
     public static JournalEntryLine Debit(string key, decimal amount, int? supplierId = null) => new(key, null, amount, supplierId);
 
     public static JournalEntryLine Credit(string key, decimal amount, int? supplierId = null) => new(key, null, -amount, supplierId);
@@ -53,8 +55,8 @@ internal static class AccountPosting
         }
 
         var lines = wanted
-            .GroupBy(l => (AccountId: l.ChartOfAccountId ?? accounts[l.Key!], l.SupplierId))
-            .Select(g => (g.Key.AccountId, g.Key.SupplierId, Amount: g.Sum(l => l.Amount)))
+            .GroupBy(l => (AccountId: l.ChartOfAccountId ?? accounts[l.Key!], l.SupplierId, l.CustomerId))
+            .Select(g => (g.Key.AccountId, g.Key.SupplierId, g.Key.CustomerId, Amount: g.Sum(l => l.Amount)))
             .Where(l => l.Amount != 0)
             .OrderByDescending(l => l.Amount > 0)
             .ToList();
@@ -82,6 +84,7 @@ internal static class AccountPosting
             Sequence = index + 1,
             ChartOfAccountId = l.AccountId,
             SupplierId = l.SupplierId,
+            CustomerId = l.CustomerId,
             Amount = l.Amount,
         }));
         db.Journals.Add(journal);
@@ -105,7 +108,7 @@ internal static class AccountPosting
         PostAsync(db, current, new JournalEntry(
             feature, documentId, documentCode, date, $"Cancelled {documentCode}",
             [
-                .. original.Lines.OrderBy(l => l.Sequence).Select(l => JournalEntryLine.Account(l.ChartOfAccountId, -l.Amount, l.SupplierId)),
+                .. original.Lines.OrderBy(l => l.Sequence).Select(l => JournalEntryLine.Account(l.ChartOfAccountId, -l.Amount, l.SupplierId) with { CustomerId = l.CustomerId }),
                 JournalEntryLine.Debit(PostingKeys.Inventory, stockDifference),
                 JournalEntryLine.Credit(PostingKeys.PriceDifference, stockDifference),
             ]) { IsReversal = true }, cancellationToken);
