@@ -1,6 +1,6 @@
 import { Grid, Pagination, Select, Skeleton, Table, type TableProps } from 'antd';
 import type { ColumnType } from 'antd/es/table';
-import { useMemo, useRef, type Key, type ReactNode } from 'react';
+import { useMemo, type Key, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ListSort } from '../../hooks/useListState';
 import { formatNumber, pageRange } from '../../utils/format';
@@ -8,7 +8,12 @@ import { ActionGroup } from '../actions/ActionGroup';
 import type { ActionItem } from '../actions/types';
 import { EmptyState } from '../feedback/EmptyState';
 import { ColumnPicker } from './ColumnPicker';
-import { PAGE_SIZE_OPTIONS, ROW_ACTION_SIZE } from './constants';
+import {
+  PAGE_SIZE_OPTIONS,
+  PICKER_COLUMN_KEY,
+  ROW_ACTION_PADDING,
+  ROW_ACTION_SIZE,
+} from './constants';
 import { useTableSettings } from './table-settings';
 
 export interface DataTablePagination {
@@ -63,7 +68,6 @@ export function DataTable<T extends object>({
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const screens = Grid.useBreakpoint();
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [{ hidden }, updateSettings] = useTableSettings(settingsKey, defaultHidden);
   const selected = selection?.selectedKeys ?? [];
 
@@ -118,22 +122,34 @@ export function DataTable<T extends object>({
       />
     </span>
   );
-  const tableColumns = picker
-    ? visibleColumns.map((c, i, all) =>
-        i === all.length - 1 && typeof c.title !== 'function'
-          ? {
-              ...c,
-              title: (
-                <span className="erp-table__lasthead">
-                  {c.title}
-                  {picker}
-                </span>
-              ),
-              width: typeof c.width === 'number' ? c.width + ROW_ACTION_SIZE : c.width,
-            }
-          : c,
-      )
-    : visibleColumns;
+  const pinnedLast = (columns as ColumnType<T>[]).at(-1)?.fixed === 'right';
+  const tableColumns: ColumnType<T>[] = !picker
+    ? visibleColumns
+    : pinnedLast
+      ? visibleColumns.map((c, i, all) =>
+          i === all.length - 1 && typeof c.title !== 'function'
+            ? {
+                ...c,
+                title: (
+                  <span className="erp-table__lasthead">
+                    {c.title}
+                    {picker}
+                  </span>
+                ),
+                width: typeof c.width === 'number' ? c.width + ROW_ACTION_SIZE : c.width,
+              }
+            : c,
+        )
+      : [
+          ...visibleColumns,
+          {
+            key: PICKER_COLUMN_KEY,
+            title: picker,
+            align: 'end',
+            width: ROW_ACTION_SIZE + ROW_ACTION_PADDING,
+            fixed: screens.md === false ? undefined : 'right',
+          },
+        ];
 
   const firstLoad = loading && !tableProps.dataSource?.length;
   const refreshing = loading && !firstLoad;
@@ -162,12 +178,11 @@ export function DataTable<T extends object>({
         </div>
       )}
 
-      <div ref={scrollRef} className="erp-table__scroll erp-scroll">
+      <div className="erp-table__scroll">
         <Table<T>
           size="middle"
           columns={tableColumns}
           pagination={false}
-          sticky={fill ? { getContainer: () => scrollRef.current ?? window } : true}
           scroll={{ x: 'max-content' }}
           rowSelection={
             selection

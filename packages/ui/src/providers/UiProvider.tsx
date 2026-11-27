@@ -17,6 +17,7 @@ import {
 } from '../theme/appearance';
 import { buildBrand, tableHeadColors, type Brand } from '../theme/brand';
 import { BrandContext } from '../theme/brand-context';
+import { alpha } from '../theme/color';
 import { tokenVariables } from '../theme/design-tokens';
 import { resolvePreset } from '../theme/presets';
 import { loadFont } from '../theme/fonts';
@@ -24,6 +25,7 @@ import { buildTheme } from '../theme/tokens';
 import { useResolvedMode, useThemeStore, useUiPrefs } from '../theme/theme-store';
 
 const antdLocales = { en: enUS, bn: bnBD } as const;
+const SCROLLBAR_OPACITY = 0.45;
 
 const px = (values: Record<string, number>, prefix: string) =>
   Object.fromEntries(Object.entries(values).map(([k, v]) => [`--erp-${prefix}-${k}`, `${v}px`]));
@@ -69,8 +71,8 @@ function cssVariables(brand: Brand, prefs: UiPrefs): Record<string, string> {
     '--erp-accent': brand.accent,
     '--erp-brand-light': brand.palette[3]!,
     '--erp-brand-mid': brand.palette[5]!,
-    '--erp-scrollbar':
-      brand.mode === 'light' ? 'rgba(100, 110, 125, 0.35)' : 'rgba(255, 255, 255, 0.18)',
+    '--erp-scrollbar': alpha(brand.primary, SCROLLBAR_OPACITY),
+    '--sb-scrollbar': alpha(sider.bar, SCROLLBAR_OPACITY),
     '--sb-bg': sider.bg,
     '--sb-div': sider.divider,
     '--sb-tx': sider.text,

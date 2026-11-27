@@ -58,7 +58,28 @@ html[data-motion='false'] *::after {
   scroll-behavior: auto !important;
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--erp-scrollbar, rgba(127, 127, 127, 0.35)) transparent;
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--erp-scrollbar) transparent;
+  }
+}
+
+::-webkit-scrollbar {
+  width: var(--erp-scrollbar-w);
+  height: var(--erp-scrollbar-w);
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--erp-scrollbar);
+  border-radius: var(--erp-radius-pill);
+}
+
+.ant-table-wrapper .ant-table {
+  scrollbar-color: auto;
 }

@@ -6,3 +6,5 @@ export const ROW_ACTION_FALLBACK = 3;
 
 export const SERIAL_COLUMN_KEY = 'sl';
 export const SERIAL_COLUMN_WIDTH = 56;
+
+export const PICKER_COLUMN_KEY = 'columns';

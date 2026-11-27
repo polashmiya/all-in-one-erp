@@ -46,6 +46,7 @@ export function DraftTable({ drafts, header }: { drafts: ListDrafts; header: Rea
       key: 'actions',
       title: t('table.actions'),
       align: 'end',
+      fixed: 'right',
       width: rowActionsWidth(drafts.rows?.[0] && actions(drafts.rows[0])),
       render: (_, d) => <RowActions actions={actions(d)} />,
     },

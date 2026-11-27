@@ -51,7 +51,7 @@ export function LoginLayout({
 }: LoginLayoutProps) {
   return (
     <div className="erp-login">
-      <section className="erp-login__form erp-scroll">
+      <section className="erp-login__form">
         <header className="erp-login__head">
           <span className="erp-login__brand">
             <BrandMark size={34} label={appName} />

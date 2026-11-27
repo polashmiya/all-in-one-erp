@@ -1691,6 +1691,21 @@ html[data-content-width='boxed'] .erp-page {
 
 .erp-table__scroll {
   min-width: 0;
+  overflow-x: auto;
+}
+
+.erp-table .ant-table-content {
+  overflow: visible !important;
+}
+
+.erp-table .ant-table-thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.erp-table .ant-table-thead > tr > th.ant-table-cell-fix-right {
+  z-index: 4;
 }
 
 .erp-table__scroll:first-child {
@@ -2185,10 +2200,6 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
 
   .erp-page.is-fill > :last-child {
     flex: 0 0 auto;
-  }
-
-  .erp-table.is-fill .erp-table__scroll {
-    overflow: visible;
   }
 
   .erp-page__head {

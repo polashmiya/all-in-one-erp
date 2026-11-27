@@ -117,7 +117,7 @@ export function CommandPalette({
       {results.length === 0 ? (
         <div className="erp-cmd__empty">{t('shell.noMenuMatch')}</div>
       ) : (
-        <ul id="erp-cmd-results" role="listbox" className="erp-cmd__list erp-scroll">
+        <ul id="erp-cmd-results" role="listbox" className="erp-cmd__list">
           {results.map((r, index) => (
             <li
               key={r.node.key}

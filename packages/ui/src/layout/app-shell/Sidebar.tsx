@@ -9,7 +9,7 @@ import {
   StarOutlined,
 } from '@ant-design/icons';
 import { Popover, Skeleton, Tooltip } from 'antd';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { BrandMark } from '../../components/brand/BrandMark';
@@ -41,6 +41,20 @@ export interface SidebarProps {
 const FAVORITE_TINTS = tintOrder.filter((tint) => tint !== 'slate');
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ');
+
+interface OpenChoice {
+  leaf?: string;
+  module?: string | null;
+  sub?: string | null;
+}
+
+function Collapse({ open, children }: { open: boolean; children: ReactNode }) {
+  return (
+    <div className={cx('erp-sb-collapse', open && 'is-open')} inert={!open}>
+      <div className="erp-sb-collapse__inner">{children}</div>
+    </div>
+  );
+}
 
 function useLabel() {
   const language = useLanguageStore((s) => s.language);
@@ -194,8 +208,7 @@ export function Sidebar({
   const homePath = useHomePath();
   const { trail } = useShell();
   const favoriteKeys = useFavoritesStore((s) => s.keys);
-  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
-  const [openSubs, setOpenSubs] = useState<Record<string, boolean>>({});
+  const [choice, setChoice] = useState<OpenChoice>({});
   const [flyout, setFlyout] = useState<string | null>(null);
 
   const activeKeys = useMemo(() => new Set(trail.map((n) => n.key)), [trail]);
@@ -209,15 +222,19 @@ export function Sidebar({
       .filter((leaf): leaf is MenuNode => !!leaf);
   }, [favoriteKeys, menu]);
 
-  const isModuleOpen = (key: string) => openModules[key] ?? activeKeys.has(key);
-  const toggleModule = (key: string) =>
-    setOpenModules((s) => ({ ...s, [key]: !isModuleOpen(key) }));
-  const isSubOpen = (key: string) => openSubs[key] ?? activeKeys.has(key);
-  const toggleSub = (key: string) => setOpenSubs((s) => ({ ...s, [key]: !isSubOpen(key) }));
+  const [activeModule = null, activeSub = null] = trail
+    .filter((n) => n.children?.length)
+    .map((n) => n.key);
+  const current = choice.leaf === activeLeaf ? choice : {};
+  const openModule = current.module === undefined ? activeModule : current.module;
+  const openSub = current.sub === undefined ? activeSub : current.sub;
+  const choose = (next: OpenChoice) => setChoice({ ...current, ...next, leaf: activeLeaf });
+  const toggleModule = (key: string) => choose({ module: openModule === key ? null : key });
+  const toggleSub = (key: string) => choose({ sub: openSub === key ? null : key });
 
   const pinOpen = (moduleKey: string) => {
     setFlyout(null);
-    setOpenModules((s) => ({ ...s, [moduleKey]: true }));
+    choose({ module: moduleKey });
     onToggleRail();
   };
 
@@ -235,7 +252,7 @@ export function Sidebar({
             <BrandMark size={32} />
           </Link>
         </div>
-        <nav className="erp-rail-nav erp-scroll">
+        <nav className="erp-rail-nav">
           <Tooltip title={t('shell.expand')} placement="right">
             <button
               type="button"
@@ -359,7 +376,7 @@ export function Sidebar({
         </button>
       </div>
 
-      <nav className="erp-sb-nav erp-scroll">
+      <nav className="erp-sb-nav">
         {topItems.map((node) => (
           <TopRow
             key={node.key}
@@ -403,7 +420,7 @@ export function Sidebar({
         )}
 
         {modules.map((module) => {
-          const open = isModuleOpen(module.key);
+          const open = openModule === module.key;
           return (
             <div key={module.key}>
               <button
@@ -418,7 +435,7 @@ export function Sidebar({
                   <RightOutlined />
                 </span>
               </button>
-              {open && (
+              <Collapse open={open}>
                 <div className="erp-sb-tree">
                   {(module.children ?? []).map((sub) =>
                     sub.children?.length ? (
@@ -429,15 +446,15 @@ export function Sidebar({
                             'erp-sb-row erp-sb-sub',
                             activeKeys.has(sub.key) && 'has-active',
                           )}
-                          aria-expanded={isSubOpen(sub.key)}
+                          aria-expanded={openSub === sub.key}
                           onClick={() => toggleSub(sub.key)}
                         >
                           <span className="erp-sb-text">{label(sub)}</span>
-                          <span className={cx('erp-sb-chev', isSubOpen(sub.key) && 'is-open')}>
+                          <span className={cx('erp-sb-chev', openSub === sub.key && 'is-open')}>
                             <RightOutlined />
                           </span>
                         </button>
-                        {isSubOpen(sub.key) && (
+                        <Collapse open={openSub === sub.key}>
                           <div className="erp-sb-tree">
                             {sub.children
                               .filter((leaf) => leaf.path)
@@ -450,7 +467,7 @@ export function Sidebar({
                                 />
                               ))}
                           </div>
-                        )}
+                        </Collapse>
                       </div>
                     ) : sub.path ? (
                       <LeafRow
@@ -462,7 +479,7 @@ export function Sidebar({
                     ) : null,
                   )}
                 </div>
-              )}
+              </Collapse>
             </div>
           );
         })}

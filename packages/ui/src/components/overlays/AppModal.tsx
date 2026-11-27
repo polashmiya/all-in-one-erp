@@ -60,7 +60,6 @@ export function AppModal({
       centered
       destroyOnHidden
       className="erp-modal"
-      classNames={{ body: 'erp-scroll' }}
       title={
         <div className="erp-overlay__title">
           <span>{title}</span>

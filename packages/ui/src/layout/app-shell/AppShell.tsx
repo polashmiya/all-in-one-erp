@@ -141,7 +141,7 @@ export function AppShell({
               onLogout={onLogout}
               onOpenMenu={mobile ? () => setDrawerOpen(true) : undefined}
             />
-            <main className="erp-content erp-scroll">
+            <main className="erp-content">
               <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
             </main>
           </div>

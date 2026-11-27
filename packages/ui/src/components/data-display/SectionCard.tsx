@@ -42,7 +42,7 @@ export function SectionCard({
           )}
         </header>
       )}
-      <div className={`erp-card__body erp-card__body--${padding} erp-scroll`}>{children}</div>
+      <div className={`erp-card__body erp-card__body--${padding}`}>{children}</div>
     </section>
   );
 }
