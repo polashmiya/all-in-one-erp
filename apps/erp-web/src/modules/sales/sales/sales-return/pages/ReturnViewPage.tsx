@@ -102,7 +102,6 @@ export function ReturnViewPage() {
           content: (
             <DetailSection title={t('salesReturn.settlement')}>
               <DescriptionList
-                columns={3}
                 items={[
                   money('due', t('salesReturn.dueAdjusted'), record.dueAdjusted),
                   money('refund', t('salesReturn.refund'), record.refundAmount),
@@ -156,7 +155,6 @@ export function ReturnViewPage() {
           ]}
           details={(line) => (
             <DescriptionList
-              columns={4}
               items={[
                 {
                   key: 'sd',

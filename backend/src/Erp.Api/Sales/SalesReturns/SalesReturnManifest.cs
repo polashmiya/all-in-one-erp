@@ -10,9 +10,9 @@ public sealed class SalesReturnManifest : IFeatureManifestProvider
         new(SalesMenu.SalesReturn,
         [
             new("general", new("General", "সাধারণ"), 10),
-            new("basic", new("Return", "ফেরত"), 10, "general", Columns: 6),
-            new("reference", new("Reference & credit note", "রেফারেন্স ও ক্রেডিট নোট"), 20, "general", Columns: 6),
-            new("settlement", new("Deduction & refund", "কর্তন ও টাকা ফেরত"), 30, "general", Columns: 6),
+            new("basic", new("Return", "ফেরত"), 10, "general"),
+            new("reference", new("Reference & credit note", "রেফারেন্স ও ক্রেডিট নোট"), 20, "general"),
+            new("settlement", new("Deduction & refund", "কর্তন ও টাকা ফেরত"), 30, "general"),
             new("notes", new("Notes", "মন্তব্য"), 40, "general"),
         ],
         [

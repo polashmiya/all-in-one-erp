@@ -35,10 +35,9 @@ import {
 } from '../layout-model';
 
 const DRAG_START_DISTANCE = 6;
-const DEFAULT_COLUMNS = 4;
 
 const columnsOf = (count?: number | null) =>
-  count && SECTION_COLUMNS.includes(count) ? count : DEFAULT_COLUMNS;
+  count && SECTION_COLUMNS.includes(count) ? count : undefined;
 
 const collision: CollisionDetection = (args) => {
   const kind = parseId(String(args.active.id)).kind;
@@ -132,12 +131,12 @@ function Head({
   );
 }
 
-function FieldChip({ row, columns }: { row: FieldConfigRow; columns: number }) {
+function FieldChip({ row, columns }: { row: FieldConfigRow; columns?: number }) {
   const { t } = useTranslation();
   const label = useLabel();
   const node = useNode('field', row.key);
   const values = effective(row);
-  const span = Math.min(values.colSpan ?? 1, columns);
+  const span = Math.min(values.colSpan ?? 1, columns ?? Infinity);
 
   return (
     <div
@@ -166,7 +165,9 @@ function SectionBlock({ section, ...actions }: { section: SectionNode } & BoardA
         items={section.fields.map((field) => nodeId('field', field.key))}
         strategy={rectSortingStrategy}
       >
-        <div className={`acc-layout__fields erp-field-grid erp-field-grid--${columns}`}>
+        <div
+          className={`acc-layout__fields erp-field-grid${columns ? ` erp-field-grid--${columns}` : ''}`}
+        >
           {section.fields.map((field) => (
             <FieldChip key={field.key} row={field} columns={columns} />
           ))}

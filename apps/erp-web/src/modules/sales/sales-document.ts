@@ -32,7 +32,6 @@ export const SALES_LOOKUP_LISTS = [
   'currency',
 ] as const;
 
-export const FORM_COLUMNS = 6;
 export const DESCRIPTION_MAX = 2000;
 export const SHELF_LIFE_MAX = 150;
 export const WARRANTY_MAX = 1200;

@@ -21,6 +21,7 @@ export const sizes = {
   searchWidth: 280,
   filterMaxWidth: 260,
   scrollbarWidth: 4,
+  fieldMinWidth: 200,
   authFormWidth: 400,
   modal: { sm: 420, md: 560, lg: 760 },
   drawer: { sm: 380, md: 520, lg: 720 },
@@ -270,6 +271,7 @@ export function tokenVariables(mode: ThemeMode): Record<string, string> {
   vars['--erp-search-w'] = `${sizes.searchWidth}px`;
   vars['--erp-filter-max-w'] = `${sizes.filterMaxWidth}px`;
   vars['--erp-scrollbar-w'] = `${sizes.scrollbarWidth}px`;
+  vars['--erp-field-min-w'] = `${sizes.fieldMinWidth}px`;
   vars['--erp-auth-w'] = `${sizes.authFormWidth}px`;
   vars['--erp-font-family'] = fontFamily;
   return vars;

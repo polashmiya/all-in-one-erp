@@ -15,7 +15,6 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { TypeSelect } from '../../../components/TypeSelect';
-import { FORM_COLUMNS } from '../../../sales-document';
 import { DeliveryLines } from '../components/DeliveryLines';
 import { DeliveryCustomerPicker, OrderPicker } from '../components/DeliveryPickers';
 import { DELIVERY_FEATURE, DELIVERY_LOOKUPS, deliveryPaths, ORDER_PARAM } from '../constants';
@@ -85,7 +84,6 @@ export function DeliveryFormPage() {
           options={{
             lookups,
             behaviors: deliveryBehaviors(payFrom.behaviors),
-            maxColumns: FORM_COLUMNS,
             widgets: {
               type: (_, placeholder) => (
                 <TypeSelect<DeliveryValues>

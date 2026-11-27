@@ -99,7 +99,7 @@ export function StructureNodeModal({
       initialValues={initialValues}
       onSubmit={submit}
     >
-      <FieldGrid columns={2}>
+      <FieldGrid>
         <Field
           name="code"
           label={t('structure.f.code')}

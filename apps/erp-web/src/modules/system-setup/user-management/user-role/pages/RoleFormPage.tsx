@@ -136,7 +136,7 @@ export function RoleFormPage() {
           key: 'role',
           fields: ['name', 'description'],
           content: (
-            <FieldSection title={t('role.section.role')} columns={3}>
+            <FieldSection title={t('role.section.role')}>
               <Form.Item
                 name="name"
                 label={t('role.field.name')}

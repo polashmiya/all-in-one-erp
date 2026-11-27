@@ -68,7 +68,6 @@ export function AccountDetailPage() {
   const profile = (
     <DetailSection title={t('detail.profile')}>
       <DescriptionList
-        columns={3}
         items={[
           {
             key: 'email',
@@ -100,7 +99,6 @@ export function AccountDetailPage() {
     <DetailSection title={t('detail.admin')}>
       {account.admin ? (
         <DescriptionList
-          columns={3}
           items={[
             { key: 'name', label: t('detail.adminName'), value: account.admin.fullName },
             {

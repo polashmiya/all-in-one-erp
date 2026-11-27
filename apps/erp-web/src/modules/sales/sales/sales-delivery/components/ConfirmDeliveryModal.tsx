@@ -93,7 +93,7 @@ export function ConfirmDeliveryModal({
       }}
       onSubmit={submit}
     >
-      <FieldGrid columns={2}>
+      <FieldGrid>
         {input('actualDeliveryDate', t('salesDelivery.f.actualDate'), 'date', true)}
         <Field name="collectedById" label={t('salesDelivery.f.collectedBy')}>
           <Select<number>

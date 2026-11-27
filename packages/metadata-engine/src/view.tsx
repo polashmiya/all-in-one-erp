@@ -2,11 +2,9 @@ import type { FeatureConfig } from '@erp/api-client';
 import { DescriptionList, DetailSection, type CsvColumn, type DetailsTab } from '@erp/ui';
 import type { TableColumnsType } from 'antd';
 import type { ReactNode } from 'react';
-import { columnsOf, fieldMap, isNumeric, useText } from './config';
+import { fieldMap, isNumeric, sectionColumns, useText } from './config';
 import type { LookupSources } from './lookups';
 import { useFieldValue } from './values';
-
-const VIEW_COLUMNS = 3;
 
 export function useViewTabs<T extends object>(
   config: FeatureConfig,
@@ -32,7 +30,7 @@ export function useViewTabs<T extends object>(
           content: (
             <DetailSection title={text(section.label)}>
               <DescriptionList
-                columns={Math.max(2, Math.min(columnsOf(section.columns), VIEW_COLUMNS)) as 2 | 3}
+                columns={sectionColumns(section.columns)}
                 items={fields.map((field) => ({
                   key: field.key,
                   label: text(field.label),

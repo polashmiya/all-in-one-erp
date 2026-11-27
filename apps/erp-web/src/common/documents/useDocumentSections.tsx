@@ -19,7 +19,6 @@ export function useDocumentSections(
     content: (
       <DetailSection title={t('document.side.recordInfo')}>
         <DescriptionList
-          columns={3}
           items={[
             {
               key: 'created',

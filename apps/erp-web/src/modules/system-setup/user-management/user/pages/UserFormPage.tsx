@@ -184,7 +184,6 @@ function UserForm({ user, draft }: { user?: UserDetail; draft: DraftState<Values
   const unitsCard = user ? (
     <DetailSection title={t('user.units.label')}>
       <DescriptionList
-        columns={2}
         items={user.units.map((unit) => ({
           key: unit.businessUnitId,
           label: unit.businessUnitName,

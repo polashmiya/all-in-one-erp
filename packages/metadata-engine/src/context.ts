@@ -23,7 +23,6 @@ export interface FormOptions {
   widgets?: Record<string, FieldRenderer>;
   behaviors?: Record<string, FieldBehavior>;
   aside?: string[];
-  maxColumns?: number;
 }
 
 export interface EngineContext extends FormOptions {

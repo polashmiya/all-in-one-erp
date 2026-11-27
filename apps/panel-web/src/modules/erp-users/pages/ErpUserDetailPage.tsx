@@ -73,7 +73,6 @@ export function ErpUserDetailPage() {
         <EmptyState title={t('erpUsers.units.none')} />
       ) : (
         <DescriptionList
-          columns={2}
           items={user.units.map((unit) => ({
             key: unit.businessUnitId,
             label: unit.businessUnitName,
@@ -99,7 +98,6 @@ export function ErpUserDetailPage() {
         <EmptyState title={t('erpUsers.devices.none')} />
       ) : (
         <DescriptionList
-          columns={2}
           items={detail.sessions.map((session) => ({
             key: session.id,
             label: session.userAgent || '—',
@@ -122,7 +120,6 @@ export function ErpUserDetailPage() {
         <EmptyState title={t('erpUsers.logins.none')} />
       ) : (
         <DescriptionList
-          columns={2}
           items={detail.logins.map((login, index) => ({
             key: `${login.at}-${index}`,
             label: formatDateTime(login.at),
@@ -146,7 +143,6 @@ export function ErpUserDetailPage() {
         <EmptyState title={t('erpUsers.history.none')} />
       ) : (
         <DescriptionList
-          columns={2}
           items={detail.history.map((change, index) => ({
             key: `${change.at}-${index}`,
             label: [

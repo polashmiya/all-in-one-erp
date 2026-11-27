@@ -1,7 +1,7 @@
 import type { ConfigSection, FeatureConfig } from '@erp/api-client';
 import { FieldGrid, FieldSection } from '@erp/ui';
 import { Tabs } from 'antd';
-import { columnsOf, fieldMap, useText } from './config';
+import { fieldMap, sectionColumns, useText } from './config';
 import { Engine, type EngineContext, type FormOptions } from './context';
 import { DynamicField } from './fields';
 
@@ -16,7 +16,7 @@ export function ConfigFields({ config, ...options }: { config: FeatureConfig } &
         const fields = section.fields.map((field) => (
           <DynamicField key={field.key} field={field} />
         ));
-        const columns = columnsOf(section.columns);
+        const columns = sectionColumns(section.columns);
         return titled ? (
           <FieldSection key={section.key} title={text(section.label)} columns={columns}>
             {fields}

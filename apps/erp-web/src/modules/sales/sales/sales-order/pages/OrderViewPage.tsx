@@ -110,7 +110,6 @@ export function OrderViewPage() {
           content: (
             <DetailSection title={t('salesOrder.money')}>
               <DescriptionList
-                columns={3}
                 items={[
                   money('net', t('sales.totals.total'), order.netAmount),
                   money('received', t('salesOrder.received'), order.receiveAmount),

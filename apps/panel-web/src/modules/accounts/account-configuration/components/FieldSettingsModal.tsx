@@ -108,7 +108,7 @@ export function FieldSettingsModal({
       initialValues={initialValues}
       onSubmit={submit}
     >
-      <FieldSection title={t('config.sec.display')} columns={3}>
+      <FieldSection title={t('config.sec.display')}>
         <Field
           name="isVisible"
           label={t('config.f.visible')}
@@ -125,7 +125,7 @@ export function FieldSettingsModal({
         </Field>
       </FieldSection>
 
-      <FieldSection title={t('config.sec.texts')} columns={2}>
+      <FieldSection title={t('config.sec.texts')}>
         <Field name="labelEn" label={t('config.f.labelEn')} rules={[{ max: LABEL_MAX }]}>
           <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelEn'))} />
         </Field>
@@ -152,7 +152,7 @@ export function FieldSettingsModal({
         </Field>
       </FieldSection>
 
-      <FieldSection title={t('config.sec.layout')} columns={3}>
+      <FieldSection title={t('config.sec.layout')}>
         <Field name="sectionKey" label={t('config.f.section')}>
           <Select
             showSearch
@@ -184,7 +184,7 @@ export function FieldSettingsModal({
       </FieldSection>
 
       {(hasDefault || isText || isNumber) && (
-        <FieldSection title={t('config.sec.values')} columns={3}>
+        <FieldSection title={t('config.sec.values')}>
           {hasDefault &&
             (row.type === 'boolean' ? (
               <Field
@@ -267,7 +267,7 @@ export function FieldSettingsModal({
       )}
 
       {(row.canList || row.canFilter) && (
-        <FieldSection title={t('config.sec.list')} columns={3}>
+        <FieldSection title={t('config.sec.list')}>
           {row.canList && (
             <>
               <Field name="inList" label={t('config.f.inList')} valuePropName="checked">

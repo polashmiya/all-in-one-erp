@@ -100,7 +100,7 @@ export function SalesLines<L extends SalesLineValue>({
         maxLength: DESCRIPTION_MAX,
       }}
       details={({ name }) => (
-        <FieldGrid columns={6}>
+        <FieldGrid>
           {percent(name, 'sdPercentage', t('sales.lines.sd'), SD_MAX)}
           {percent(name, 'vatPercentage', t('document.lines.vat'), VAT_MAX)}
           {percent(name, 'aitPercentage', t('sales.lines.ait'), VAT_MAX)}

@@ -24,10 +24,13 @@ public static class FieldTypes
 
 public static class LayoutLimits
 {
-    public static readonly IReadOnlyList<int> SectionColumns = [1, 2, 3, 4, 6];
+    public const int AutoColumns = 0;
+
+    public static readonly IReadOnlyList<int> SectionColumns = [AutoColumns, 1, 2, 3, 4, 6];
 }
 
-public sealed record SectionDef(string Key, MenuText Label, int Order, string? Tab = null, int Columns = 4);
+public sealed record SectionDef(
+    string Key, MenuText Label, int Order, string? Tab = null, int Columns = LayoutLimits.AutoColumns);
 
 public sealed record FieldDef(string Key, string Type, MenuText Label, string Section, int Order)
 {

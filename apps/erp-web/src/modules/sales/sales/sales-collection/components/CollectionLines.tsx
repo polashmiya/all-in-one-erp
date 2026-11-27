@@ -188,7 +188,7 @@ export function CollectionLines({
               expandable={{
                 expandedRowRender: ({ name }) => (
                   <div className="erp-lines__details">
-                    <FieldGrid columns={6}>
+                    <FieldGrid>
                       {detail(name, 'vds')}
                       {detail(name, 'ait')}
                       {detail(name, 'discountAmount')}

@@ -149,7 +149,6 @@ export function CollectionViewPage() {
                   expandedRowRender: (line) => (
                     <div className="erp-lines__details">
                       <DescriptionList
-                        columns={4}
                         items={[
                           ...deductions.map((key) => ({
                             key,

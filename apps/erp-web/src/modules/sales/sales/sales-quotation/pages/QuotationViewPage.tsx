@@ -172,7 +172,6 @@ export function QuotationViewPage() {
           ]}
           details={(line) => (
             <DescriptionList
-              columns={3}
               items={[
                 {
                   key: 'sd',

@@ -10,10 +10,10 @@ public sealed class SalesQuotationManifest : IFeatureManifestProvider
         new(SalesMenu.SalesQuotation,
         [
             new("general", new("General", "সাধারণ"), 10),
-            new("basic", new("Quotation", "কোটেশন"), 10, "general", Columns: 6),
+            new("basic", new("Quotation", "কোটেশন"), 10, "general"),
             new("contact", new("Billing & shipping", "বিলিং ও শিপিং"), 20, "general"),
-            new("pricing", new("Discount & charges", "ছাড় ও চার্জ"), 30, "general", Columns: 6),
-            new("letter", new("Quotation letter", "কোটেশন পত্র"), 40, "general", Columns: 6),
+            new("pricing", new("Discount & charges", "ছাড় ও চার্জ"), 30, "general"),
+            new("letter", new("Quotation letter", "কোটেশন পত্র"), 40, "general"),
         ],
         [
             new("code", FieldTypes.Text, new("Quotation no.", "কোটেশন নম্বর"), "basic", 10)

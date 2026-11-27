@@ -180,6 +180,27 @@ public sealed class PanelFeatureConfigurationTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task Sections_fit_the_screen_until_their_columns_are_set()
+    {
+        var client = await PanelClientAsync();
+        var accountId = await DemoAccountIdAsync();
+        var sections = $"{Path(accountId)}/sections";
+        await using var cleanup = await FieldSettingsScope.ApplyAsync(factory.DhakaId, ItemManagementMenu.ItemProfile);
+
+        var editor = (await client.GetFromJsonAsync<FeatureConfigEditor>(Path(accountId)))!;
+        Assert.All(editor.Layout.Where(s => !s.IsTab), s => Assert.Equal(LayoutLimits.AutoColumns, s.Base.Columns));
+
+        (await client.PutAsJsonAsync($"{sections}/basic", new SectionSettingValues { Columns = 3 })).EnsureSuccessStatusCode();
+        (await client.PutAsJsonAsync($"{sections}/basic{Unit(factory.DhakaId)}",
+            new SectionSettingValues { Columns = LayoutLimits.AutoColumns })).EnsureSuccessStatusCode();
+
+        async Task<int> ColumnsAsync(Guid unitId) =>
+            (await client.GetFromJsonAsync<FeatureConfig>($"{Path(accountId)}/preview{Unit(unitId)}"))!
+            .Tabs.SelectMany(t => t.Sections).Single(s => s.Key == "basic").Columns;
+        Assert.Equal((LayoutLimits.AutoColumns, 3), (await ColumnsAsync(factory.DhakaId), await ColumnsAsync(factory.ChattogramId)));
+    }
+
+    [Fact]
     public async Task Layout_arranges_tabs_sections_and_fields_and_stores_only_what_changed()
     {
         var client = await PanelClientAsync();

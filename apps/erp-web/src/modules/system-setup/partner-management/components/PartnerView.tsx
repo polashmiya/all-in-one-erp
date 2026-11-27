@@ -91,7 +91,6 @@ export function PartnerView({
   const recordInfo = (
     <DetailSection title={t('partner.side.recordInfo')}>
       <DescriptionList
-        columns={3}
         items={[
           {
             key: 'created',

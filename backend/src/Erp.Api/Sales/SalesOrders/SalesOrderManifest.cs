@@ -9,13 +9,13 @@ public sealed class SalesOrderManifest : IFeatureManifestProvider
         new(SalesMenu.SalesOrder,
         [
             new("general", new("General", "সাধারণ"), 10),
-            new("basic", new("Order", "আদেশ"), 10, "general", Columns: 6),
-            new("terms", new("Customer PO & payment terms", "গ্রাহকের পিও ও পরিশোধের শর্ত"), 20, "general", Columns: 6),
+            new("basic", new("Order", "আদেশ"), 10, "general"),
+            new("terms", new("Customer PO & payment terms", "গ্রাহকের পিও ও পরিশোধের শর্ত"), 20, "general"),
             new("shipping", new("Shipping", "শিপিং"), 30, "general"),
-            new("advance", new("Advance", "অগ্রিম"), 40, "general", Columns: 6),
-            new("charges", new("Discount & charges", "ছাড় ও চার্জ"), 50, "general", Columns: 6),
+            new("advance", new("Advance", "অগ্রিম"), 40, "general"),
+            new("charges", new("Discount & charges", "ছাড় ও চার্জ"), 50, "general"),
             new("export", new("Export & LC", "রপ্তানি ও এলসি"), 60, "general"),
-            new("notes", new("Notes", "মন্তব্য"), 70, "general", Columns: 2),
+            new("notes", new("Notes", "মন্তব্য"), 70, "general"),
         ],
         [
             SalesFields.Code(10, new("Order no.", "আদেশ নম্বর")),

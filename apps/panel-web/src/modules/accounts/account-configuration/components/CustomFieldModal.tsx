@@ -85,7 +85,7 @@ export function CustomFieldModal({
       onSubmit={submit}
       draft={saved.draft}
     >
-      <FieldGrid columns={2}>
+      <FieldGrid>
         <Field
           name="labelEn"
           label={t('config.f.labelEn')}

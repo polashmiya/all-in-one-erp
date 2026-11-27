@@ -121,7 +121,6 @@ function ItemView({ item, config }: { item: ItemDetail; config: FeatureConfig })
   const recordInfo = (
     <DetailSection title={t('item.side.recordInfo')}>
       <DescriptionList
-        columns={3}
         items={[
           { key: 'unit', label: t('item.side.businessUnit'), value: unit?.name },
           { key: 'createdBy', label: t('item.side.createdBy'), value: item.createdByName },

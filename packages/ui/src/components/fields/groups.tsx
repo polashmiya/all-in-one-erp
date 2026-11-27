@@ -6,7 +6,7 @@ import { FieldGrid, type FieldColumns } from './Field';
 export function FieldSection({
   title,
   description,
-  columns = 3,
+  columns,
   children,
 }: {
   title: ReactNode;

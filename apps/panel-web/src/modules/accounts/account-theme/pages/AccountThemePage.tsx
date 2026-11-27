@@ -160,7 +160,7 @@ function ThemeForm({ account }: { account: AccountDetail }) {
             </Field>
           </FormSection>
           <FormSection title={t('theme.layout')} description={t('theme.layoutHint')}>
-            <FieldGrid columns={2}>
+            <FieldGrid>
               <Field name="sider" label={t('shell.sidebarStyle')}>
                 <Segmented
                   options={siderStyles.map((key) => ({

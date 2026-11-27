@@ -29,6 +29,9 @@ const WIDE_COLUMNS = 6;
 export const columnsOf = (count: number): FieldColumns =>
   count >= WIDE_COLUMNS ? WIDE_COLUMNS : (Math.min(Math.max(count, 1), 4) as FieldColumns);
 
+export const sectionColumns = (count: number): FieldColumns | undefined =>
+  count > 0 ? columnsOf(count) : undefined;
+
 export function defaultValues(config: FeatureConfig): FieldValues {
   const values: FieldValues = {};
   const custom: FieldValues = {};

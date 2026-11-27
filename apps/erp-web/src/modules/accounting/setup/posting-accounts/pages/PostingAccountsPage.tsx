@@ -83,7 +83,7 @@ export function PostingAccountsPage() {
           key: section.key,
           fields: section.keys,
           content: (
-            <FieldSection title={t(`posting.section.${section.key}`)} columns={3}>
+            <FieldSection title={t(`posting.section.${section.key}`)}>
               {section.keys.map((key) => (
                 <Field
                   key={key}

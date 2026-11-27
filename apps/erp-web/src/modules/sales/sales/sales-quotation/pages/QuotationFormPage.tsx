@@ -15,7 +15,6 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { CustomerPicker } from '../../../components/CustomerPicker';
-import { FORM_COLUMNS } from '../../../sales-document';
 import { QuotationLines } from '../components/QuotationLines';
 import { QUOTATION_FEATURE, QUOTATION_LOOKUPS, quotationPaths } from '../constants';
 import {
@@ -74,7 +73,6 @@ export function QuotationFormPage() {
           options={{
             lookups,
             behaviors: quotationBehaviors,
-            maxColumns: FORM_COLUMNS,
             widgets: {
               customerId: (_, placeholder) => (
                 <CustomerPicker<QuotationValues>

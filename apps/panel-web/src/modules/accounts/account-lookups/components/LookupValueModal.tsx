@@ -101,7 +101,7 @@ export function LookupValueModal({
       onSubmit={submit}
       draft={saved.draft}
     >
-      <FieldGrid columns={2}>
+      <FieldGrid>
         <Field
           name="nameEn"
           label={t('lookups.f.nameEn')}

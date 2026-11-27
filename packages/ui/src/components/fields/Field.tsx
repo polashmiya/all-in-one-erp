@@ -33,12 +33,10 @@ export function Field({ label, custom = false, rule, ...props }: FieldProps) {
 
 export type FieldColumns = 1 | 2 | 3 | 4 | 6;
 
-export function FieldGrid({
-  columns = 3,
-  children,
-}: {
-  columns?: FieldColumns;
-  children: ReactNode;
-}) {
-  return <div className={`erp-field-grid erp-field-grid--${columns}`}>{children}</div>;
+export function FieldGrid({ columns, children }: { columns?: FieldColumns; children: ReactNode }) {
+  return (
+    <div className={columns ? `erp-field-grid erp-field-grid--${columns}` : 'erp-field-grid'}>
+      {children}
+    </div>
+  );
 }

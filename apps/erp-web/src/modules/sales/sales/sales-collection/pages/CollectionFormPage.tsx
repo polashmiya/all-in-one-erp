@@ -15,7 +15,6 @@ import { useFormDraft } from '@/common/hooks/useDrafts';
 import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
-import { FORM_COLUMNS } from '../../../sales-document';
 import {
   collectionBehaviors,
   fromBill,
@@ -97,7 +96,6 @@ export function CollectionFormPage() {
           options={{
             lookups,
             behaviors: collectionBehaviors(payFrom),
-            maxColumns: FORM_COLUMNS,
             widgets: {
               customerId: (_, placeholder) => (
                 <CustomerBillsPicker

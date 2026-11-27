@@ -161,7 +161,6 @@ export function DeliveryViewPage() {
             content: (
               <DetailSection title={t('salesDelivery.money')}>
                 <DescriptionList
-                  columns={3}
                   items={[
                     money('net', t('sales.totals.total'), delivery.netAmount),
                     money('advance', t('salesDelivery.advanceUsed'), delivery.advanceBalanceAdjust),
@@ -201,7 +200,6 @@ export function DeliveryViewPage() {
                   content: (
                     <DetailSection title={t('salesDelivery.receipt')}>
                       <DescriptionList
-                        columns={3}
                         items={[
                           {
                             key: 'date',

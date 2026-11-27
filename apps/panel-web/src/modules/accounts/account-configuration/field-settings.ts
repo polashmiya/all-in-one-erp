@@ -1,5 +1,6 @@
 export const FIELD_WIDTHS = [1, 2, 3, 4];
-export const SECTION_COLUMNS = [...FIELD_WIDTHS, 6];
+export const AUTO_COLUMNS = 0;
+export const SECTION_COLUMNS = [AUTO_COLUMNS, ...FIELD_WIDTHS, 6];
 
 export const LABEL_MAX = 100;
 

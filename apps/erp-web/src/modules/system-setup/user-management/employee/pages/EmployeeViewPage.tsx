@@ -90,7 +90,6 @@ function EmployeeView({ employee, config }: { employee: EmployeeDetail; config: 
   const recordInfo = (
     <DetailSection title={t('employee.side.recordInfo')}>
       <DescriptionList
-        columns={3}
         items={[
           {
             key: 'user',

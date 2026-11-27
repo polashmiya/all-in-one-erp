@@ -69,7 +69,6 @@ export function SalesLinesView<R extends SalesRecord>({
       ]}
       details={(line) => (
         <DescriptionList
-          columns={4}
           items={[
             {
               key: 'sd',

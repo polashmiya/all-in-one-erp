@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { FieldColumns } from '../fields/Field';
 
 export interface DescriptionItem {
   key: string;
@@ -11,22 +12,13 @@ export interface DescriptionItem {
 
 export function DescriptionList({
   items,
-  minColumnWidth = 200,
   columns,
 }: {
   items: DescriptionItem[];
-  minColumnWidth?: number;
-  columns?: 2 | 3 | 4;
+  columns?: FieldColumns;
 }) {
   return (
-    <dl
-      className={columns ? `erp-dl erp-dl--grid erp-field-grid--${columns}` : 'erp-dl'}
-      style={
-        columns
-          ? undefined
-          : { gridTemplateColumns: `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))` }
-      }
-    >
+    <dl className={columns ? `erp-dl erp-field-grid--${columns}` : 'erp-dl'}>
       {items.map((item) => {
         const empty = item.value === null || item.value === undefined || item.value === '';
         return (

@@ -15,7 +15,6 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { TypeSelect } from '../../../components/TypeSelect';
-import { FORM_COLUMNS } from '../../../sales-document';
 import { ReturnLines } from '../components/ReturnLines';
 import { ReturnCustomerPicker, ReturnDeliveryPicker } from '../components/ReturnPickers';
 import { DELIVERY_PARAM, RETURN_FEATURE, RETURN_LOOKUPS, returnPaths } from '../constants';
@@ -88,7 +87,6 @@ export function ReturnFormPage() {
           options={{
             lookups,
             behaviors: returnBehaviors(payFrom.behaviors),
-            maxColumns: FORM_COLUMNS,
             widgets: {
               source: (_, placeholder) => (
                 <TypeSelect<ReturnValues>

@@ -10,6 +10,7 @@ import { App, Form, Input, Select } from 'antd';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  AUTO_COLUMNS,
   effective,
   LABEL_MAX,
   SECTION_COLUMNS,
@@ -81,7 +82,7 @@ export function SectionSettingsModal({
       initialValues={initialValues}
       onSubmit={submit}
     >
-      <FieldGrid columns={2}>
+      <FieldGrid>
         <Field name="labelEn" label={t('config.f.labelEn')}>
           <Input maxLength={LABEL_MAX} placeholder={placeholder('enter', t('config.f.labelEn'))} />
         </Field>
@@ -97,7 +98,10 @@ export function SectionSettingsModal({
               placeholder={placeholder('select', t('layout.f.columns'))}
               options={SECTION_COLUMNS.map((count) => ({
                 value: count,
-                label: t('config.f.columns', { count }),
+                label:
+                  count === AUTO_COLUMNS
+                    ? t('layout.f.columnsAuto')
+                    : t('config.f.columns', { count }),
               }))}
             />
           </Field>

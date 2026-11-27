@@ -10,9 +10,9 @@ public sealed class SalesCollectionManifest : IFeatureManifestProvider
         new(SalesMenu.SalesCollection,
         [
             new("general", new("General", "সাধারণ"), 10),
-            new("basic", new("Collection", "আদায়"), 10, "general", Columns: 6),
-            new("payment", new("Payment", "পরিশোধ"), 20, "general", Columns: 6),
-            new("certificate", new("VDS & AIT certificates", "ভিডিএস ও এআইটি সনদ"), 30, "general", Columns: 6),
+            new("basic", new("Collection", "আদায়"), 10, "general"),
+            new("payment", new("Payment", "পরিশোধ"), 20, "general"),
+            new("certificate", new("VDS & AIT certificates", "ভিডিএস ও এআইটি সনদ"), 30, "general"),
             new("notes", new("Notes", "মন্তব্য"), 40, "general"),
         ],
         [

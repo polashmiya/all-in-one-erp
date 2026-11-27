@@ -16,7 +16,7 @@ import { useFeatureAccess } from '@/common/hooks/useFeatureAccess';
 import { useFeatureConfig } from '@/common/hooks/useFeatureConfig';
 import { useUnitKey } from '@/common/master-data';
 import { CustomerPicker } from '../../../components/CustomerPicker';
-import { FORM_COLUMNS, fromCustomer } from '../../../sales-document';
+import { fromCustomer } from '../../../sales-document';
 import { OrderLines } from '../components/OrderLines';
 import { ORDER_FEATURE, ORDER_LOOKUPS, orderPaths, QUOTATION_PARAM } from '../constants';
 import {
@@ -87,7 +87,6 @@ export function OrderFormPage() {
           options={{
             lookups,
             behaviors: orderBehaviors(payFrom.behaviors),
-            maxColumns: FORM_COLUMNS,
             widgets: {
               salesQuotationId: (_, placeholder) => (
                 <SourcePicker<OrderQuotationOption, OrderValues>
