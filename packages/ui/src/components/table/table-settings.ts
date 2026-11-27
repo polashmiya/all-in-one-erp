@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Density = 'middle' | 'small';
-
 interface TableSettings {
-  density: Density;
   hidden: string[];
 }
 
@@ -13,7 +10,7 @@ interface TableSettingsState {
   update: (key: string, patch: Partial<TableSettings>) => void;
 }
 
-const defaults: TableSettings = { density: 'middle', hidden: [] };
+const defaults: TableSettings = { hidden: [] };
 
 const useTableSettingsStore = create<TableSettingsState>()(
   persist(

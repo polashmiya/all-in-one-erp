@@ -196,7 +196,6 @@ export function RoleListPage() {
       rowKey="id"
       total={data?.total}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={(role) => navigate(rolePaths.edit(role.id))}
       empty={{ title: t('role.empty') }}
       drafts={drafts}

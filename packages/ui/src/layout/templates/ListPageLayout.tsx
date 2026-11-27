@@ -1,13 +1,15 @@
-import type { InputRef, TableColumnsType } from 'antd';
+import { FilterFilled, FilterOutlined } from '@ant-design/icons';
+import { Button, Tooltip, type InputRef, type TableColumnsType } from 'antd';
 import { useRef, useState, type Key, type ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 import type { ActionItem } from '../../components/actions/types';
 import { useRunAction } from '../../components/actions/useRunAction';
 import { useHotkey } from '../../hooks/useHotkey';
 import { FilterSelect, type FilterOption } from '../../components/dropdown/FilterSelect';
+import { formatNumber } from '../../utils/format';
 import { DateFilter } from '../../components/filters/DateFilter';
-import { FilterBar, QuickViews, SearchInput } from '../../components/filters/filters';
+import { SearchInput } from '../../components/filters/filters';
 import { DataTable, type DataTableEmpty } from '../../components/table/DataTable';
 import { RowActions } from '../../components/table/RowActions';
 import { rowActionsWidth, type RowAction } from '../../components/table/row-actions';
@@ -53,9 +55,7 @@ export interface ListPageLayoutProps<
   loading?: boolean;
   selectable?: boolean;
   bulkActions?: (keys: Key[]) => ActionItem[];
-  toolbar?: ReactNode;
   empty?: DataTableEmpty;
-  onRefresh?: () => void;
   onRowClick?: (row: T) => void;
   onRowHover?: (row: T) => void;
   drafts?: ListDrafts;
@@ -63,19 +63,14 @@ export interface ListPageLayoutProps<
   body?: ReactNode;
 }
 
-function SortHint({ sort, columns }: { sort?: ListSort; columns: TableColumnsType<object> }) {
-  const { t } = useTranslation();
-  const label = columns.find((c) => c.key === sort?.field)?.title;
-  if (!sort || typeof label !== 'string') return null;
+const SEARCH_KEY = '/';
+
+function viewLabel({ label, count }: { label: string; count?: number }) {
   return (
-    <Trans
-      i18nKey="common.sortedBy"
-      values={{
-        field: label,
-        direction: sort.order === 'asc' ? t('common.ascending') : t('common.descending'),
-      }}
-      components={{ b: <b /> }}
-    />
+    <>
+      {label}
+      {count !== undefined && <span className="erp-quickview__count">{formatNumber(count)}</span>}
+    </>
   );
 }
 
@@ -101,9 +96,7 @@ export function ListPageLayout<
   loading,
   selectable = false,
   bulkActions,
-  toolbar,
   empty,
-  onRefresh,
   onRowClick,
   onRowHover,
   drafts,
@@ -112,15 +105,14 @@ export function ListPageLayout<
 }: ListPageLayoutProps<T, F, V, S>) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const [toolsEl, setToolsEl] = useState<HTMLDivElement | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const searchRef = useRef<InputRef>(null);
   const runAction = useRunAction();
   const newAction = actions?.find((a) => a.key === 'new' && !a.hidden && !a.disabled);
 
-  useHotkey('/', () => searchRef.current?.focus(), { enabled: !!search });
+  useHotkey(SEARCH_KEY, () => searchRef.current?.focus(), { enabled: !!search });
   useHotkey('n', () => newAction && void runAction(newAction), { enabled: !!newAction });
 
-  const hasFilterBar = !!search || !!views;
   const serialColumn: TableColumnsType<T>[number] = {
     key: SERIAL_COLUMN_KEY,
     title: t('table.sl'),
@@ -146,11 +138,29 @@ export function ListPageLayout<
     actions: [{ key: 'reset', label: t('common.reset'), onClick: state.reset }],
   };
 
-  const filterRow = filters.length > 0 && (
+  const allViews =
+    drafts && views
+      ? [...views, { key: DRAFT_VIEW as V, label: t('common.drafts'), count: drafts.rows?.length }]
+      : views;
+  const showDrafts = !!drafts && state.view === DRAFT_VIEW;
+  const [defaultView, ...otherViews] = (state.view !== undefined && allViews) || [];
+
+  const viewFilter = defaultView && (
+    <FilterSelect
+      label={t('common.listView')}
+      allLabel={viewLabel(defaultView)}
+      options={otherViews.map((view) => ({ value: view.key, label: viewLabel(view) }))}
+      value={state.view === defaultView.key ? null : state.view}
+      onChange={(next) => state.setView((next ?? defaultView.key) as V)}
+    />
+  );
+  const hasPanel = !body && (!!viewFilter || filters.length > 0);
+
+  const filterRow = filtersOpen && hasPanel && (
     <div className="erp-table__filters">
-      <span className="erp-table__filters-title">{t('common.filters')}</span>
-      <div className="erp-table__filters-grid">
-        {filters.map((filter) => {
+      {viewFilter}
+      {!showDrafts &&
+        filters.map((filter) => {
           const value = (state.filters[filter.key] as string | null | undefined) ?? null;
           const change = (next: string | null) =>
             state.setFilter(filter.key, next as F[typeof filter.key]);
@@ -166,67 +176,51 @@ export function ListPageLayout<
             />
           );
         })}
-      </div>
     </div>
   );
 
-  const allViews =
-    drafts && views
-      ? [...views, { key: DRAFT_VIEW as V, label: t('common.drafts'), count: drafts.rows?.length }]
-      : views;
-  const showDrafts = !!drafts && state.view === DRAFT_VIEW;
-
-  const filterBar = hasFilterBar && (
-    <FilterBar
-      toolsRef={setToolsEl}
-      extra={
-        views &&
-        state.view !== undefined && (
-          <QuickViews<V>
-            label={t('common.quickViews')}
-            value={state.view}
-            onChange={state.setView}
-            views={allViews ?? views}
-          />
-        )
-      }
-    >
+  const headerTools = (
+    <>
+      {extra}
       {search && (
         <SearchInput
           ref={searchRef}
           label={search.label}
           placeholder={search.placeholder}
+          shortcut={SEARCH_KEY}
           value={state.search}
           onChange={state.setSearch}
         />
+      )}
+      {hasPanel && (
+        <Tooltip title={filtersOpen ? t('common.hideFilters') : t('common.showFilters')}>
+          <Button
+            icon={filtersOpen ? <FilterFilled /> : <FilterOutlined />}
+            aria-label={filtersOpen ? t('common.hideFilters') : t('common.showFilters')}
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((open) => !open)}
+          />
+        </Tooltip>
       )}
       {state.hasActiveFilters && (
         <button type="button" className="erp-linkbtn" onClick={state.reset}>
           {t('common.reset')}
         </button>
       )}
-    </FilterBar>
+    </>
   );
 
   return (
-    <PageContainer fill title={title} subTitle={subtitle} actions={actions} extra={extra}>
+    <PageContainer fill title={title} subTitle={subtitle} actions={actions} extra={headerTools}>
       {summary}
       {body ? (
         body
       ) : showDrafts ? (
-        <DraftTable drafts={drafts} header={filterBar} toolsContainer={toolsEl} />
+        <DraftTable drafts={drafts} header={filterRow} />
       ) : (
         <DataTable<T>
           fill
-          header={
-            filterRow || filterBar ? (
-              <>
-                {filterRow}
-                {filterBar}
-              </>
-            ) : undefined
-          }
-          toolsContainer={hasFilterBar ? toolsEl : undefined}
+          header={filterRow}
           settingsKey={pathname}
           defaultHidden={[SERIAL_COLUMN_KEY]}
           rowKey={rowKey}
@@ -235,10 +229,6 @@ export function ListPageLayout<
           loading={loading}
           sort={state.sort}
           onSortChange={(sort) => state.setSort(sort as ListSort<S> | undefined)}
-          onRefresh={onRefresh}
-          toolbar={
-            toolbar ?? <SortHint sort={state.sort} columns={columns as TableColumnsType<object>} />
-          }
           selection={
             selectable ? { selectedKeys: state.selected, onChange: state.setSelected } : undefined
           }

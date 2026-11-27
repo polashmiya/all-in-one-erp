@@ -136,7 +136,6 @@ export function StockBalancePage() {
       total={data?.total}
       rowKey={(row) => `${row.itemId}:${row.warehouseId}`}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={(row) => navigate(stockLedgerLink(row.itemId, row.warehouseId))}
       exportFile={t('stockBalance.exportFile')}
       fetchAll={() =>

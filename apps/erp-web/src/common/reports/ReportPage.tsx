@@ -53,7 +53,6 @@ export interface ReportPageProps<T extends object, F extends ListFilters, V exte
   total?: number;
   rowKey: (row: T) => Key;
   loading: boolean;
-  onRefresh: () => void;
   onRowClick?: (row: T) => void;
   exportFile: string;
   fetchAll: () => Promise<T[]>;
@@ -74,7 +73,6 @@ export function ReportPage<T extends object, F extends ListFilters, V extends st
   total,
   rowKey,
   loading,
-  onRefresh,
   onRowClick,
   exportFile,
   fetchAll,
@@ -130,7 +128,6 @@ export function ReportPage<T extends object, F extends ListFilters, V extends st
       rowKey={rowKey}
       total={total}
       loading={loading}
-      onRefresh={onRefresh}
       onRowClick={onRowClick}
       empty={empty}
     />

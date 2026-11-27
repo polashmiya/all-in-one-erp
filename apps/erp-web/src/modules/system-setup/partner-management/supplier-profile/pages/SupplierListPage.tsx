@@ -94,7 +94,6 @@ export function SupplierListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('supplier.exportFile')}

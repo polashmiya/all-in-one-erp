@@ -40,7 +40,6 @@ export interface DocumentListPageProps<T extends DocumentRow, F extends ListFilt
   filters: ListFilterDef<F>[];
   data?: { items: T[]; total: number; counts: ApprovalCounts };
   loading: boolean;
-  onRefresh: () => void;
   amount: { label: string; value: (row: T) => number; format?: (value: number) => string };
   renderers?: Record<string, ColumnRenderer<T>>;
   lines?: {
@@ -66,7 +65,6 @@ export function DocumentListPage<T extends DocumentRow, F extends ListFilters>({
   filters,
   data,
   loading,
-  onRefresh,
   amount,
   renderers,
   lines,
@@ -186,7 +184,6 @@ export function DocumentListPage<T extends DocumentRow, F extends ListFilters>({
         rowKey={(row) => row.id}
         total={data?.total}
         loading={loading}
-        onRefresh={onRefresh}
         onRowClick={(row) => navigate(paths.view(row.id))}
         empty={{ ...empty, actions: access.create ? [newAction] : undefined }}
         drafts={drafts}

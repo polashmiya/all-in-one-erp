@@ -196,7 +196,6 @@ export function PeriodClosingPage() {
         rowKey="end"
         total={year?.months.length}
         loading={query.isFetching}
-        onRefresh={() => void query.refetch()}
         empty={{ title: t('report.emptyTitle') }}
       />
       {data && (

@@ -97,7 +97,6 @@ export function CustomerListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('customer.exportFile')}

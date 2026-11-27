@@ -73,7 +73,6 @@ export function JournalListPage() {
       ]}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('accounting.amount'), value: (row) => row.totalAmount }}
       lines={{ label: t('journal.col.source'), value: sourceOf, subtitle: sourceOf }}
       exportFile={t('journal.exportFile')}

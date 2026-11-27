@@ -109,7 +109,6 @@ export function TrialBalancePage() {
       total={data?.total}
       rowKey={(row) => row.id}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={(row) => navigate(accountLedgerLink(row.id, list.filters))}
       exportFile={t('trialBalance.exportFile')}
       fetchAll={() => Promise.resolve(data?.items ?? [])}

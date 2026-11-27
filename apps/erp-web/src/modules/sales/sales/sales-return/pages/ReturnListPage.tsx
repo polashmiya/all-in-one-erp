@@ -73,7 +73,6 @@ export function ReturnListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('sales.totals.total'), value: (row) => row.netAmount }}
       renderers={{ source: { render: sourceName, csv: sourceName } }}
       exportFile={t('salesReturn.exportFile')}

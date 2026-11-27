@@ -109,7 +109,6 @@ export function ItemCategoryPage() {
       ]}
       data={query.data}
       loading={query.isFetching || !config.data}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('cat.exportFile')}

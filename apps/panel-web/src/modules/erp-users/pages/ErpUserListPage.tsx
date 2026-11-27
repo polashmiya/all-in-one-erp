@@ -132,7 +132,6 @@ export function ErpUserListPage() {
         rowKey="id"
         total={query.data?.total}
         loading={query.isFetching}
-        onRefresh={() => void query.refetch()}
         onRowClick={(user) => navigate(ERP_USER_PATHS.detail(user.id))}
         empty={{ title: t('erpUsers.empty') }}
       />

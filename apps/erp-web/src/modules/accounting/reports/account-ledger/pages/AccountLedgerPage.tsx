@@ -71,7 +71,6 @@ export function AccountLedgerPage() {
       total={data?.total}
       rowKey={(row) => row.id}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       exportFile={t('ledger.account.exportFile')}
       fetchAll={() =>
         getAccountLedger({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)

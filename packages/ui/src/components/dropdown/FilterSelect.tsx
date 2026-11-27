@@ -14,12 +14,20 @@ export interface FilterSelectProps {
   value?: string | null;
   onChange: (value: string | null) => void;
   width?: number;
+  allLabel?: ReactNode;
 }
 
 const textOf = (option: FilterOption) =>
   typeof option.label === 'string' ? option.label : option.value;
 
-export function FilterSelect({ label, options, value, onChange, width }: FilterSelectProps) {
+export function FilterSelect({
+  label,
+  options,
+  value,
+  onChange,
+  width,
+  allLabel,
+}: FilterSelectProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -72,7 +80,7 @@ export function FilterSelect({ label, options, value, onChange, width }: FilterS
             onKeyDown={(e) => e.key === 'Escape' && toggle(false)}
           />
           <div className="erp-filterpop__list" role="listbox" aria-label={label}>
-            {!term && item('__all', t('filter.all'), !value, () => pick(null))}
+            {!term && item('__all', allLabel ?? t('filter.all'), !value, () => pick(null))}
             {matches.map((o) => item(o.value, o.label, o.value === value, () => pick(o.value)))}
             {!matches.length && (
               <span className="erp-filterpop__empty">{t('field.noMatches')}</span>

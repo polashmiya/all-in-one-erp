@@ -93,7 +93,6 @@ export function ItemDepartmentPage() {
       list={list}
       data={query.data}
       loading={query.isFetching || !config.data}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('dept.exportFile')}

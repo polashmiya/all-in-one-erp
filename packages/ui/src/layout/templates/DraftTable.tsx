@@ -8,15 +8,7 @@ import { rowActionsWidth, type RowAction } from '../../components/table/row-acti
 import { formatDateTime } from '../../utils/format';
 import type { DraftItem, ListDrafts } from './drafts';
 
-export function DraftTable({
-  drafts,
-  header,
-  toolsContainer,
-}: {
-  drafts: ListDrafts;
-  header: ReactNode;
-  toolsContainer?: HTMLElement | null;
-}) {
+export function DraftTable({ drafts, header }: { drafts: ListDrafts; header: ReactNode }) {
   const { t } = useTranslation();
 
   const actions = (draft: DraftItem): RowAction[] => [
@@ -63,7 +55,6 @@ export function DraftTable({
     <DataTable<DraftItem>
       fill
       header={header}
-      toolsContainer={toolsContainer}
       rowKey="id"
       columns={columns}
       dataSource={drafts.rows}

@@ -164,7 +164,6 @@ export function AccountLookupsPage() {
         rowKey="id"
         total={rows.length}
         loading={account.isPending || values.isFetching}
-        onRefresh={() => void values.refetch()}
         onRowClick={(value) => setEditing({ value })}
         drafts={drafts}
         rowActions={(value) => [

@@ -44,7 +44,6 @@ export interface MasterListPageProps<T extends MasterRow, F extends ListFilters>
   filters?: ListFilterDef<F>[];
   data?: MasterList<T>;
   loading: boolean;
-  onRefresh: () => void;
   columns: TableColumnsType<T>;
   csvColumns: CsvColumn<T>[];
   exportFile: string;
@@ -72,7 +71,6 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
   filters,
   data,
   loading,
-  onRefresh,
   columns,
   csvColumns,
   exportFile,
@@ -288,7 +286,6 @@ export function MasterListPage<T extends MasterRow, F extends ListFilters>({
         rowKey={(row) => row.id}
         total={data?.total}
         loading={loading}
-        onRefresh={onRefresh}
         drafts={drafts}
         extra={extra}
         body={body}

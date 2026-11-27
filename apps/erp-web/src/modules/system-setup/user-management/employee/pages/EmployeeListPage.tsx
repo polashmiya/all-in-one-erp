@@ -132,7 +132,6 @@ export function EmployeeListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       columns={[...columns, userColumn]}
       csvColumns={[...csvColumns, { header: t('employee.col.user'), value: (row) => row.username }]}
       exportFile={t('employee.exportFile')}

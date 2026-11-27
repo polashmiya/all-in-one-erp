@@ -83,7 +83,6 @@ export function BalanceSheetPage() {
       total={rows?.length}
       rowKey={(row) => row.key}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={(row) =>
         row.accountId &&
         void navigate(accountLedgerLink(row.accountId, { from: null, to: list.filters.to }))

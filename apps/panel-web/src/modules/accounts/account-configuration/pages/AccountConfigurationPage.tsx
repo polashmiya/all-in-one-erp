@@ -226,7 +226,6 @@ export function AccountConfigurationPage() {
         rowKey="key"
         total={rows?.length}
         loading={account.isPending || editor.isFetching}
-        onRefresh={() => void editor.refetch()}
         onRowClick={setEditing}
         views={[{ key: 'all', label: t('config.view.all') }]}
         drafts={drafts}

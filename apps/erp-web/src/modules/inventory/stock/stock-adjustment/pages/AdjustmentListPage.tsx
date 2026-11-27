@@ -65,7 +65,6 @@ export function AdjustmentListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('adjustment.totals.amount'), value: (row) => row.totalAmount }}
       renderers={{ type: { render: typeName, csv: typeName } }}
       exportFile={t('adjustment.exportFile')}

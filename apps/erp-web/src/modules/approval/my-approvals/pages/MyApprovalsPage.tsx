@@ -236,7 +236,6 @@ export function MyApprovalsPage() {
         rowKey={(row) => `${row.feature}:${row.id}:${row.level}`}
         total={query.data?.total}
         loading={query.isFetching}
-        onRefresh={() => void query.refetch()}
         onRowClick={open}
         empty={
           waiting

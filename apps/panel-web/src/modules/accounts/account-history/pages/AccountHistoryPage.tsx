@@ -104,7 +104,6 @@ export function AccountHistoryPage() {
         rowKey="id"
         total={query.data?.total}
         loading={account.isPending || query.isFetching}
-        onRefresh={() => void query.refetch()}
         onRowClick={setOpen}
         empty={{ title: t('history.empty') }}
       />

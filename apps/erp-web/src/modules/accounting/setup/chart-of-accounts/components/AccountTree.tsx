@@ -1,6 +1,6 @@
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ChartOfAccountRow } from '@erp/api-client';
-import { EmptyState, FilterBar, RowActions, SearchInput, StatusTag } from '@erp/ui';
+import { EmptyState, FilterBar, RowActions, StatusTag } from '@erp/ui';
 import { Skeleton, Tree } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,16 +11,17 @@ import './account-tree.css';
 
 export function AccountTree({
   accounts,
+  search,
   onAdd,
   onEdit,
 }: {
   accounts?: ChartOfAccountRow[];
+  search: string;
   onAdd: (parent: ChartOfAccountRow) => void;
   onEdit: (account: ChartOfAccountRow) => void;
 }) {
   const { t } = useTranslation();
   const access = useFeatureAccess(CHART_FEATURE);
-  const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<number[]>([]);
 
   const searching = search.trim() !== '';
@@ -63,34 +64,23 @@ export function AccountTree({
 
   return (
     <section className="erp-card erp-account-tree">
-      <FilterBar
-        extra={
-          <>
-            <button
-              type="button"
-              className="erp-linkbtn"
-              onClick={() => setExpanded(groups)}
-              disabled={searching}
-            >
-              {t('chart.expandAll')}
-            </button>
-            <button
-              type="button"
-              className="erp-linkbtn"
-              onClick={() => setExpanded([])}
-              disabled={searching}
-            >
-              {t('chart.collapseAll')}
-            </button>
-          </>
-        }
-      >
-        <SearchInput
-          label={t('chart.search')}
-          placeholder={t('chart.search')}
-          value={search}
-          onChange={setSearch}
-        />
+      <FilterBar>
+        <button
+          type="button"
+          className="erp-linkbtn"
+          onClick={() => setExpanded(groups)}
+          disabled={searching}
+        >
+          {t('chart.expandAll')}
+        </button>
+        <button
+          type="button"
+          className="erp-linkbtn"
+          onClick={() => setExpanded([])}
+          disabled={searching}
+        >
+          {t('chart.collapseAll')}
+        </button>
       </FilterBar>
       <div className="erp-account-tree__body">
         {!accounts ? (

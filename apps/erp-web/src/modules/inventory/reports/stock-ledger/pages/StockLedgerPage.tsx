@@ -163,7 +163,6 @@ export function StockLedgerPage() {
       total={data?.total}
       rowKey={(row) => row.id}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       exportFile={t('stockLedger.exportFile')}
       fetchAll={() =>
         getStockLedger({ ...params, page: 1, pageSize: EXPORT_PAGE_SIZE }).then((r) => r.items)

@@ -65,7 +65,6 @@ export function PaymentListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('payment.totals.payment'), value: (row) => row.paymentAmount }}
       lines={{
         label: t('payment.col.bills'),

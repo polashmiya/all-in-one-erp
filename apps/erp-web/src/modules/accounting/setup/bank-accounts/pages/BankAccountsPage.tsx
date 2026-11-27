@@ -84,7 +84,6 @@ export function BankAccountsPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || !config.data}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('bankAccount.exportFile')}

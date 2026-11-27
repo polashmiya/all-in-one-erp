@@ -68,7 +68,6 @@ export function CollectionListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('collection.amount'), value: (row) => row.collectionAmount }}
       lines={{
         label: t('collection.bills'),

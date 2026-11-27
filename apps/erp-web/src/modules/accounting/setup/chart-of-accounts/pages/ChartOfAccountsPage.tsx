@@ -95,7 +95,6 @@ export function ChartOfAccountsPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || !config.data}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('chart.exportFile')}
@@ -120,6 +119,7 @@ export function ChartOfAccountsPage() {
         layout === 'tree' && (
           <AccountTree
             accounts={tree.data?.items}
+            search={list.search}
             onAdd={(parent) => modal.onOpen({ parent })}
             onEdit={(account) => modal.onOpen({ account })}
           />

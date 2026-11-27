@@ -110,15 +110,15 @@ Every screen in both apps looks and works the same way. The shared templates alr
 | Multi-step setup                     | `WizardLayout`                                                                                                             |
 | Summary numbers                      | `StatGrid` of `StatCard` (label, value, caption, tinted icon), only for real totals                                        |
 
-**Page header.** A title, one line of description, and actions on the right: Export (default) first, then New (primary). Only one primary button per page.
+**Page header.** A title, one line of description, and actions on the right: on list pages the search box and filter icon first, then Export (default), then New (primary). Only one primary button per page.
 
 **Lists**
 
 - Column order: checkbox, then the identity column (`RecordNameCell` or `TitleCell`: avatar or image, name, one sub-line such as code or barcode), then data, then status (`StatusTag` with `dot`). The template adds the actions column last and pins it to the right.
-- The row-number column (SL) is hidden by default and can be turned on from the column picker; do not add your own. Money and numbers are right-aligned (`formatMoney`, `formatNumber`).
+- The row-number column (SL) is hidden by default and can be turned on from the column picker, which sits in the last column's header; do not add your own. Money and numbers are right-aligned (`formatMoney`, `formatNumber`).
 - Row actions: `view` and `edit` stay as inline icons. Everything else uses `inMenu: true` (activate or deactivate, duplicate, delete with `confirm`). Never put a switch in a row.
 - Clicking a row opens the record (`onRowClick`; `MasterListPage` does this).
-- The status filter is `views` (All / Active / Inactive with counts). Other filters are `filters`; the template shows them in a "Filters" row at the top of the table card, with search and views below. Search has the `/` shortcut and New has `n`.
+- The status filter is `views` (All / Active / Inactive with counts), shown as the "View" dropdown. Other filters are `filters`. The template keeps both in a collapsed panel at the top of the table card that the header's filter icon opens and closes. Search has the `/` shortcut and New has `n`.
 
 **Forms**
 

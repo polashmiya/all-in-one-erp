@@ -68,7 +68,6 @@ export function RequisitionListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('requisition.col.amount'), value: (row) => row.totalAmount }}
       exportFile={t('requisition.exportFile')}
       fetchAll={() =>

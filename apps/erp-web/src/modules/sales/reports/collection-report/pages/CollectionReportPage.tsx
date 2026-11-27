@@ -202,7 +202,6 @@ export function CollectionReportPage() {
       total={query.data?.total}
       rowKey={(row) => `${view}:${row.key}`}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={
         view === 'collection'
           ? (row) => row.id !== null && void navigate(collectionPaths.view(row.id))

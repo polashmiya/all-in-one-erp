@@ -72,7 +72,6 @@ export function QuotationListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('sales.totals.total'), value: (row) => row.totalAmount }}
       renderers={{
         validityDate: {

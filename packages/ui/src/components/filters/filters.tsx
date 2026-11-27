@@ -1,22 +1,11 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Input, Segmented, type InputRef } from 'antd';
+import { Input, type InputRef } from 'antd';
 import type { ReactNode, Ref } from 'react';
-import { formatNumber } from '../../utils/format';
 
-export function FilterBar({
-  children,
-  extra,
-  toolsRef,
-}: {
-  children: ReactNode;
-  extra?: ReactNode;
-  toolsRef?: Ref<HTMLDivElement>;
-}) {
+export function FilterBar({ children }: { children: ReactNode }) {
   return (
     <div className="erp-filterbar">
       <div className="erp-filterbar__main">{children}</div>
-      {extra && <div className="erp-filterbar__extra">{extra}</div>}
-      {toolsRef && <div ref={toolsRef} className="erp-filterbar__tools" />}
     </div>
   );
 }
@@ -27,6 +16,7 @@ export interface SearchInputProps {
   placeholder?: string;
   label: string;
   width?: number;
+  shortcut?: string;
   ref?: Ref<InputRef>;
 }
 
@@ -36,6 +26,7 @@ export function SearchInput({
   placeholder,
   label,
   width = 280,
+  shortcut,
   ref,
 }: SearchInputProps) {
   return (
@@ -45,48 +36,18 @@ export function SearchInput({
       className="erp-search"
       style={{ width }}
       prefix={<SearchOutlined />}
+      suffix={
+        shortcut && (
+          <kbd className="erp-kbd" aria-hidden="true">
+            {shortcut}
+          </kbd>
+        )
+      }
       placeholder={placeholder}
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={(e) => e.key === 'Escape' && onChange('')}
-    />
-  );
-}
-
-export interface QuickView<K extends string> {
-  key: K;
-  label: string;
-  count?: number;
-}
-
-export function QuickViews<K extends string>({
-  views,
-  value,
-  onChange,
-  label,
-}: {
-  views: QuickView<K>[];
-  value: K;
-  onChange: (key: K) => void;
-  label: string;
-}) {
-  return (
-    <Segmented<K>
-      aria-label={label}
-      value={value}
-      onChange={onChange}
-      options={views.map((view) => ({
-        value: view.key,
-        label: (
-          <span>
-            {view.label}
-            {view.count !== undefined && (
-              <span className="erp-quickview__count">{formatNumber(view.count)}</span>
-            )}
-          </span>
-        ),
-      }))}
     />
   );
 }

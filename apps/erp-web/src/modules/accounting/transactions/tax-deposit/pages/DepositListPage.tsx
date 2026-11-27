@@ -59,7 +59,6 @@ export function DepositListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('deposit.total'), value: (row) => row.totalAmount }}
       lines={{
         label: t('deposit.col.payments'),

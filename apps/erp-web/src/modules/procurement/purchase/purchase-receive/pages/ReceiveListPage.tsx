@@ -68,7 +68,6 @@ export function ReceiveListPage() {
       filters={filters}
       data={query.data}
       loading={query.isFetching || config.isPending}
-      onRefresh={() => void query.refetch()}
       amount={{ label: t('document.totals.net'), value: (row) => row.netAmount }}
       exportFile={t('receive.exportFile')}
       fetchAll={() =>

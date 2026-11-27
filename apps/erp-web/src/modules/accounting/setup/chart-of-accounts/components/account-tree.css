@@ -3,8 +3,7 @@
   border-bottom: 1px solid var(--erp-divider);
 }
 
-.erp-account-tree .erp-filterbar__extra {
-  display: flex;
+.erp-account-tree .erp-filterbar__main {
   gap: var(--erp-space-lg);
 }
 

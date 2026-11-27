@@ -277,7 +277,6 @@ export function UserListPage() {
         rowKey="id"
         total={data?.total}
         loading={query.isFetching}
-        onRefresh={() => void query.refetch()}
         empty={{ title: t('user.empty') }}
         drafts={drafts}
       />

@@ -209,7 +209,6 @@ export function PurchaseReportPage() {
       total={query.data?.total}
       rowKey={(row) => `${view}:${row.id}`}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={
         view === 'receive' ? (row) => void navigate(receivePaths.view(row.id)) : undefined
       }

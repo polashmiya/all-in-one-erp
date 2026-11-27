@@ -140,7 +140,6 @@ export function ItemMinorCategoryPage() {
       ]}
       data={query.data}
       loading={query.isFetching || !config.data}
-      onRefresh={() => void query.refetch()}
       columns={columns}
       csvColumns={csvColumns}
       exportFile={t('minor.exportFile')}

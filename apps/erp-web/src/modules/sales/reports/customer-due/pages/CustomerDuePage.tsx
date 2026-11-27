@@ -180,7 +180,6 @@ export function CustomerDuePage() {
       total={query.data?.total}
       rowKey={(row) => `${view}:${row.key}`}
       loading={query.isFetching}
-      onRefresh={() => void query.refetch()}
       onRowClick={open}
       exportFile={t('customerDue.exportFile')}
       fetchAll={() =>

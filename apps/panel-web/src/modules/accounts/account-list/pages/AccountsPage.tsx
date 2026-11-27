@@ -202,7 +202,6 @@ export function AccountsPage() {
         rowKey="id"
         total={result?.total}
         loading={query.isFetching}
-        onRefresh={() => void query.refetch()}
         onRowClick={(account) => navigate(ACCOUNT_PATHS.detail(account.id))}
         drafts={drafts}
         empty={{
