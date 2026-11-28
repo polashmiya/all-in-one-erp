@@ -164,6 +164,18 @@
   flex-shrink: 0;
 }
 
+.erp-sb-nav,
+.erp-rail-nav,
+.erp-fly__list {
+  scrollbar-width: none;
+}
+
+.erp-sb-nav::-webkit-scrollbar,
+.erp-rail-nav::-webkit-scrollbar,
+.erp-fly__list::-webkit-scrollbar {
+  display: none;
+}
+
 .erp-sb-label {
   display: flex;
   align-items: center;

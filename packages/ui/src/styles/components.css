@@ -1636,40 +1636,12 @@ html[data-content-width='boxed'] .erp-page {
 }
 
 .erp-filter {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--erp-space-sm);
-  height: var(--erp-control-input);
   max-width: var(--erp-filter-max-w);
-  padding: 0 var(--erp-space-md);
-  border: 1px solid var(--erp-border);
-  border-radius: var(--erp-radius-md);
-  background: var(--erp-surface);
-  color: var(--erp-text-strong);
-  font: inherit;
-  font-size: var(--erp-font-md);
-  cursor: pointer;
-  transition: border-color 0.2s ease;
 }
 
-.erp-filter:hover,
-.erp-filter[aria-expanded='true'] {
-  border-color: var(--erp-border-hover);
-}
-
-.erp-filter.is-set {
+.ant-select.erp-filter.is-set .ant-select-selector {
   border-color: var(--erp-primary);
   background: var(--erp-primary-soft);
-}
-
-.erp-filter__text {
-  display: inline-flex;
-  gap: 6px;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .erp-filter__label {
@@ -2504,7 +2476,6 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
   gap: var(--erp-space-md);
 }
 
-.erp-filterpop,
 .erp-colpicker {
   display: flex;
   flex-direction: column;
@@ -2512,7 +2483,6 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
   width: 260px;
 }
 
-.erp-filterpop__list,
 .erp-colpicker__list {
   display: flex;
   flex-direction: column;
@@ -2521,41 +2491,10 @@ html[data-table-border='grid'] .erp-subtable th:not(:last-child) {
   overflow-y: auto;
 }
 
-.erp-filterpop__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--erp-space-sm);
-  width: 100%;
-  padding: 6px 10px;
-  border: 0;
-  border-radius: var(--erp-radius-sm);
-  background: transparent;
-  color: var(--erp-text);
-  font: inherit;
-  font-size: var(--erp-font-md);
-  text-align: start;
-  cursor: pointer;
-}
-
-.erp-filterpop__item:hover,
 .erp-colpicker__list .ant-checkbox-wrapper:hover {
   background: var(--erp-row-hover);
 }
 
-.erp-filterpop__item.is-active {
-  background: var(--erp-primary-soft);
-  color: var(--erp-primary);
-  font-weight: 500;
-}
-
-.erp-filterpop__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.erp-filterpop__empty,
 .erp-colpicker__empty {
   padding: 6px 10px;
   font-size: var(--erp-font-sm);

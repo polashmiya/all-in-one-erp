@@ -7,7 +7,7 @@ import {
   scaledFontSizes,
   scaledRadii,
 } from './appearance';
-import { buildBrand, shade, siderStyles, type ThemeMode } from './brand';
+import { buildBrand, shade, siderStyles, tableHeadColors, type ThemeMode } from './brand';
 import { contrast, luminance, mix } from './color';
 import { CUSTOM_PRESET, DEFAULT_PRESET, findPreset, resolvePreset, themePresets } from './presets';
 import { buildTheme, fontFamily } from './tokens';
@@ -65,8 +65,9 @@ describe('buildBrand', () => {
   it('uses the design kit surfaces for the light sidebar', () => {
     const brand = buildBrand(findPreset('teal'), 'light', 'light');
 
-    expect(brand.sider.bg).toBe('#E9EBEF');
+    expect(brand.sider.bg).toBe(mix('#0F766E', '#FFFFFF', 0.14));
     expect(brand.frameBg).toBe(brand.sider.bg);
+    expect(tableHeadColors(brand, 'tinted').bg).toBe(brand.sider.bg);
     expect(brand.layoutBg).toBe('#F7F8FA');
     expect(brand.sider.activeIcon).toBe('#0F766E');
     expect(brand.sider.inverse).toBe(false);

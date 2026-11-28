@@ -11,7 +11,7 @@ export interface ToneColors {
 }
 
 export const sizes = {
-  siderWidth: 268,
+  siderWidth: 260,
   railWidth: 64,
   drawerWidth: 280,
   topbarHeight: 56,
@@ -228,16 +228,11 @@ export const tintOrder: Tint[] = ['primary', 'blue', 'violet', 'amber', 'green',
 
 export const sidebarPalettes = {
   light: {
-    bg: '#E9EBEF',
-    divider: '#DADDE3',
     text: '#3D4452',
     strong: '#0E1320',
     muted: '#5D6572',
     icon: '#666D7A',
-    guide: '#CDD1D8',
-    kbd: '#DADDE3',
     activeBg: '#FFFFFF',
-    badgeBg: '#DEE1E6',
   },
   dark: { bg: '#0B0F17', text: '#C9CED6', muted: '#8B93A1', guide: '#252B36' },
   darkMode: { bg: '#0E1218' },

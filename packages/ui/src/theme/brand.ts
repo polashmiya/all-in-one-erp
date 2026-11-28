@@ -71,6 +71,7 @@ export interface Brand {
 
 const WHITE = '#FFFFFF';
 const BLACK = '#000000';
+const SOFT_TINT = 0.14;
 const MIN_SURFACE_CONTRAST = 3;
 const MIN_TEXT_CONTRAST = 4.5;
 const DARK_PRIMARY_STEPS = [5, 4, 3, 2, 1];
@@ -156,26 +157,27 @@ function siderColors(
   }
 
   const light = sidebarPalettes.light;
+  const divider = mix(primary, WHITE, 0.22);
   return {
-    bg: light.bg,
-    divider: light.divider,
+    bg: mix(primary, WHITE, SOFT_TINT),
+    divider,
     text: light.text,
     strong: light.strong,
     muted: light.muted,
     icon: light.icon,
     hoverBg: surfaces.light.rowHoverOverlay!,
-    guide: light.guide,
+    guide: mix(primary, WHITE, 0.3),
     inputBg: light.activeBg,
-    inputShadow: `0 0 0 1px ${light.divider}, ${shadows.light.card}`,
-    kbd: light.kbd,
+    inputShadow: `0 0 0 1px ${divider}, ${shadows.light.card}`,
+    kbd: divider,
     activeBg: light.activeBg,
     activeText: light.strong,
     activeIcon: primary,
-    activeShadow: `0 0 0 1px ${light.divider}, ${shadows.light.card}`,
+    activeShadow: `0 0 0 1px ${divider}, ${shadows.light.card}`,
     bar: primary,
-    badgeBg: light.badgeBg,
+    badgeBg: mix(primary, WHITE, 0.2),
     badgeText: light.text,
-    panelBorder: light.divider,
+    panelBorder: divider,
     inverse: false,
   };
 }
@@ -232,8 +234,8 @@ export function buildBrand(preset: ThemePreset, mode: ThemeMode, siderStyle: Sid
     borderSecondary: tone.borderSecondary!,
     divider: tone.divider!,
     tableHeaderBg: tone.tableHead!,
-    tableHeadTint: light ? mix(primary, WHITE, 0.08) : mix(primary, containerBg, 0.16),
-    tableHeadTintStrong: light ? mix(primary, WHITE, 0.14) : mix(primary, containerBg, 0.24),
+    tableHeadTint: light ? mix(primary, WHITE, SOFT_TINT) : mix(primary, containerBg, 0.16),
+    tableHeadTintStrong: light ? mix(primary, WHITE, 0.22) : mix(primary, containerBg, 0.24),
     stripeBg: light ? mix(primary, WHITE, 0.03) : mix(primary, containerBg, 0.06),
     rowHoverBg: tone.rowHover!,
     tintBg: light ? mix(primary, WHITE, 0.12) : mix(primary, containerBg, 0.24),

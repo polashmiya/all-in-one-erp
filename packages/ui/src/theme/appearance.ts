@@ -38,7 +38,7 @@ export interface UiPrefs {
 
 export const defaultUiPrefs: UiPrefs = {
   font: 'onest',
-  fontScale: 'md',
+  fontScale: 'sm',
   radius: 'soft',
   contentWidth: 'fluid',
   motion: true,
