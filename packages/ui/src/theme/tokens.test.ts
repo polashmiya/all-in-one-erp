@@ -65,7 +65,7 @@ describe('buildBrand', () => {
   it('uses the design kit surfaces for the light sidebar', () => {
     const brand = buildBrand(findPreset('teal'), 'light', 'light');
 
-    expect(brand.sider.bg).toBe('#F2F3F5');
+    expect(brand.sider.bg).toBe('#E9EBEF');
     expect(brand.frameBg).toBe(brand.sider.bg);
     expect(brand.layoutBg).toBe('#F7F8FA');
     expect(brand.sider.activeIcon).toBe('#0F766E');
