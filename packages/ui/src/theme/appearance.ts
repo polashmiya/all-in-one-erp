@@ -42,10 +42,10 @@ export const defaultUiPrefs: UiPrefs = {
   radius: 'soft',
   contentWidth: 'fluid',
   motion: true,
-  tableHeader: 'tinted',
+  tableHeader: 'solid',
   tableBorder: 'grid',
-  tableSize: 'default',
-  tableStripe: false,
+  tableSize: 'compact',
+  tableStripe: true,
 };
 
 const fallbackStack =
@@ -77,11 +77,19 @@ const radiusFactor: Record<RadiusStyle, number> = { sharp: 0.25, soft: 1, round:
 
 export const tableMetrics: Record<
   TableSize,
-  { row: number; rowSm: number; head: number; headSm: number }
+  {
+    row: number;
+    rowSm: number;
+    head: number;
+    headSm: number;
+    avatar: number;
+    action: number;
+    check: number;
+  }
 > = {
-  compact: { row: 32, rowSm: 28, head: 32, headSm: 28 },
-  default: { row: 40, rowSm: 32, head: 36, headSm: 32 },
-  comfortable: { row: 50, rowSm: 40, head: 42, headSm: 36 },
+  compact: { row: 30, rowSm: 26, head: 32, headSm: 28, avatar: 22, action: 24, check: 16 },
+  default: { row: 40, rowSm: 32, head: 36, headSm: 32, avatar: 28, action: 28, check: 18 },
+  comfortable: { row: 50, rowSm: 40, head: 42, headSm: 36, avatar: 32, action: 30, check: 20 },
 };
 
 export type FontSizes = { [K in keyof typeof fontSize]: number };

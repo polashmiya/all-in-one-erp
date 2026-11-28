@@ -20,14 +20,16 @@ export const themePresets = [
 
 export type ThemePresetKey = (typeof themePresets)[number]['key'];
 
-export const DEFAULT_PRESET: ThemePresetKey = 'teal';
+export const DEFAULT_PRESET: ThemePresetKey = 'emerald';
 
 export const CUSTOM_PRESET = 'custom';
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
 export function findPreset(key: string | undefined): ThemePreset {
-  return themePresets.find((p) => p.key === key) ?? themePresets[0];
+  return (
+    themePresets.find((p) => p.key === key) ?? themePresets.find((p) => p.key === DEFAULT_PRESET)!
+  );
 }
 
 export function resolvePreset(key: string | undefined, customPrimary?: string | null): ThemePreset {

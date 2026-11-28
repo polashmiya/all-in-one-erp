@@ -39,6 +39,7 @@ export interface SidebarProps {
 }
 
 const FAVORITE_TINTS = tintOrder.filter((tint) => tint !== 'slate');
+const FLYOUT_LEAVE_DELAY = 0.2;
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ');
 
@@ -153,36 +154,38 @@ function Flyout({
           <CloseOutlined />
         </button>
       </div>
-      {(module.children ?? []).map((sub) =>
-        sub.children ? (
-          <div key={sub.key}>
-            <div className="erp-fly__section">{label(sub)}</div>
-            {sub.children
-              .filter((leaf) => leaf.path)
-              .map((leaf) => (
-                <Link
-                  key={leaf.key}
-                  to={leaf.path!}
-                  className={cx('erp-fly__item', leaf.key === activeKey && 'is-active')}
-                  aria-current={leaf.key === activeKey ? 'page' : undefined}
-                  onClick={onClose}
-                >
-                  <span className="erp-sb-text">{label(leaf)}</span>
-                  {leaf.count !== undefined && <span className="erp-sb-count">{leaf.count}</span>}
-                </Link>
-              ))}
-          </div>
-        ) : sub.path ? (
-          <Link
-            key={sub.key}
-            to={sub.path}
-            className={cx('erp-fly__item', sub.key === activeKey && 'is-active')}
-            onClick={onClose}
-          >
-            <span className="erp-sb-text">{label(sub)}</span>
-          </Link>
-        ) : null,
-      )}
+      <div className="erp-fly__list">
+        {(module.children ?? []).map((sub) =>
+          sub.children ? (
+            <div key={sub.key}>
+              <div className="erp-fly__section">{label(sub)}</div>
+              {sub.children
+                .filter((leaf) => leaf.path)
+                .map((leaf) => (
+                  <Link
+                    key={leaf.key}
+                    to={leaf.path!}
+                    className={cx('erp-fly__item', leaf.key === activeKey && 'is-active')}
+                    aria-current={leaf.key === activeKey ? 'page' : undefined}
+                    onClick={onClose}
+                  >
+                    <span className="erp-sb-text">{label(leaf)}</span>
+                    {leaf.count !== undefined && <span className="erp-sb-count">{leaf.count}</span>}
+                  </Link>
+                ))}
+            </div>
+          ) : sub.path ? (
+            <Link
+              key={sub.key}
+              to={sub.path}
+              className={cx('erp-fly__item', sub.key === activeKey && 'is-active')}
+              onClick={onClose}
+            >
+              <span className="erp-sb-text">{label(sub)}</span>
+            </Link>
+          ) : null,
+        )}
+      </div>
       <button type="button" className="erp-fly__pin" onClick={onPin}>
         <PushpinOutlined />
         {t('shell.pinOpen')}
@@ -291,11 +294,17 @@ export function Sidebar({
           {modules.map((module) => (
             <Popover
               key={module.key}
-              trigger="click"
+              trigger="hover"
               placement="rightTop"
               arrow={false}
+              align={{ overflow: { shiftY: true } }}
+              mouseLeaveDelay={FLYOUT_LEAVE_DELAY}
               open={flyout === module.key}
-              onOpenChange={(open) => setFlyout(open ? module.key : null)}
+              onOpenChange={(open) =>
+                setFlyout((current) =>
+                  open ? module.key : current === module.key ? null : current,
+                )
+              }
               styles={{ body: { padding: 8 } }}
               content={
                 <Flyout
@@ -306,16 +315,15 @@ export function Sidebar({
                 />
               }
             >
-              <Tooltip title={flyout === module.key ? undefined : label(module)} placement="right">
-                <button
-                  type="button"
-                  className={cx('erp-rail-btn', activeKeys.has(module.key) && 'is-active')}
-                  aria-label={label(module)}
-                  aria-expanded={flyout === module.key}
-                >
-                  {module.icon}
-                </button>
-              </Tooltip>
+              <button
+                type="button"
+                className={cx('erp-rail-btn', activeKeys.has(module.key) && 'is-active')}
+                aria-label={label(module)}
+                aria-expanded={flyout === module.key}
+                onClick={() => setFlyout(module.key)}
+              >
+                {module.icon}
+              </button>
             </Popover>
           ))}
         </nav>

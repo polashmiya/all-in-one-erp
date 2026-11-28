@@ -25,10 +25,10 @@ describe('colour helpers', () => {
 });
 
 describe('theme presets', () => {
-  it('defaults to teal', () => {
-    expect(DEFAULT_PRESET).toBe('teal');
-    expect(findPreset('unknown').key).toBe('teal');
-    expect(findPreset(undefined).primary).toBe('#0F766E');
+  it('defaults to emerald', () => {
+    expect(DEFAULT_PRESET).toBe('emerald');
+    expect(findPreset('unknown').key).toBe('emerald');
+    expect(findPreset(undefined).primary).toBe('#047857');
   });
 
   it('has unique keys', () => {
@@ -44,7 +44,7 @@ describe('theme presets', () => {
 
   it('resolves a custom primary and ignores invalid ones', () => {
     expect(resolvePreset(CUSTOM_PRESET, '#123abc').primary).toBe('#123ABC');
-    expect(resolvePreset(CUSTOM_PRESET, 'red').key).toBe('teal');
+    expect(resolvePreset(CUSTOM_PRESET, 'red').key).toBe(DEFAULT_PRESET);
     expect(resolvePreset('indigo', '#123abc').key).toBe('indigo');
   });
 });
@@ -155,9 +155,11 @@ describe('buildTheme', () => {
 describe('appearance prefs', () => {
   it('falls back to defaults for unknown or missing values', () => {
     expect(sanitizeUiPrefs({})).toEqual(defaultUiPrefs);
-    expect(sanitizeUiPrefs({ font: 'comic', tableStripe: 'yes', tableSize: 'compact' })).toEqual({
+    expect(
+      sanitizeUiPrefs({ font: 'comic', tableStripe: 'yes', tableSize: 'comfortable' }),
+    ).toEqual({
       ...defaultUiPrefs,
-      tableSize: 'compact',
+      tableSize: 'comfortable',
     });
   });
 
